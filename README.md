@@ -8,10 +8,10 @@ A plugin marketplace for [Claude Code](https://claude.ai/code) containing reusab
 
 Generate excellent Product Requirements Documents (PRDs) and Technical Design Documents (TDDs) with structured workflows and deep analysis.
 
-| Command | Skill      | Purpose                                                                   |
-| ------- | ---------- | ------------------------------------------------------------------------- |
-| `/prd`  | prd-writer | Generate PRDs focused on problems, goals, users, and success metrics      |
-| `/tdd`  | tdd-writer | Generate TDDs focused on requirements, contracts, and acceptance criteria |
+| Command             | Skill      | Purpose                                                                   |
+| ------------------- | ---------- | ------------------------------------------------------------------------- |
+| `/specs-plugin:prd` | prd-writer | Generate PRDs focused on problems, goals, users, and success metrics      |
+| `/specs-plugin:tdd` | tdd-writer | Generate TDDs focused on requirements, contracts, and acceptance criteria |
 
 ## Installation
 
@@ -38,8 +38,8 @@ In Claude Code, add this marketplace:
 
 ```bash
 # Test the commands
-/prd --help
-/tdd --help
+/specs-plugin:prd --help
+/specs-plugin:tdd --help
 ```
 
 ### Keeping Plugins Updated
@@ -72,16 +72,16 @@ Generate Product Requirements Documents focused on problems, goals, users, and s
 
 ```bash
 # Create a master PRD
-/prd time-tracking --type master
+/specs-plugin:prd time-tracking --type master
 
 # Create a feature PRD
-/prd time-tracking-mobile --type feature
+/specs-plugin:prd time-tracking-mobile --type feature
 
 # Review existing PRD for scope creep
-/prd --review @specs/prds/time-tracking/00-master.md
+/specs-plugin:prd --review @specs/prds/time-tracking/00-master.md
 
 # Consolidate after answering Open Questions
-/prd --consolidate @specs/prds/time-tracking/01-mobile.md
+/specs-plugin:prd --consolidate @specs/prds/time-tracking/01-mobile.md
 ```
 
 **Flags:**
@@ -101,16 +101,16 @@ Generate Technical Design Documents focused on requirements, contracts, and acce
 
 ```bash
 # Create a backend TDD
-/tdd incidents --type backend --prd @specs/prds/02-incident-management.md
+/specs-plugin:tdd incidents --type backend --prd @specs/prds/02-incident-management.md
 
 # Create a UI TDD
-/tdd incidents-ui --type ui --prd @specs/prds/02-incident-management.md
+/specs-plugin:tdd incidents-ui --type ui --prd @specs/prds/02-incident-management.md
 
 # Review existing TDD for bloat
-/tdd --review @specs/tdds/incidents/01-incident-resource.md
+/specs-plugin:tdd --review @specs/tdds/incidents/01-incident-resource.md
 
 # Consolidate after answering Open Questions
-/tdd --consolidate @specs/tdds/incidents/01-incident-resource.md
+/specs-plugin:tdd --consolidate @specs/tdds/incidents/01-incident-resource.md
 ```
 
 **Flags:**
@@ -128,30 +128,30 @@ Generate Technical Design Documents focused on requirements, contracts, and acce
 ## Workflow
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│  1. CREATE PRD                                                  │
-│     /prd feature --type master                                  │
-│                                                                 │
-│     • Define problem, goals, users, requirements                │
-│     • Generate Open Questions via deep analysis                 │
-│     • Review and consolidate                                    │
-└─────────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────────┐
-│  2. CREATE TDD                                                  │
-│     /tdd feature --type backend --prd @specs/prds/feature.md    │
-│                                                                 │
-│     • Define data models, contracts, acceptance criteria        │
-│     • Generate Open Questions via deep analysis                 │
-│     • Review and consolidate                                    │
-└─────────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────────┐
-│  3. IMPLEMENT                                                   │
-│                                                                 │
-│     • PRD and TDD are complete and approved                     │
-│     • Ready for implementation                                  │
-└─────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  1. CREATE PRD                                                               │
+│     /specs-plugin:prd feature --type master                                  │
+│                                                                              │
+│     • Define problem, goals, users, requirements                             │
+│     • Generate Open Questions via deep analysis                              │
+│     • Review and consolidate                                                 │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                      ↓
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  2. CREATE TDD                                                               │
+│     /specs-plugin:tdd feature --type backend --prd @specs/prds/feature.md    │
+│                                                                              │
+│     • Define data models, contracts, acceptance criteria                     │
+│     • Generate Open Questions via deep analysis                              │
+│     • Review and consolidate                                                 │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                      ↓
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  3. IMPLEMENT                                                                │
+│                                                                              │
+│     • PRD and TDD are complete and approved                                  │
+│     • Ready for implementation                                               │
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Philosophy
