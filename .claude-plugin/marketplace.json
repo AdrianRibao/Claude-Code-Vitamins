@@ -1,0 +1,13 @@
+{
+  "name": "claude-code-vitamins",
+  "owner": {
+    "name": "Adrián Ribao"
+  },
+  "plugins": [
+    {
+      "name": "vitamins-plugin",
+      "source": "./plugins/vitamins-plugin",
+      "description": "Adds /tdd and /prd commands with tdd-writer and prd-writer skills for generating PRDs and TDDs"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+# mdformat configuration for MkDocs Material theme
+# Don't wrap long lines (preserve as-is)
+wrap = "no"
+# Don't auto-number ordered lists
+number = true
+# Use LF line endings
+end_of_line = "lf"
+
+validate = true       # options: {false, true}
+
+# Enable plugins for MkDocs features
+[plugin.mkdocs]
+# Preserve MkDocs Material specific syntax
+
+[plugin.tables]
+# Format tables properly
+
+[plugin.frontmatter]
+# Preserve YAML frontmatter
+
+[plugin.gfm]
+# GitHub Flavored Markdown support
