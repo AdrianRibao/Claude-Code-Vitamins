@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-claude-code-vitamins is a Claude Code plugin marketplace containing reusable skills and commands for Claude Code. The primary plugin is `vitamins-plugin` which provides `/prd` and `/tdd` commands for generating Product Requirements Documents and Technical Design Documents.
+claude-code-vitamins is a Claude Code plugin marketplace containing reusable skills and commands for Claude Code. The primary plugin is `specs-plugin` which provides `/prd` and `/tdd` commands for generating Product Requirements Documents and Technical Design Documents.
 
 ## Repository Structure
 
@@ -13,7 +13,7 @@ claude-code-vitamins is a Claude Code plugin marketplace containing reusable ski
   marketplace.json          # Marketplace manifest listing available plugins
 
 plugins/
-  vitamins-plugin/
+  specs-plugin/
     .claude-plugin/
       plugin.json           # Plugin manifest
     commands/

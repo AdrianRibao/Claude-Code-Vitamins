@@ -1,5 +1,5 @@
 {
-  "name": "vitamins-plugin",
+  "name": "specs-plugin",
   "description": "Adds /tdd and /prd commands with tdd-writer and prd-writer skills for generating PRDs and TDDs",
   "version": "1.0.0"
 }

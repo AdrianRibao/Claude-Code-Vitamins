@@ -4,7 +4,7 @@ A plugin marketplace for [Claude Code](https://claude.ai/code) containing reusab
 
 ## Available Plugins
 
-### vitamins-plugin
+### specs-plugin
 
 Generate excellent Product Requirements Documents (PRDs) and Technical Design Documents (TDDs) with structured workflows and deep analysis.
 
@@ -30,8 +30,8 @@ In Claude Code, add this marketplace:
 ### 2. Install a Plugin
 
 ```bash
-# Install vitamins-plugin
-/plugin install vitamins-plugin@claude-code-vitamins
+# Install specs-plugin
+/plugin install specs-plugin@claude-code-vitamins
 ```
 
 ### 3. Verify Installation
