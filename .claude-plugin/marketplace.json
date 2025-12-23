@@ -7,13 +7,7 @@
     {
       "name": "specs-plugin",
       "source": "./plugins/specs-plugin",
-      "description": "Adds /tdd and /prd commands with tdd-writer and prd-writer skills for generating PRDs and TDDs",
-      "mcpServers": {
-        "context7": {
-          "command": "npx",
-          "args": ["-y", "@upstash/context7-mcp"]
-        }
-      }
+      "description": "Adds /tdd and /prd commands with tdd-writer and prd-writer skills for generating PRDs and TDDs"
     }
   ]
 }
