@@ -227,6 +227,28 @@ ______________________________________________________________________
 - [ ] PDF generation completes in < 3 seconds
 - [ ] Email sent within 30 seconds of clicking "Send"
 
+### Testing
+
+- [ ] Unit tests written for all business logic and validations
+- [ ] Unit tests cover invoice number generation and sequential logic
+- [ ] Unit tests validate all status transition rules
+- [ ] Unit tests verify subtotal, VAT, and total calculations
+- [ ] **Policy tests verify all authorization rules and permissions**
+- [ ] **Policy tests validate Owner can only update draft invoices**
+- [ ] **Policy tests validate Client read-only access via unique link**
+- [ ] **Policy tests cover authentication failures and unauthorized access**
+- [ ] Integration tests verify complete CRUD workflows with authorization
+- [ ] Integration tests validate PDF generation and email delivery
+- [ ] Integration tests verify relationship cascades for line items
+- [ ] Edge case tests for concurrent invoice creation (sequential numbers)
+- [ ] Edge case tests for duplicate invoice creation
+- [ ] Test coverage ≥ 80% for domain logic
+- [ ] Test coverage ≥ 90% for critical business rules (BR-01 to BR-04)
+- [ ] **Test coverage ≥ 95% for authentication and authorization logic**
+- [ ] Performance tests validate query response times < 100ms
+- [ ] Performance tests validate PDF generation < 3 seconds
+- [ ] Load tests verify system handles 100 concurrent invoice creations
+
 ______________________________________________________________________
 
 ## Open Questions

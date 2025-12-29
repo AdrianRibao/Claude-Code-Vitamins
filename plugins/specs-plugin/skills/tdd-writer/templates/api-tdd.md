@@ -228,15 +228,11 @@ ______________________________________________________________________
 
 ### Pagination Edge Cases
 
-**Given**: User requests page beyond available data
-**When**: GET /features?page=999
-**Then**: Return empty data array with correct meta
+**Given**: User requests page beyond available data **When**: GET /features?page=999 **Then**: Return empty data array with correct meta
 
 ### Concurrent Updates
 
-**Given**: Two users update same feature simultaneously
-**When**: Both PATCH requests arrive
-**Then**: Last write wins, return updated resource
+**Given**: Two users update same feature simultaneously **When**: Both PATCH requests arrive **Then**: Last write wins, return updated resource
 
 ______________________________________________________________________
 
@@ -265,6 +261,23 @@ ______________________________________________________________________
 - [ ] Exceeded limit returns 429
 - [ ] Rate limit headers present on all responses
 - [ ] Limits reset after window expires
+
+### Testing
+
+- [ ] Unit tests for all endpoint handlers and request validation
+- [ ] Unit tests validate error response formatting and codes
+- [ ] **API contract tests verify request/response schemas match specification**
+- [ ] **Authentication tests validate token validation and expiry handling**
+- [ ] **Authorization tests verify endpoint permissions and scope enforcement**
+- [ ] Integration tests cover complete API workflows with real backend
+- [ ] Integration tests validate webhook delivery and retry logic
+- [ ] Rate limiting tests verify limits enforced correctly per scope
+- [ ] Security tests validate input sanitization and injection prevention
+- [ ] Load tests verify API handles expected concurrent requests
+- [ ] Test coverage ≥ 85% for API endpoints
+- [ ] Test coverage ≥ 95% for authentication and authorization middleware
+- [ ] Performance tests validate response times meet SLA (< 200ms)
+- [ ] OpenAPI/Swagger spec validation against implementation
 
 ______________________________________________________________________
 

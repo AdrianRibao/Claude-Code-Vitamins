@@ -181,9 +181,7 @@ ______________________________________________________________________
 
 ### Successful Sync
 
-**Given**: Feature is created in our system
-**When**: Create event is published
-**Then**:
+**Given**: Feature is created in our system **When**: Create event is published **Then**:
 
 - Integration worker picks up event
 - External API is called with mapped data
@@ -192,9 +190,7 @@ ______________________________________________________________________
 
 ### Retry on Failure
 
-**Given**: External API returns 503
-**When**: Sync attempt fails
-**Then**:
+**Given**: External API returns 503 **When**: Sync attempt fails **Then**:
 
 - Event is requeued with backoff
 - Retry counter is incremented
@@ -203,9 +199,7 @@ ______________________________________________________________________
 
 ### Webhook Validation
 
-**Given**: Webhook received from external service
-**When**: Signature verification fails
-**Then**:
+**Given**: Webhook received from external service **When**: Signature verification fails **Then**:
 
 - Request is rejected with 401
 - Event logged for security audit
@@ -263,6 +257,23 @@ ______________________________________________________________________
 - [ ] Webhook signatures are verified
 - [ ] Failed auth attempts are logged
 - [ ] Credentials rotation is automated
+
+### Testing
+
+- [ ] Unit tests for data mapping and transformation logic
+- [ ] Unit tests validate enum conversions and edge cases
+- [ ] Integration tests with mocked external service verify retry logic
+- [ ] Integration tests validate webhook signature verification
+- [ ] Integration tests verify dead letter queue processing
+- [ ] Contract tests ensure compatibility with external API specification
+- [ ] End-to-end tests verify complete sync workflows with real test environment
+- [ ] Chaos tests validate behavior under network failures and timeouts
+- [ ] Load tests verify system handles expected event throughput
+- [ ] Security tests validate authentication and authorization flows
+- [ ] Test coverage ≥ 80% for integration workers and handlers
+- [ ] Test coverage ≥ 90% for error handling and retry logic
+- [ ] Monitoring tests verify metrics collection and alert triggering
+- [ ] Performance tests validate sync latency meets SLA (< 5s p99)
 
 ______________________________________________________________________
 

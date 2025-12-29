@@ -110,27 +110,28 @@ Requirements-first approach: every section answers "what" not "how". Use tables 
 
 ## Include in TDDs
 
-| Element              | Purpose                                 | Example                                |
-| -------------------- | --------------------------------------- | -------------------------------------- |
-| Requirements         | WHAT needs to be built                  | "Users can create incidents"           |
-| Data Models          | Attributes, types, constraints (tables) | `hours_adjustment: decimal, required`  |
-| Interface Contracts  | Function signatures, action names       | `create_incident(params, actor:)`      |
-| Behavior Specs       | Input → Output expectations             | "Creating incident sends notification" |
-| Acceptance Criteria  | How to verify completion                | "[ ] Employee can create incident"     |
-| Constraints & Rules  | Business logic boundaries               | "DL-01: Hours adjustment model"        |
-| Authorization Matrix | Who can do what (tables)                | "Employee: create own, read own"       |
-| Related Documents    | Links to PRDs, master TDDs, siblings    | "Parent PRD: [link], Backend: [link]"  |
-| Open Questions       | Unresolved decisions needing input      | "OQ-01: Retention policy?" - Open      |
+| Element              | Purpose                                 | Example                                     |
+| -------------------- | --------------------------------------- | ------------------------------------------- |
+| Requirements         | WHAT needs to be built                  | "Users can create incidents"                |
+| Data Models          | Attributes, types, constraints (tables) | `hours_adjustment: decimal, required`       |
+| Interface Contracts  | Function signatures, action names       | `create_incident(params, actor:)`           |
+| Behavior Specs       | Input → Output expectations             | "Creating incident sends notification"      |
+| Acceptance Criteria  | How to verify completion                | "[ ] Employee can create incident"          |
+| Testing Requirements | Test types, coverage targets            | "[ ] Policy tests verify all auth rules"    |
+| Constraints & Rules  | Business logic boundaries               | "DL-01: Hours adjustment model"             |
+| Authorization Matrix | Who can do what (tables)                | "Employee: create own, read own"            |
+| Related Documents    | Links to PRDs, master TDDs, siblings    | "Parent PRD: [link], Backend: [link]"       |
+| Open Questions       | Unresolved decisions needing input      | "OQ-01: Retention policy?" - Open           |
 
 ## Exclude from TDDs
 
-| Element              | Why Exclude                     | Where It Belongs |
-| -------------------- | ------------------------------- | ---------------- |
-| Full module code     | Gets stale, duplicates codebase | Implementation   |
-| Internal algorithms  | Implementation detail           | Code comments    |
-| Function bodies      | Will change during dev          | Codebase         |
-| Boilerplate          | Noise, no specification value   | Templates        |
-| Test implementations | Duplicates test files           | Test suite       |
+| Element              | Why Exclude                                              | Where It Belongs |
+| -------------------- | -------------------------------------------------------- | ---------------- |
+| Full module code     | Gets stale, duplicates codebase                          | Implementation   |
+| Internal algorithms  | Implementation detail                                    | Code comments    |
+| Function bodies      | Will change during dev                                   | Codebase         |
+| Boilerplate          | Noise, no specification value                            | Templates        |
+| Test implementations | Duplicates test files (but testing requirements belong!) | Test suite       |
 
 ## MCP Integration
 
@@ -397,6 +398,9 @@ Before finalizing a TDD, verify:
 - [ ] Data model uses tables, not code
 - [ ] Interface shows signatures only
 - [ ] Acceptance criteria are testable checkboxes
+- [ ] **Testing subsection includes coverage targets and test types**
+- [ ] **Policy/authentication tests explicitly included for backend/API TDDs**
+- [ ] **Accessibility tests explicitly included for UI TDDs**
 - [ ] No "implementation details" or "how to implement" sections
 - [ ] Authorization uses matrix format
 - [ ] Behavior specs use Given/When/Then

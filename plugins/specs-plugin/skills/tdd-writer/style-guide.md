@@ -193,6 +193,105 @@ Document edge cases with the same structure:
 7. Open Questions
 8. Related Documents
 
+## Testing Requirements Format
+
+### Testing Subsection
+
+All TDDs must include a **Testing** subsection under Acceptance Criteria with testable checkboxes.
+
+### Coverage Targets
+
+Specify minimum test coverage percentages for different code categories:
+
+```markdown
+### Testing
+
+- [ ] Test coverage ≥ 80% for domain logic
+- [ ] Test coverage ≥ 90% for critical business rules
+- [ ] Test coverage ≥ 95% for authentication and authorization logic
+```
+
+### Test Types by TDD Type
+
+**Backend TDD**:
+
+- Unit tests for business logic and validations
+- **Policy tests for authorization rules** (critical requirement)
+- Integration tests for CRUD workflows
+- Performance tests for query response times
+- Load tests for concurrent operations
+
+**UI TDD**:
+
+- Unit tests for component logic and state
+- Component tests for prop handling and events
+- **Accessibility tests for WCAG compliance** (critical requirement)
+- E2E tests for user workflows
+- Visual regression tests for UI changes
+- Cross-browser compatibility tests
+
+**API TDD**:
+
+- Unit tests for endpoint handlers
+- **API contract tests for schema validation** (critical requirement)
+- **Authentication/authorization tests** (critical requirement)
+- Rate limiting tests
+- Security tests for input sanitization
+- Load tests for concurrent requests
+- OpenAPI/Swagger spec validation
+
+**Integration TDD**:
+
+- Unit tests for data mapping and transformations
+- Integration tests with mocked external services
+- Contract tests for external API compatibility
+- End-to-end tests with real test environment
+- Chaos tests for failure scenarios
+- Monitoring tests for metrics and alerts
+
+### Policy Testing (Critical)
+
+**Authentication and authorization tests are non-negotiable requirements**. Every TDD must explicitly include:
+
+```markdown
+- [ ] **Policy tests verify all authorization rules and permissions**
+- [ ] **Policy tests validate each actor role against policy matrix**
+- [ ] **Policy tests cover authentication failures and unauthorized access attempts**
+- [ ] **Test coverage ≥ 95% for authentication and authorization logic**
+```
+
+### Performance Testing
+
+Include measurable performance criteria:
+
+```markdown
+- [ ] Performance tests validate query response times < 100ms
+- [ ] Performance tests validate page load < 3s, interaction < 100ms
+- [ ] Performance tests validate API response times meet SLA (< 200ms)
+```
+
+### Test Specifications (Not Implementation)
+
+Testing criteria specify **WHAT** to test, not **HOW** to test:
+
+✅ **Good**: Testable requirements
+
+```markdown
+- [ ] Unit tests validate all constraint rules and status transitions
+- [ ] Policy tests verify Owner can only update draft status records
+- [ ] E2E tests cover complete user workflows (create, edit, delete)
+```
+
+❌ **Bad**: Test implementation code
+
+```elixir
+test "owner can update draft" do
+  user = create_user()
+  record = create_record(status: :draft, owner: user)
+  assert {:ok, _} = update_record(record, %{name: "new"}, actor: user)
+end
+```
+
 ## Anti-Patterns to Avoid
 
 ### Code Bloat
@@ -222,15 +321,12 @@ end
 
 ### Implementation Details
 
-❌ **Bad**: "Use GenServer for caching"
-✅ **Good**: "Cache results for 5 minutes"
+❌ **Bad**: "Use GenServer for caching" ✅ **Good**: "Cache results for 5 minutes"
 
 ### Test Implementations
 
-❌ **Bad**: Full test file with assertions
-✅ **Good**: Acceptance criteria as checkboxes
+❌ **Bad**: Full test file with assertions ✅ **Good**: Acceptance criteria as checkboxes
 
 ### Vague Requirements
 
-❌ **Bad**: "Handle errors appropriately"
-✅ **Good**: "Display validation errors inline next to form fields"
+❌ **Bad**: "Handle errors appropriately" ✅ **Good**: "Display validation errors inline next to form fields"

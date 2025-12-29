@@ -105,9 +105,7 @@ ______________________________________________________________________
 
 ### Creating a Record
 
-**Given**: User has `create` permission
-**When**: User submits valid form data
-**Then**:
+**Given**: User has `create` permission **When**: User submits valid form data **Then**:
 
 - Record is created with `draft` status
 - `created_at` is set to current UTC time
@@ -115,9 +113,7 @@ ______________________________________________________________________
 
 ### Archiving a Record
 
-**Given**: User owns the record and record is in `active` status
-**When**: User requests archive
-**Then**:
+**Given**: User owns the record and record is in `active` status **When**: User requests archive **Then**:
 
 - Status changes to `archived`
 - Record is excluded from default list queries
@@ -145,6 +141,22 @@ ______________________________________________________________________
 - [ ] Unauthenticated requests return 401
 - [ ] Users cannot access records they don't own
 - [ ] Admins can access all records
+
+### Testing
+
+- [ ] Unit tests written for all business logic and validations
+- [ ] Unit tests cover all constraint rules and status transitions
+- [ ] **Policy tests verify all authorization rules and permissions**
+- [ ] **Policy tests validate each actor role against policy matrix**
+- [ ] **Policy tests cover authentication failures and unauthorized access attempts**
+- [ ] Integration tests verify complete CRUD workflows with authorization
+- [ ] Integration tests validate relationship cascades and foreign keys
+- [ ] Edge case tests for concurrent updates and data race conditions
+- [ ] Test coverage ≥ 80% for domain logic
+- [ ] Test coverage ≥ 90% for critical business rules
+- [ ] **Test coverage ≥ 95% for authentication and authorization logic**
+- [ ] Performance tests validate query response times < 100ms
+- [ ] Load tests verify system handles expected concurrent operations
 
 ______________________________________________________________________
 

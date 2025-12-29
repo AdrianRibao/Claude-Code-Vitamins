@@ -153,9 +153,7 @@ ______________________________________________________________________
 
 ### Form Submission
 
-**Given**: User is on create form with valid data
-**When**: User clicks "Submit"
-**Then**:
+**Given**: User is on create form with valid data **When**: User clicks "Submit" **Then**:
 
 - Loading indicator appears on button
 - Form fields are disabled
@@ -164,9 +162,7 @@ ______________________________________________________________________
 
 ### Optimistic UI Updates
 
-**Given**: User archives a feature from list view
-**When**: Archive is confirmed
-**Then**:
+**Given**: User archives a feature from list view **When**: Archive is confirmed **Then**:
 
 - Item immediately shows "archived" status
 - On API failure: Revert status, show error toast
@@ -212,6 +208,23 @@ ______________________________________________________________________
 - [ ] Layout adapts to mobile viewport
 - [ ] Touch targets are 44px minimum
 - [ ] Table converts to card layout on mobile
+
+### Testing
+
+- [ ] Unit tests for all component logic and state management
+- [ ] Unit tests validate form validation rules and error handling
+- [ ] Component tests verify prop handling and event emissions
+- [ ] Integration tests validate navigation flows and route transitions
+- [ ] E2E tests cover complete user workflows (create, edit, delete)
+- [ ] E2E tests verify optimistic UI updates and error recovery
+- [ ] **Accessibility tests validate WCAG AA compliance**
+- [ ] **Accessibility tests verify keyboard navigation and focus management**
+- [ ] **Accessibility tests validate screen reader announcements**
+- [ ] Visual regression tests detect unintended UI changes
+- [ ] Test coverage ≥ 70% for UI components
+- [ ] Test coverage ≥ 90% for critical user flows
+- [ ] Performance tests validate page load < 3s, interaction < 100ms
+- [ ] Cross-browser tests verify functionality in Chrome, Firefox, Safari
 
 ______________________________________________________________________
 
