@@ -1,7 +1,7 @@
 ---
 name: tdd-writer
 description: Generate lean Technical Design Documents focused on requirements, contracts, and acceptance criteria. Use when creating TDDs, converting PRDs to specs, or documenting backend resources, APIs, or UI components.
-allowed-tools: Read, Grep, Glob, Write, Edit, AskUserQuestion, TodoWrite, Task
+allowed-tools: Read, Grep, Glob, Write, Edit, AskUserQuestion, TodoWrite, Task, mcp__context7_context7__resolve-library-id, mcp__context7_context7__query-docs
 ---
 
 # TDD Writer Skill
