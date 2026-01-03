@@ -1,7 +1,7 @@
 {
   "context7": {
     "command": "npx",
-    "args": ["-y", "@context7/mcp"]
+    "args": ["-y", "@upstash/context7-mcp"]
   },
   "sequential-thinking": {
     "command": "npx",
