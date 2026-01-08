@@ -13,6 +13,13 @@ Generate excellent Product Requirements Documents (PRDs) and Technical Design Do
 | `/specs-plugin:prd` | prd-writer | Generate PRDs focused on problems, goals, users, and success metrics      |
 | `/specs-plugin:tdd` | tdd-writer | Generate TDDs focused on requirements, contracts, and acceptance criteria |
 
+## Requirements
+
+- Claude Code 2.1.0 or later
+- **Optional MCP servers** (for enhanced functionality):
+    - [Context7](https://github.com/upstash/context7-mcp) - Library documentation lookups
+    - Sequential Thinking - Deep analysis for Open Questions generation
+
 ## Installation
 
 ### 1. Add the Marketplace

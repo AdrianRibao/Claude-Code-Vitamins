@@ -1,7 +1,17 @@
 ---
 name: prd-writer
 description: Generate excellent Product Requirements Documents focused on problems, goals, users, and success metrics. Use when creating PRDs, defining product scope, or documenting feature requirements.
-allowed-tools: Read, Grep, Glob, Write, Edit, AskUserQuestion, TodoWrite, Task, mcp__context7_context7__resolve-library-id, mcp__context7_context7__query-docs
+allowed-tools:
+  - Read
+  - Grep
+  - Glob
+  - Write
+  - Edit
+  - AskUserQuestion
+  - TodoWrite
+  - Task
+  - mcp__plugin_context7_context7__resolve-library-id
+  - mcp__plugin_context7_context7__query-docs
 ---
 
 # PRD Writer Skill
