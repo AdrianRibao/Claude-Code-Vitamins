@@ -225,6 +225,13 @@ ______________________________________________________________________
 - [ ] Test coverage ≥ 90% for critical user flows
 - [ ] Performance tests validate page load < 3s, interaction < 100ms
 - [ ] Cross-browser tests verify functionality in Chrome, Firefox, Safari
+- [ ] UI tests cover all user-facing components and interactions
+
+### Code Quality
+
+- [ ] All new modules have type annotations and documentation
+- [ ] No compiler/linter warnings
+- [ ] Code formatted per project standards
 
 ______________________________________________________________________
 

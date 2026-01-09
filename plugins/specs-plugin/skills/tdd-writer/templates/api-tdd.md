@@ -278,6 +278,13 @@ ______________________________________________________________________
 - [ ] Test coverage ≥ 95% for authentication and authorization middleware
 - [ ] Performance tests validate response times meet SLA (< 200ms)
 - [ ] OpenAPI/Swagger spec validation against implementation
+- [ ] UI tests cover API consumer interfaces (if applicable)
+
+### Code Quality
+
+- [ ] All new modules have type annotations and documentation
+- [ ] No compiler/linter warnings
+- [ ] Code formatted per project standards
 
 ______________________________________________________________________
 

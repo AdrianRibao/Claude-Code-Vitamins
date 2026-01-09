@@ -157,6 +157,13 @@ ______________________________________________________________________
 - [ ] **Test coverage ≥ 95% for authentication and authorization logic**
 - [ ] Performance tests validate query response times < 100ms
 - [ ] Load tests verify system handles expected concurrent operations
+- [ ] UI tests cover user-facing changes (if applicable)
+
+### Code Quality
+
+- [ ] All new modules have type annotations and documentation
+- [ ] No compiler/linter warnings
+- [ ] Code formatted per project standards
 
 ______________________________________________________________________
 

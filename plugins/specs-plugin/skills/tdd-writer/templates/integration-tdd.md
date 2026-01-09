@@ -274,6 +274,13 @@ ______________________________________________________________________
 - [ ] Test coverage ≥ 90% for error handling and retry logic
 - [ ] Monitoring tests verify metrics collection and alert triggering
 - [ ] Performance tests validate sync latency meets SLA (< 5s p99)
+- [ ] UI tests cover integration status displays (if applicable)
+
+### Code Quality
+
+- [ ] All new modules have type annotations and documentation
+- [ ] No compiler/linter warnings
+- [ ] Code formatted per project standards
 
 ______________________________________________________________________
 
