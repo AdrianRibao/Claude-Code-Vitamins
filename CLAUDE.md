@@ -4,7 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-claude-code-vitamins is a Claude Code plugin marketplace containing reusable skills and commands for Claude Code. The primary plugin is `specs-plugin` which provides `/prd` and `/tdd` commands for generating Product Requirements Documents and Technical Design Documents.
+claude-code-vitamins is a Claude Code plugin marketplace containing reusable skills and commands for Claude Code. The primary plugin is `specs-plugin` which provides:
+
+- `/prd` - Generate Product Requirements Documents
+- `/tdd` - Generate Technical Design Documents
+- `ac-checker` skill - Verify acceptance criteria are implemented in code (automatically invoked)
 
 ## Repository Structure
 
@@ -32,6 +36,11 @@ plugins/
         style-guide.md      # TDD writing conventions
         templates/          # TDD templates (backend, ui, api, integration)
         examples/           # Reference TDD examples
+      ac-checker/
+        SKILL.md            # Acceptance criteria checker skill
+        README.md           # AC checker documentation
+        validation-rules.md # Validation rules reference
+        style-guide.md      # AC writing conventions
 ```
 
 ## Plugin Architecture
@@ -56,6 +65,59 @@ The body contains:
 - Include/exclude guidance
 - Quality checklists
 - Boundaries (will/will not do)
+
+#### mdformat Compatibility
+
+**CRITICAL**: All SKILL.md files must pass `mdformat` validation.
+
+Common mdformat issues and solutions:
+
+1. **Numbered lists across sections**: Numbered lists (1, 2, 3...) cannot continue across section headers. Restart numbering in each section.
+
+    ❌ **Wrong**:
+
+    ```markdown
+    ### Phase 1
+    1. First action
+    2. Second action
+
+    ### Phase 2
+    3. Third action  # Continuing from previous section
+    ```
+
+    ✅ **Correct**:
+
+    ```markdown
+    ### Phase 1
+    1. First action
+    2. Second action
+
+    ### Phase 2
+    1. First action  # Restart numbering
+    ```
+
+2. **Long numbered list items**: Very long text in numbered items breaks mdformat. Use bullet sub-lists instead.
+
+    ❌ **Wrong**:
+
+    ```markdown
+    1. **Action**: Do this thing by first doing X, then doing Y, and finally doing Z
+    ```
+
+    ✅ **Correct** (Option 2 - Use bullet sub-lists):
+
+    ```markdown
+    1. **Action**: Do this thing in multiple steps:
+       - First do X
+       - Then do Y
+       - Finally do Z
+    ```
+
+3. **Arrow symbols**: Use `->` instead of `→` for compatibility.
+
+    ❌ `Backend TDD → test directory` ✅ `Backend TDD -> test directory`
+
+**Validation**: Always run `mdformat path/to/SKILL.md` before committing.
 
 ### Command Wrappers (commands/\*.md)
 
@@ -120,6 +182,10 @@ PRDs split when: >8 workflows, >30 requirements, >4 personas, >1000 lines TDDs s
 2. Add `.claude-plugin/plugin.json` manifest
 3. Add skills and commands as needed
 4. Register in `.claude-plugin/marketplace.json`
+
+## References
+
+- [Claude Code Changelog](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md) - Official changelog for Claude Code releases and features
 
 ## Style Guide Principles
 

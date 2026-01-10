@@ -6,12 +6,13 @@ A plugin marketplace for [Claude Code](https://claude.ai/code) containing reusab
 
 ### specs-plugin
 
-Generate excellent Product Requirements Documents (PRDs) and Technical Design Documents (TDDs) with structured workflows and deep analysis.
+Generate excellent Product Requirements Documents (PRDs) and Technical Design Documents (TDDs) with structured workflows and deep analysis. Verify implementation completeness against TDD acceptance criteria.
 
-| Command             | Skill      | Purpose                                                                   |
-| ------------------- | ---------- | ------------------------------------------------------------------------- |
-| `/specs-plugin:prd` | prd-writer | Generate PRDs focused on problems, goals, users, and success metrics      |
-| `/specs-plugin:tdd` | tdd-writer | Generate TDDs focused on requirements, contracts, and acceptance criteria |
+| Command                    | Skill      | Purpose                                                                   |
+| -------------------------- | ---------- | ------------------------------------------------------------------------- |
+| `/specs-plugin:prd`        | prd-writer | Generate PRDs focused on problems, goals, users, and success metrics      |
+| `/specs-plugin:tdd`        | tdd-writer | Generate TDDs focused on requirements, contracts, and acceptance criteria |
+| `/specs-plugin:ac-checker` | ac-checker | Verify acceptance criteria are implemented with tests and code            |
 
 ## Requirements
 
@@ -132,6 +133,41 @@ Generate Technical Design Documents focused on requirements, contracts, and acce
 
 **Output:** `specs/tdds/{feature}/{nn}-{feature}-{type}.md`
 
+### Acceptance Criteria Checker
+
+Verify that acceptance criteria from TDDs are actually implemented in code with tests and proper coverage.
+
+```bash
+# Check implementation status
+/specs-plugin:ac-checker specs/tdds/incidents/01-incidents-backend.md
+
+# Check with coverage analysis
+/specs-plugin:ac-checker specs/tdds/user-auth/01-user-auth-backend.md --coverage
+
+# Check and auto-update TDD checkboxes
+/specs-plugin:ac-checker specs/tdds/dashboard/02-dashboard-ui.md --update
+
+# Compare against specific branch
+/specs-plugin:ac-checker specs/tdds/incidents/01-incidents-backend.md --branch develop
+```
+
+**Flags:**
+
+| Flag         | Purpose                                                |
+| ------------ | ------------------------------------------------------ |
+| `--coverage` | Run coverage analysis to verify targets                |
+| `--update`   | Update TDD by marking implemented criteria as complete |
+| `--branch`   | Compare against specific branch (default: main)        |
+
+**What it checks:**
+
+- ✅ Tests exist for each criterion (searches test files)
+- ✅ Implementation code exists (searches source files)
+- ✅ Coverage targets met (≥80% domain, ≥90% business rules, ≥95% auth)
+- ✅ Checkbox status matches implementation
+
+**Output:** `specs/tdds/reports/ac-implementation-{feature}-{timestamp}.md`
+
 ## Workflow
 
 ```
@@ -157,7 +193,18 @@ Generate Technical Design Documents focused on requirements, contracts, and acce
 │  3. IMPLEMENT                                                                │
 │                                                                              │
 │     • PRD and TDD are complete and approved                                  │
-│     • Ready for implementation                                               │
+│     • Write tests and implementation code                                    │
+│     • Iteratively check progress with ac-checker                             │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                      ↓
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  4. VERIFY                                                                   │
+│     /specs-plugin:ac-checker specs/tdds/feature.md --coverage --update       │
+│                                                                              │
+│     • Validate tests exist for all acceptance criteria                       │
+│     • Verify implementation code is complete                                 │
+│     • Check coverage targets are met                                         │
+│     • Update TDD checkboxes, generate report                                 │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
