@@ -7,7 +7,7 @@
     {
       "name": "specs-plugin",
       "source": "./plugins/specs-plugin",
-      "description": "Adds /tdd and /prd commands with tdd-writer and prd-writer skills for generating PRDs and TDDs"
+      "description": "Generate PRDs and TDDs with prd-writer, tdd-writer, and ac-checker skills. Includes /prd and /tdd commands."
     }
   ]
 }
