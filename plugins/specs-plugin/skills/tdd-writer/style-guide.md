@@ -92,26 +92,110 @@ def create_feature(params, actor: user) do
 end
 ```
 
-## Authorization Matrix Format
+## Authorization Model Format
 
-### Policy Matrix
+TDDs specify authorization through three layers. Use what fits the feature's complexity — simple CRUD features may only need Layer 1, while features with sensitive data or complex workflows benefit from all three.
+
+### Layer 1: Action Permissions
+
+Who can perform which actions, and on what scope. Go beyond basic CRUD — include domain-specific actions like approve, publish, escalate, export, delegate.
+
+**Scope qualifiers**:
+
+| Scope | Meaning                       | Filter example              |
+| ----- | ----------------------------- | --------------------------- |
+| Own   | Records created by actor      | `user_id = actor.id`        |
+| Team  | Records in actor's team       | `team_id IN actor.team_ids` |
+| Dept  | Records in actor's department | `dept_id = actor.dept_id`   |
+| Org   | All records in organization   | `org_id = actor.org_id`     |
+| All   | No restriction                | -                           |
+
+**Action permissions matrix**:
 
 ```markdown
-| Actor | Create | Read | Update | Delete |
-|-------|--------|------|--------|--------|
-| Owner | ✅ Own | ✅ Own | ✅ Own | ✅ Own |
-| Manager | ✅ Team | ✅ Team | ✅ Team | ❌ |
-| Admin | ✅ All | ✅ All | ✅ All | ✅ All |
-| Guest | ❌ | ✅ Public | ❌ | ❌ |
+| Actor | Create | Read | Update | Archive | Approve | Export |
+|-------|--------|------|--------|---------|---------|--------|
+| Owner | ✅ Own | ✅ Own | ✅ Own | ✅ Own | ❌ | ✅ Own |
+| Manager | ✅ Team | ✅ Team | ✅ Team | ✅ Team | ✅ Team | ✅ Team |
+| Admin | ✅ All | ✅ All | ✅ All | ✅ All | ✅ All | ✅ All |
+| Guest | ❌ | ✅ Public | ❌ | ❌ | ❌ | ❌ |
 ```
 
-### Policy Rules
+Columns should reflect the actual actions in the Interface Contract, not just generic CRUD.
 
-Use plain language for complex rules:
+### Layer 2: Data Permissions
 
-- Owner can only modify records in `draft` status
-- Manager can approve records in their team's queue
+Which fields each role can see or modify. Use when different roles have different field visibility or edit rights.
+
+**Visibility levels**:
+
+- **RW** - Read and Write (can view and modify)
+- **R** - Read-only (can view, cannot modify)
+- **Hidden** - Not visible (field excluded from responses for this role)
+
+```markdown
+| Field | Owner | Manager | Admin | Guest |
+|-------|-------|---------|-------|-------|
+| name | RW | RW | RW | R |
+| email | RW | R | RW | Hidden |
+| status | R | RW | RW | R |
+| salary | Hidden | R | RW | Hidden |
+| ssn | Hidden | Hidden | R | Hidden |
+| internal_notes | Hidden | RW | RW | Hidden |
+```
+
+**When to include Layer 2**:
+
+- Features with sensitive/PII fields
+- Different roles see different dashboards or detail views
+- Field-level edit restrictions (e.g., only admins can change status)
+- API responses vary by caller role
+
+**When to skip**: All roles see and edit the same fields. Also skip for pure integration TDDs where field filtering is handled upstream — use the data boundary format instead (see integration template).
+
+### Layer 3: Permission Conditions
+
+When permissions apply or change based on context. Captures rules that can't be expressed in a static matrix.
+
+**Condition types**:
+
+| Type               | Example                                       |
+| ------------------ | --------------------------------------------- |
+| Status-based       | Owner can update only when `status = 'draft'` |
+| Time-based         | Edits allowed within 24h of creation          |
+| Relationship-based | Manager sees records in their team's scope    |
+| Approval-based     | Publish requires `approved_by IS NOT NULL`    |
+| Quantity-based     | Free tier limited to 10 records               |
+
+**Permission conditions table**:
+
+```markdown
+| Rule ID | Condition | Effect | Actors |
+|---------|-----------|--------|--------|
+| PC-01 | `status = 'draft'` | Can update | Owner |
+| PC-02 | `created_at > now() - 24h` | Can delete | Owner |
+| PC-03 | `approved_by IS NOT NULL` | Can publish | Manager, Admin |
+| PC-04 | `team_id IN actor.team_ids` | Can read | Manager |
+```
+
+Rule IDs (PC-01, PC-02...) should be referenced in acceptance criteria for traceability.
+
+### Adaptation for Integration TDDs
+
+Integration TDDs adapt Layer 2 from role-based columns to **data boundary columns** (Outbound/Inbound/Internal) since the key concern is what data crosses system boundaries, not per-role visibility. See the integration template for the format.
+
+### When to Skip Authorization
+
+If a feature has no authentication or authorization (public pages, anonymous endpoints, internal-only jobs), skip the authorization section entirely rather than generating empty tables.
+
+### Policy Rules (Plain Language)
+
+Use plain language to summarize complex interactions between layers:
+
+- Owner can only modify records in `draft` status (PC-01)
+- Manager can approve records in their team's queue (PC-04)
 - Admin override requires audit log entry
+- Salary field visible only to Managers (read) and Admins (read-write)
 
 ## Behavior Specification Format
 
@@ -187,7 +271,7 @@ Document edge cases with the same structure:
 1. Overview (Purpose, Scope, Key Business Rules)
 2. Data Model (Attributes, Relationships, Constraints)
 3. Interface Contract (Actions, Code Interface)
-4. Authorization (Policy Matrix, Policy Rules)
+4. Authorization (Action Permissions, Data Permissions, Permission Conditions, Policy Rules)
 5. Behavior Specifications
 6. Acceptance Criteria
 7. Open Questions
@@ -251,11 +335,24 @@ Specify minimum test coverage percentages for different code categories:
 
 ### Policy Testing (Critical)
 
-**Authentication and authorization tests are non-negotiable requirements**. Every TDD must explicitly include:
+**Authentication and authorization tests are non-negotiable requirements**. Every TDD must include tests that cover all three authorization layers:
 
 ```markdown
-- [ ] **Policy tests verify all authorization rules and permissions**
-- [ ] **Policy tests validate each actor role against policy matrix**
+### Layer 1 Tests (Action Permissions)
+- [ ] **Policy tests verify every cell in the action permissions matrix**
+- [ ] **Policy tests validate each actor role against all actions and scopes**
+- [ ] **Policy tests cover cross-scope denial (actor A cannot access actor B's resources)**
+
+### Layer 2 Tests (Data Permissions)
+- [ ] **Policy tests confirm hidden fields are excluded from responses for unauthorized roles**
+- [ ] **Policy tests confirm read-only fields reject write attempts**
+- [ ] **Policy tests verify field visibility per role matches data permissions table**
+
+### Layer 3 Tests (Permission Conditions)
+- [ ] **Policy tests verify each permission condition rule (PC-xx) independently**
+- [ ] **Policy tests cover status-based, time-based, and relationship-based conditions**
+
+### General
 - [ ] **Policy tests cover authentication failures and unauthorized access attempts**
 - [ ] **Test coverage ≥ 95% for authentication and authorization logic**
 ```

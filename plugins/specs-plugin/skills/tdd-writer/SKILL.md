@@ -30,46 +30,48 @@ allowed-tools:
 ## Usage
 
 ```
-/tdd [feature-name] [--type backend|ui|api|integration] [--prd @path] [--no-questions] [--review] [--consolidate @path]
+/tdd [feature-name] [--prd @path] [--no-questions] [--review] [--consolidate @path] [--type backend|ui|api|integration]
 ```
 
-| Flag | Purpose |
-|------|---------|
-| `--type` | TDD type: backend, ui, api, integration |
-| `--prd @path` | Reference PRD for requirements |
-| `--no-questions` | Skip upfront questions (use with comprehensive PRD) |
-| `--review` | Analyze existing TDD for bloat |
-| `--consolidate @path` | Apply OQ answers, tighten document |
+| Flag                  | Purpose                                             |
+| --------------------- | --------------------------------------------------- |
+| `--prd @path`         | Reference PRD for requirements                      |
+| `--no-questions`      | Skip upfront questions (use with comprehensive PRD) |
+| `--review`            | Analyze existing TDD for bloat                      |
+| `--consolidate @path` | Apply OQ answers, tighten document                  |
+| `--type`              | Optional. Split TDD by type when complexity demands |
 
 ## Output Location
 
-TDDs are created at:
+By default, a single combined TDD is created:
 
 ```
-specs/tdds/{feature}/{nn}-{feature}-{type}.md
+specs/tdds/{feature}/{nn}-{feature}.md
 ```
 
 **Examples:**
 
-| Command | Output Path |
-|---------|-------------|
-| `/tdd user-auth --type backend` | `specs/tdds/user-auth/01-user-auth-backend.md` |
-| `/tdd user-auth --type ui` | `specs/tdds/user-auth/02-user-auth-ui.md` |
-| Master TDD (complex features) | `specs/tdds/user-auth/00-user-auth-master.md` |
+| Command                        | Output Path                                   |
+| ------------------------------ | --------------------------------------------- |
+| `/tdd user-auth`               | `specs/tdds/user-auth/01-user-auth.md`        |
+| `/tdd user-auth --prd @prd.md` | `specs/tdds/user-auth/01-user-auth.md`        |
+| `/tdd user-auth --type api`    | `specs/tdds/user-auth/01-user-auth-api.md`    |
+| Master TDD (complex features)  | `specs/tdds/user-auth/00-user-auth-master.md` |
 
 **Numbering convention:**
-- `00-` Master TDD (overview, document hierarchy)
-- `01-` Backend resource
-- `02-` UI/Frontend
-- `03-` API
-- `04-` Integration
+
+- `00-` Master TDD (overview, document hierarchy — only for split TDDs)
+- `01+` Feature TDDs (ordered by priority)
+
+**When to use `--type`**: Only when a feature is complex enough to warrant splitting (see Complexity Management). Most features should use a single combined TDD.
 
 Ask user to confirm or override path during Phase 0 questions.
 
 ## Resources
 
 - [style-guide.md](style-guide.md) - TDD writing conventions and rules
-- [templates/](templates/) - TDD templates by type (backend, ui, api, integration)
+- [templates/combined-tdd.md](templates/combined-tdd.md) - Default combined template (backend + UI)
+- [templates/](templates/) - Type-specific templates (backend, ui, api, integration) for split TDDs
 - [examples/](examples/) - Reference TDD examples
 
 ## Behavioral Mindset
@@ -85,53 +87,65 @@ Requirements-first approach: every section answers "what" not "how". Use tables 
 1. **Read Context**: Review PRD, existing code, related TDDs
 2. **Identify Gaps**: Find ambiguities, missing decisions, unclear scope
 3. **Ask Questions**: Use `AskUserQuestion` to clarify before writing
-   - Scope boundaries (what's in/out)
-   - Key business rules and constraints
-   - Data ownership and relationships
-   - Authorization model
-   - Integration points
+    - Scope boundaries (what's in/out)
+    - Key business rules and constraints
+    - Data ownership and relationships
+    - Authorization model
+    - Integration points
 4. **Confirm Understanding**: Summarize answers before proceeding
 
 **Skip questioning only if:** User provides comprehensive PRD with `--prd` AND explicitly says "no questions needed".
 
 ### Phase 1: TDD Core Generation
 
-5. **Discover**: Read PRD, understand requirements, identify scope boundaries
-6. **Map Document Hierarchy**: Identify parent PRD, master TDD, sibling TDDs, and related specs
-7. **Analyze Existing Patterns**: Find related TDDs and resources in the codebase for consistency
-8. **Structure**: Organize into logical sections following lean TDD template
-9. **Specify**: Write requirements, data models, contracts, acceptance criteria in tables
-10. **Link Documents**: Add "Related Documents" section with all relevant PRDs and TDDs
-11. **Write TDD**: Save to file with placeholder Open Questions section
+1. **Discover**: Read PRD, understand requirements, identify scope boundaries
+2. **Map Document Hierarchy**: Identify parent PRD, master TDD, sibling TDDs, and related specs
+3. **Analyze Existing Patterns**: Find related TDDs and resources in the codebase for consistency
+4. **Structure**: Organize into logical sections following lean TDD template
+5. **Specify**: Write requirements, data models, contracts, acceptance criteria in tables
+6. **Link Documents**: Add "Related Documents" section with all relevant PRDs and TDDs
+7. **Write TDD**: Save to file with placeholder Open Questions section
 
 ### Phase 2: Open Questions Deep Analysis
 
-12. **Invoke Sequential MCP**: Use `--ultrathink` for maximum depth analysis
-13. **Analyze Gaps**: Identify ambiguities, missing decisions, edge cases, scope boundaries
-14. **Generate Questions**: Create structured OQ entries with IDs, rationale, and possible answers
-15. **Append to TDD**: Update the Open Questions section with generated content
+1. **Invoke Sequential MCP**: Use `--ultrathink` for maximum depth analysis
+2. **Analyze Gaps**: Identify ambiguities, missing decisions, edge cases, scope boundaries
+3. **Generate Questions**: Create structured OQ entries with IDs, rationale, and possible answers
+4. **Append to TDD**: Update the Open Questions section with generated content
 
 ### Phase 3: Finalization
 
-16. **Update References**: Update master TDDs and related documents to reference the new TDD
-17. **Validate**: Review against PRD, check completeness, verify testability
-18. **Quality Check**: Ensure no code blocks > 5 lines, all criteria testable, all links valid
-19. **Present for Review**: Show complete TDD to user, await approval before implementation
+1. **Update References**: Update master TDDs and related documents to reference the new TDD
+2. **Validate**: Review against PRD, check completeness, verify testability
+3. **Quality Check**: Ensure no code blocks > 5 lines, all criteria testable, all links valid
+4. **Present for Review**: Show complete TDD to user, await approval before implementation
 
 ## Include in TDDs
 
-| Element              | Purpose                                 | Example                                     |
-| -------------------- | --------------------------------------- | ------------------------------------------- |
-| Requirements         | WHAT needs to be built                  | "Users can create incidents"                |
-| Data Models          | Attributes, types, constraints (tables) | `hours_adjustment: decimal, required`       |
-| Interface Contracts  | Function signatures, action names       | `create_incident(params, actor:)`           |
-| Behavior Specs       | Input → Output expectations             | "Creating incident sends notification"      |
-| Acceptance Criteria  | How to verify completion                | "[ ] Employee can create incident"          |
-| Testing Requirements | Test types, coverage targets            | "[ ] Policy tests verify all auth rules"    |
-| Constraints & Rules  | Business logic boundaries               | "DL-01: Hours adjustment model"             |
-| Authorization Matrix | Who can do what (tables)                | "Employee: create own, read own"            |
-| Related Documents    | Links to PRDs, master TDDs, siblings    | "Parent PRD: [link], Backend: [link]"       |
-| Open Questions       | Unresolved decisions needing input      | "OQ-01: Retention policy?" - Open           |
+| Element              | Purpose                                 | Example                                  |
+| -------------------- | --------------------------------------- | ---------------------------------------- |
+| Requirements         | WHAT needs to be built                  | "Users can create incidents"             |
+| Data Models          | Attributes, types, constraints (tables) | `hours_adjustment: decimal, required`    |
+| Interface Contracts  | Function signatures, action names       | `create_incident(params, actor:)`        |
+| Behavior Specs       | Input → Output expectations             | "Creating incident sends notification"   |
+| Acceptance Criteria  | How to verify completion                | "[ ] Employee can create incident"       |
+| Testing Requirements | Test types, coverage targets            | "[ ] Policy tests verify all auth rules" |
+| Constraints & Rules  | Business logic boundaries               | "DL-01: Hours adjustment model"          |
+| Authorization        | Three-layer permission model (tables)   | Action, Data, and Condition permissions  |
+| Related Documents    | Links to PRDs, master TDDs, siblings    | "Parent PRD: [link], Backend: [link]"    |
+| Open Questions       | Unresolved decisions needing input      | "OQ-01: Retention policy?" - Open        |
+
+### Authorization Model (Three Layers)
+
+TDDs specify authorization through three complementary layers. Not every TDD needs all three — use what fits the feature's complexity. If a feature has no authentication (public pages, anonymous endpoints), skip the authorization section entirely.
+
+**Layer 1 - Action Permissions**: Who can perform which actions, and on what scope. Expand beyond basic CRUD to include domain-specific actions (approve, publish, escalate, export, delegate). Use scope qualifiers: Own, Team, Department, Org, All.
+
+**Layer 2 - Data Permissions**: Which fields each role can see or modify. Use visibility levels: **RW** (read-write), **R** (read-only), **Hidden** (not visible). Only needed when different roles see different fields or have field-level edit restrictions.
+
+**Layer 3 - Permission Conditions**: When permissions apply or are revoked. Captures status-based, time-based, relationship-based, and approval-based constraints. Use rule IDs (PC-01, PC-02) for traceability to acceptance criteria.
+
+See [style-guide.md](style-guide.md) for full format reference and examples.
 
 ## Exclude from TDDs
 
@@ -155,15 +169,16 @@ TDD creation follows a **two-step process** where Open Questions are generated s
 
 ### Step 1: Create TDD Core
 
-Generate all TDD sections EXCEPT Open Questions:
+Generate all TDD sections EXCEPT Open Questions. For combined TDDs (default), include both backend and UI sections:
 
 1. Overview and Scope
 2. Data Model (tables)
 3. Interface Contract (signatures only)
-4. Authorization Matrix
-5. Behavior Specifications (Given/When/Then)
-6. Acceptance Criteria (checkboxes)
-7. Related Documents
+4. Authorization (Action Permissions, Data Permissions, Permission Conditions)
+5. UI: Routes, Screens, Components (if feature has UI)
+6. Behavior Specifications (Given/When/Then)
+7. Acceptance Criteria (checkboxes with authorization testing)
+8. Related Documents
 
 Write the TDD to file with an empty Open Questions section:
 
@@ -179,14 +194,14 @@ After the TDD core is written, invoke Sequential MCP with `--ultrathink` depth t
 
 **Analysis Focus Areas**:
 
-| Area                     | Question Types                                        |
-| ------------------------ | ----------------------------------------------------- |
-| Requirements Ambiguity   | Unclear acceptance criteria, missing edge cases       |
-| Stakeholder Input Needed | Business decisions, policy clarifications             |
-| Technical Decisions      | Architecture choices, integration approaches          |
-| Scope Boundaries         | What's explicitly out of scope, future considerations |
-| Data Constraints         | Validation rules, retention policies, limits          |
-| Authorization Edge Cases | Role inheritance, delegation, audit requirements      |
+| Area                     | Question Types                                                           |
+| ------------------------ | ------------------------------------------------------------------------ |
+| Requirements Ambiguity   | Unclear acceptance criteria, missing edge cases                          |
+| Stakeholder Input Needed | Business decisions, policy clarifications                                |
+| Technical Decisions      | Architecture choices, integration approaches                             |
+| Scope Boundaries         | What's explicitly out of scope, future considerations                    |
+| Data Constraints         | Validation rules, retention policies, limits                             |
+| Authorization Gaps       | Missing action permissions, unclear data visibility, untested conditions |
 
 **Sequential MCP Prompt Template**:
 
@@ -244,43 +259,36 @@ Execution:
 
 ## Outputs
 
-- **Backend Resource TDD**: Data models, actions, policies for Ash resources
-- **UI TDD**: Routes, screens, components, user flows (no LiveView code)
-- **API TDD**: Endpoints, payloads, authentication, error handling
-- **Integration TDD**: Cross-domain interactions, event flows, external systems
-- **TDD Review Report**: Analysis of existing TDD for code bloat with lean suggestions
-- **Consolidated TDD**: Tightened document with OQ answers applied and resolved questions removed
+- **Combined TDD** (default): Data models, UI screens, authorization, acceptance criteria — everything for the feature
+- **Backend TDD** (`--type backend`): Data models, actions, policies only
+- **UI TDD** (`--type ui`): Routes, screens, components only
+- **API TDD** (`--type api`): Endpoints, payloads, authentication, error handling
+- **Integration TDD** (`--type integration`): Cross-domain interactions, event flows, external systems
+- **TDD Review Report** (`--review`): Analysis of existing TDD for code bloat with lean suggestions
+- **Consolidated TDD** (`--consolidate`): Tightened document with OQ answers applied and resolved questions removed
 
 ## Examples
 
-### Backend Resource TDD
+### Combined TDD (Default)
 
 ```
-/tdd incidents --type backend --prd @specs/prds/02-incident-management.md
+/tdd incidents --prd @specs/prds/02-incident-management.md
 
-# Generates backend TDD with data model, actions, authorization (no code)
+# Generates full TDD: data model, UI screens, authorization, acceptance criteria
 ```
 
-### UI TDD
+### Split by Type (Complex Features)
 
 ```
-/tdd incidents-ui --type ui --prd @specs/prds/02-incident-management.md
+/tdd payment-webhook --type api
 
-# Generates UI TDD with routes, screens, components (no LiveView code)
-```
-
-### API TDD
-
-```
-/tdd payment-webhook --type api --iterative
-
-# Interactive session to clarify endpoints, payloads, error handling
+# Generates API-only TDD when feature warrants splitting
 ```
 
 ### Review Existing TDD
 
 ```
-/tdd --review @specs/tdds/incidents/01-incident-resource.md
+/tdd --review @specs/tdds/incidents/01-incidents.md
 
 # Analyzes TDD for code bloat, suggests lean improvements
 ```
@@ -288,7 +296,7 @@ Execution:
 ### Consolidate After OQ Discussion
 
 ```
-/tdd --consolidate @specs/tdds/incidents/01-incident-resource.md
+/tdd --consolidate @specs/tdds/incidents/01-incidents.md
 
 # Applies OQ answers from conversation, tightens document, verifies thresholds
 ```
@@ -318,23 +326,24 @@ After Open Questions are answered in discussion, use `--consolidate` to apply an
 
 1. **Read Context**: Parse TDD and recent conversation for OQ answers
 2. **Apply Answers**: Integrate resolved decisions into relevant sections
-   - Update Data Model with clarified constraints
-   - Add missing Behavior Specs for resolved edge cases
-   - Adjust Acceptance Criteria based on scope decisions
+    - Update Data Model with clarified constraints
+    - Add missing Behavior Specs for resolved edge cases
+    - Adjust Acceptance Criteria based on scope decisions
 3. **Update Open Questions**:
-   - Mark resolved OQs with status "Resolved" and brief answer
-   - Remove fully integrated OQs from the table
-   - Keep unresolved OQs visible
+    - Mark resolved OQs with status "Resolved" and brief answer
+    - Remove fully integrated OQs from the table
+    - Keep unresolved OQs visible
 4. **Tighten Document**:
-   - Remove redundant prose
-   - Consolidate overlapping sections
-   - Ensure tables are scannable
+    - Remove redundant prose
+    - Consolidate overlapping sections
+    - Ensure tables are scannable
 5. **Verify Thresholds**: Check document stays under line limits
 6. **Present Changes**: Show summary of modifications
 
 ### Before/After Example
 
 **Before consolidation:**
+
 ```markdown
 ## Open Questions
 
@@ -345,6 +354,7 @@ After Open Questions are answered in discussion, use `--consolidate` to apply an
 ```
 
 **After consolidation** (user answered: 90 days retention, 10MB max):
+
 ```markdown
 ## Data Model
 
@@ -377,13 +387,13 @@ After Open Questions are answered in discussion, use `--consolidate` to apply an
 
 If a TDD exceeds these thresholds, suggest splitting into multiple documents:
 
-| Indicator                | Threshold              | Action                     |
-| ------------------------ | ---------------------- | -------------------------- |
-| Data models              | > 3 distinct resources | Split by domain            |
-| Acceptance criteria      | > 25 checkboxes        | Split by feature area      |
-| Behavior specs           | > 10 scenarios         | Split by user journey      |
-| Estimated implementation | > 1 week               | Split by deliverable       |
-| Document length          | > 500 lines            | Review for bloat           |
+| Indicator                | Threshold              | Action                      |
+| ------------------------ | ---------------------- | --------------------------- |
+| Data models              | > 3 distinct resources | Split by domain             |
+| Acceptance criteria      | > 25 checkboxes        | Split by feature area       |
+| Behavior specs           | > 10 scenarios         | Split by user journey       |
+| Estimated implementation | > 1 week               | Split by deliverable        |
+| Document length          | > 500 lines            | Review for bloat            |
 | Document length          | > 1500 lines           | **Hard limit** - must split |
 
 ### Master TDD Pattern
@@ -412,7 +422,10 @@ Before finalizing a TDD, verify:
 - [ ] **Policy/authentication tests explicitly included for backend/API TDDs**
 - [ ] **Accessibility tests explicitly included for UI TDDs**
 - [ ] No "implementation details" or "how to implement" sections
-- [ ] Authorization uses matrix format
+- [ ] Authorization uses three-layer model (Action, Data, Conditions as needed)
+- [ ] Action permissions cover domain actions beyond CRUD where applicable
+- [ ] Data permissions specify field visibility per role (when roles see different data)
+- [ ] Permission conditions have rule IDs traceable to acceptance criteria
 - [ ] Behavior specs use Given/When/Then
 - [ ] Open Questions generated via Sequential MCP + ultrathink (Phase 2 complete)
 - [ ] Each OQ has ID, rationale, possible answers, and status

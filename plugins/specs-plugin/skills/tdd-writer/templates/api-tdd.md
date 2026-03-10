@@ -137,14 +137,38 @@ ______________________________________________________________________
 
 ## Authorization
 
-### Endpoint Permissions
+### Layer 1: Action Permissions (Endpoint Level)
 
-| Endpoint             | Required Scope    | Additional Rules            |
-| -------------------- | ----------------- | --------------------------- |
-| GET /features        | `features:read`   | User sees own features only |
-| POST /features       | `features:write`  | Rate limited to 100/hour    |
-| PATCH /features/:id  | `features:write`  | Owner or admin only         |
-| DELETE /features/:id | `features:delete` | Admin only                  |
+| Endpoint             | Required Scope    | Allowed Roles | Scope    |
+| -------------------- | ----------------- | ------------- | -------- |
+| GET /features        | `features:read`   | Owner, Admin  | Own, All |
+| POST /features       | `features:write`  | Owner         | Own      |
+| PATCH /features/:id  | `features:write`  | Owner, Admin  | Own, All |
+| DELETE /features/:id | `features:delete` | Admin         | All      |
+
+### Layer 2: Data Permissions (Response Filtering)
+
+| Field             | Owner  | Admin | Public |
+| ----------------- | ------ | ----- | ------ |
+| [public field]    | RW     | RW    | R      |
+| [internal field]  | R      | RW    | Hidden |
+| [sensitive field] | Hidden | R     | Hidden |
+
+> API responses must filter fields based on caller role. Write attempts to read-only fields return 422.
+
+### Layer 3: Permission Conditions
+
+| Rule ID | Condition             | Effect          | Endpoints       |
+| ------- | --------------------- | --------------- | --------------- |
+| PC-01   | `status = 'draft'`    | Can update      | PATCH /features |
+| PC-02   | `owner_id = actor.id` | Can access      | GET, PATCH      |
+| PC-03   | Rate limit: 100/hour  | Throttle writes | POST /features  |
+
+### Policy Rules
+
+- Users can only access their own resources (PC-02)
+- Only draft resources can be updated (PC-01)
+- Write operations are rate limited per user (PC-03)
 
 ______________________________________________________________________
 
@@ -246,9 +270,12 @@ ______________________________________________________________________
 
 ### Authorization
 
-- [ ] Users can only access own resources
+- [ ] Users can only access own resources (PC-02)
 - [ ] Admin can access all resources
 - [ ] Insufficient scope returns 403
+- [ ] Each permission condition (PC-xx) enforced at endpoint level
+- [ ] Response payloads filtered per data permissions (hidden fields excluded)
+- [ ] Write attempts to read-only fields return 422
 
 ### Validation
 
@@ -269,6 +296,9 @@ ______________________________________________________________________
 - [ ] **API contract tests verify request/response schemas match specification**
 - [ ] **Authentication tests validate token validation and expiry handling**
 - [ ] **Authorization tests verify endpoint permissions and scope enforcement**
+- [ ] **Authorization tests verify every permission condition (PC-xx) independently**
+- [ ] **Authorization tests confirm data permissions: hidden fields excluded per role, read-only fields reject writes**
+- [ ] **Authorization tests cover cross-scope denial (user A cannot access user B's resources)**
 - [ ] Integration tests cover complete API workflows with real backend
 - [ ] Integration tests validate webhook delivery and retry logic
 - [ ] Rate limiting tests verify limits enforced correctly per scope

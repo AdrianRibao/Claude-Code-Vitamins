@@ -109,6 +109,42 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
+## Authorization
+
+### Layer 1: Action Permissions (UI Actions)
+
+| Actor   | View List | Create | Edit    | Archive | [Domain Action] |
+| ------- | --------- | ------ | ------- | ------- | --------------- |
+| Owner   | ✅ Own    | ✅     | ✅ Own  | ✅ Own  | [scope]         |
+| Manager | ✅ Team   | ✅     | ✅ Team | ✅ Team | [scope]         |
+| Admin   | ✅ All    | ✅     | ✅ All  | ✅ All  | ✅ All          |
+| Guest   | ✅ Public | ❌     | ❌      | ❌      | ❌              |
+
+### Layer 2: Data Permissions (UI Visibility)
+
+| Field/Section  | Owner  | Manager | Admin | Guest  |
+| -------------- | ------ | ------- | ----- | ------ |
+| [public field] | RW     | RW      | RW    | R      |
+| [restricted]   | R      | RW      | RW    | Hidden |
+| [sensitive]    | Hidden | R       | RW    | Hidden |
+
+> **RW** = Editable field, **R** = Displayed read-only, **Hidden** = Component not rendered. UI must hide actions the user cannot perform.
+
+### Layer 3: Permission Conditions
+
+| Rule ID | Condition           | UI Effect                    | Actors |
+| ------- | ------------------- | ---------------------------- | ------ |
+| PC-01   | `status = 'draft'`  | Show edit button             | Owner  |
+| PC-02   | `status != 'draft'` | Disable edit, show read-only | Owner  |
+
+### Policy Rules
+
+- Buttons and menu items for unauthorized actions must be hidden (not just disabled)
+- Navigation to unauthorized routes redirects to appropriate fallback
+- Field visibility adapts per role — sensitive fields never rendered for unauthorized roles
+
+______________________________________________________________________
+
 ## Components
 
 ### Shared Components
@@ -203,6 +239,14 @@ ______________________________________________________________________
 - [ ] Loading state shown during submission
 - [ ] Success redirects to detail page
 
+### Authorization
+
+- [ ] Unauthorized actions are hidden (buttons, menu items not rendered)
+- [ ] Navigation to unauthorized routes redirects appropriately
+- [ ] Field visibility matches data permissions per role
+- [ ] Permission conditions (PC-xx) correctly toggle UI state
+- [ ] Sensitive fields never rendered in DOM for unauthorized roles
+
 ### Responsive
 
 - [ ] Layout adapts to mobile viewport
@@ -220,6 +264,10 @@ ______________________________________________________________________
 - [ ] **Accessibility tests validate WCAG AA compliance**
 - [ ] **Accessibility tests verify keyboard navigation and focus management**
 - [ ] **Accessibility tests validate screen reader announcements**
+- [ ] **Authorization tests verify hidden actions are not rendered for unauthorized roles**
+- [ ] **Authorization tests verify field visibility matches data permissions per role**
+- [ ] **Authorization tests verify permission conditions toggle UI correctly (PC-xx)**
+- [ ] **Authorization tests confirm sensitive fields are absent from DOM (not just hidden via CSS)**
 - [ ] Visual regression tests detect unintended UI changes
 - [ ] Test coverage ≥ 70% for UI components
 - [ ] Test coverage ≥ 90% for critical user flows

@@ -76,6 +76,37 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
+## Authorization
+
+### Layer 1: Action Permissions (Integration Operations)
+
+| Actor/System       | Publish Events | Consume Events | Trigger Sync | Replay DLQ |
+| ------------------ | -------------- | -------------- | ------------ | ---------- |
+| Our Backend        | ✅             | ✅             | ✅           | ❌         |
+| Integration Worker | ❌             | ✅             | ✅           | ❌         |
+| Admin              | ❌             | ❌             | ✅ Manual    | ✅         |
+| External Service   | ❌             | ❌             | ❌           | ❌         |
+
+### Layer 2: Data Permissions (What Data Crosses Boundaries)
+
+| Field             | Outbound (sent) | Inbound (received) | Internal Only |
+| ----------------- | --------------- | ------------------ | ------------- |
+| [public field]    | ✅ Sent         | ✅ Accepted        | -             |
+| [internal field]  | ❌ Excluded     | ❌ Ignored         | ✅            |
+| [sensitive field] | ❌ Never sent   | ❌ Rejected        | ✅            |
+
+> Sensitive data must never cross system boundaries. PII requires explicit data processing agreements.
+
+### Layer 3: Permission Conditions
+
+| Rule ID | Condition               | Effect                | Systems            |
+| ------- | ----------------------- | --------------------- | ------------------ |
+| PC-01   | API key valid           | Allow outbound calls  | Integration Worker |
+| PC-02   | Webhook signature valid | Accept inbound events | Webhook Handler    |
+| PC-03   | Rate limit not exceeded | Allow sync operations | Integration Worker |
+
+______________________________________________________________________
+
 ## External API Contract
 
 ### Authentication
@@ -251,12 +282,15 @@ ______________________________________________________________________
 - [ ] Dashboards show real-time sync status
 - [ ] Historical sync data retained for 30 days
 
-### Security
+### Security & Authorization
 
 - [ ] API keys are stored in secrets manager
-- [ ] Webhook signatures are verified
+- [ ] Webhook signatures are verified (PC-02)
 - [ ] Failed auth attempts are logged
 - [ ] Credentials rotation is automated
+- [ ] Sensitive fields never cross system boundaries (data permissions enforced)
+- [ ] Each permission condition (PC-xx) verified at integration boundary
+- [ ] Unauthorized replay attempts rejected
 
 ### Testing
 
@@ -269,7 +303,11 @@ ______________________________________________________________________
 - [ ] End-to-end tests verify complete sync workflows with real test environment
 - [ ] Chaos tests validate behavior under network failures and timeouts
 - [ ] Load tests verify system handles expected event throughput
-- [ ] Security tests validate authentication and authorization flows
+- [ ] **Security tests validate authentication and authorization flows**
+- [ ] **Authorization tests verify sensitive data never sent in outbound payloads**
+- [ ] **Authorization tests verify webhook signature validation rejects invalid requests**
+- [ ] **Authorization tests verify each permission condition (PC-xx) at system boundaries**
+- [ ] **Authorization tests verify unauthorized DLQ replay attempts are rejected**
 - [ ] Test coverage ≥ 80% for integration workers and handlers
 - [ ] Test coverage ≥ 90% for error handling and retry logic
 - [ ] Monitoring tests verify metrics collection and alert triggering

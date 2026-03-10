@@ -55,7 +55,7 @@ ______________________________________________________________________
 ### Constraints
 
 - Unique constraint on `[owner_id, name]`
-- Status transitions: draft → active → archived (no reverse)
+- Status transitions: draft -> active -> archived (no reverse)
 
 ______________________________________________________________________
 
@@ -73,7 +73,7 @@ ______________________________________________________________________
 
 ### Code Interface (signatures only)
 
-```elixir
+```
 Domain.create_feature(params, actor: user)
 Domain.list_features(query: [...], actor: user)
 Domain.get_feature!(id, actor: user)
@@ -92,8 +92,6 @@ ______________________________________________________________________
 | Owner   | ✅ Own  | ✅ Own  | ✅ Own  | ✅ Own  | [scope]         |
 | Manager | ✅ Team | ✅ Team | ✅ Team | ✅ Team | [scope]         |
 | Admin   | ✅ All  | ✅ All  | ✅ All  | ✅ All  | ✅ All          |
-
-> Replace `[Domain Action]` with feature-specific actions (approve, publish, escalate, export, etc.)
 
 ### Layer 2: Data Permissions
 
@@ -120,6 +118,62 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
+## UI Specification
+
+### Routes
+
+| Route                | Page Component | Description            |
+| -------------------- | -------------- | ---------------------- |
+| `/features`          | FeatureList    | List all user features |
+| `/features/new`      | FeatureForm    | Create new feature     |
+| `/features/:id`      | FeatureDetail  | View feature details   |
+| `/features/:id/edit` | FeatureForm    | Edit existing feature  |
+
+### Screens
+
+#### Feature List
+
+**Purpose**: Display paginated list of user's features
+
+**Components**:
+
+| Component    | Description                                |
+| ------------ | ------------------------------------------ |
+| Header       | Page title + "New Feature" button          |
+| FilterBar    | Status filter, search input                |
+| FeatureTable | Sortable columns: name, status, created_at |
+| Pagination   | Page navigation with page size selector    |
+| EmptyState   | Shown when no features exist               |
+
+#### Feature Form (Create/Edit)
+
+**Fields**:
+
+| Field       | Type     | Validation        | Notes                |
+| ----------- | -------- | ----------------- | -------------------- |
+| name        | text     | Required, max 255 | Auto-focus on load   |
+| description | textarea | Optional          | Markdown supported   |
+| status      | select   | Required          | Options from backend |
+
+#### Feature Detail
+
+**Sections**:
+
+| Section       | Content                            |
+| ------------- | ---------------------------------- |
+| Header        | Name, status badge, action buttons |
+| Metadata      | Created, updated, owner            |
+| Description   | Rendered markdown                  |
+| Related Items | List of associated items           |
+
+### UI Authorization
+
+- Buttons and menu items for unauthorized actions must be hidden (not just disabled)
+- Navigation to unauthorized routes redirects to appropriate fallback
+- Field visibility adapts per role — sensitive fields never rendered for unauthorized roles
+
+______________________________________________________________________
+
 ## Behavior Specifications
 
 ### Creating a Record
@@ -129,6 +183,7 @@ ______________________________________________________________________
 - Record is created with `draft` status
 - `created_at` is set to current UTC time
 - Audit log entry is recorded
+- Success notification displayed, navigate to detail view
 
 ### Archiving a Record
 
@@ -162,7 +217,17 @@ ______________________________________________________________________
 - [ ] Admins can access all records
 - [ ] Each permission condition (PC-xx) enforced correctly
 - [ ] Field visibility matches data permission matrix per role
-- [ ] Domain-specific actions (approve, etc.) restricted to authorized roles
+- [ ] Domain-specific actions restricted to authorized roles
+- [ ] Unauthorized UI actions are hidden (buttons not rendered)
+- [ ] Sensitive fields never rendered in DOM for unauthorized roles
+
+### UI
+
+- [ ] List displays user's features with pagination
+- [ ] Form shows validation errors inline
+- [ ] Loading state shown during submission
+- [ ] Browser back/forward works correctly
+- [ ] Layout adapts to mobile viewport
 
 ### Testing
 
@@ -174,15 +239,18 @@ ______________________________________________________________________
 - [ ] **Policy tests verify each permission condition rule (PC-xx) independently**
 - [ ] **Policy tests confirm data permissions: hidden fields excluded, read-only fields rejected on write**
 - [ ] **Policy tests cover scope boundaries (own vs team vs all) with cross-scope denial**
+- [ ] **Authorization tests verify hidden actions are not rendered for unauthorized roles**
+- [ ] **Authorization tests confirm sensitive fields absent from DOM (not just hidden via CSS)**
 - [ ] Integration tests verify complete CRUD workflows with authorization
 - [ ] Integration tests validate relationship cascades and foreign keys
-- [ ] Edge case tests for concurrent updates and data race conditions
+- [ ] E2E tests cover complete user workflows (create, edit, delete)
+- [ ] **Accessibility tests validate WCAG AA compliance**
 - [ ] Test coverage ≥ 80% for domain logic
 - [ ] Test coverage ≥ 90% for critical business rules
 - [ ] **Test coverage ≥ 95% for authentication and authorization logic**
 - [ ] Performance tests validate query response times < 100ms
-- [ ] Load tests verify system handles expected concurrent operations
-- [ ] UI tests cover user-facing changes (if applicable)
+- [ ] Performance tests validate page load < 3s, interaction < 100ms
+- [ ] UI tests cover user-facing changes
 
 ### Code Quality
 
@@ -205,5 +273,4 @@ ______________________________________________________________________
 | ------------ | -------------------------------------- |
 | Parent PRD   | [prd-name.md](../prds/prd-name.md)     |
 | Master TDD   | [00-master.md](./00-master.md)         |
-| UI TDD       | [feature-ui.md](./feature-ui.md)       |
 | Dependencies | [other-feature.md](./other-feature.md) |
