@@ -261,6 +261,12 @@ ______________________________________________________________________
 - [ ] Integration tests validate navigation flows and route transitions
 - [ ] E2E tests cover complete user workflows (create, edit, delete)
 - [ ] E2E tests verify optimistic UI updates and error recovery
+- [ ] **End-to-end tests render each page/form/component via the framework's real render pipeline (e.g. `Phoenix.LiveViewTest`, Testing Library, Capybara, Playwright) — not just unit-level component mounts**
+- [ ] **Every change / live-validation event path has a test, including each validation-error branch**
+- [ ] **Every submit success path asserts redirect/toast AND the backend effect: persisted row attributes, job enqueued, or API call payload — NOT just the redirect**
+- [ ] **Every submit failure branch has a test: missing field, invalid format, validation rejection, anti-discovery, rate limit, server error**
+- [ ] **Failure-branch tests assert the rendered error message or field-level error — NEVER only a static string like page title or header (which passes even when the whole validation pipeline is broken)**
+- [ ] **UI bug fixes include a regression test that fails on the buggy code and passes on the fix**
 - [ ] **Accessibility tests validate WCAG AA compliance**
 - [ ] **Accessibility tests verify keyboard navigation and focus management**
 - [ ] **Accessibility tests validate screen reader announcements**

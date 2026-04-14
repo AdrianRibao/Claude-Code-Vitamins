@@ -147,6 +147,31 @@ TDDs specify authorization through three complementary layers. Not every TDD nee
 
 See [style-guide.md](style-guide.md) for full format reference and examples.
 
+### UI Test Coverage Requirements (non-negotiable)
+
+**Any TDD that specifies UI changes MUST require end-to-end tests that cover each interactive case.** For every interactive surface — page, form, or live component — tests must exercise the real render/event pipeline of whatever UI framework the project uses and cover every case below. This applies to TDDs of `--type ui` and any combined TDD whose feature includes a UI surface, regardless of language or framework.
+
+| Case             | Required coverage                                                                                                                                                 |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Render           | Page mounts and renders expected markup for each authorized role                                                                                                  |
+| Change events    | Every live validation / on-change path, including validation-error branches                                                                                       |
+| Submit — success | Every submit success path: redirect, flash/toast, and state change all asserted                                                                                   |
+| Submit — failure | Every failure branch: missing field, invalid format, validation rejection, anti-discovery, rate limit, server error                                               |
+| Backend effect   | Submitted values actually reach the backend (assert persisted row attributes, job enqueued, message sent, API called with expected payload — not just a redirect) |
+| Bug reproduction | Fixing a UI bug requires a test that **fails on the buggy code and passes on the fix**                                                                            |
+
+**Framework examples** (non-exhaustive — use the project's actual stack):
+
+| Stack            | Test tool                                   | Triggers to cover                                              |
+| ---------------- | ------------------------------------------- | -------------------------------------------------------------- |
+| Phoenix LiveView | `Phoenix.LiveViewTest`                      | `phx-change` / `render_change`, `phx-submit` / `render_submit` |
+| Django           | Django test client, Playwright, or Selenium | `GET`/`POST` of form view, HTMX swaps, client submit           |
+| React / Next.js  | Testing Library + user-event, Playwright    | `onChange`, `onSubmit`, route transitions                      |
+| Rails            | System tests (Capybara)                     | Form fill, submit, validation errors                           |
+| FastAPI + HTMX   | `TestClient` or Playwright                  | `hx-post`, `hx-get`, validation swaps                          |
+
+**Tests that only assert a static string survived the request (e.g. page title, header text) after a failed submit do NOT count as coverage** — they pass even when the entire validation pipeline is broken. Acceptance criteria must force assertions on rendered error messages, field-level errors, OR backend state, not on page chrome.
+
 ## Exclude from TDDs
 
 | Element              | Why Exclude                                              | Where It Belongs |
@@ -421,6 +446,10 @@ Before finalizing a TDD, verify:
 - [ ] **Testing subsection includes coverage targets and test types**
 - [ ] **Policy/authentication tests explicitly included for backend/API TDDs**
 - [ ] **Accessibility tests explicitly included for UI TDDs**
+- [ ] **UI TDDs require end-to-end tests covering render, every change event, every submit success path, and every submit failure branch**
+- [ ] **UI acceptance criteria assert backend effect (persisted row, job enqueued, API call) on success — not just redirect or flash**
+- [ ] **UI acceptance criteria assert rendered error messages or field errors on failure — not just page chrome (title, header text)**
+- [ ] **Bug-fix acceptance criteria require a regression test that fails on the buggy code and passes on the fix**
 - [ ] No "implementation details" or "how to implement" sections
 - [ ] Authorization uses three-layer model (Action, Data, Conditions as needed)
 - [ ] Action permissions cover domain actions beyond CRUD where applicable
