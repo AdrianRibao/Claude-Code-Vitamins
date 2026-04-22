@@ -228,18 +228,38 @@ After the TDD core is written, invoke Sequential MCP with `--ultrathink` depth t
 | Data Constraints         | Validation rules, retention policies, limits                             |
 | Authorization Gaps       | Missing action permissions, unclear data visibility, untested conditions |
 
+**Self-contained question rule (non-negotiable)**:
+
+Every Open Question must be answerable **without re-reading the TDD**. The reviewer should be able to open the OQ section cold and decide. Concretely:
+
+- **No bare acronyms.** Spell them out on first use in the question, even if defined earlier in the TDD (e.g. write "Permission Condition PC-03 (only owners can edit after approval)" not "PC-03").
+- **Inline 1-line context for every reference.** Any mention of a PRD ID, Constraint Rule (CR-xx), Permission Condition (PC-xx), Data Rule (DL-xx), Acceptance Criterion, attribute, or sibling TDD must carry a parenthetical summary of what that thing is.
+- **Concrete trade-offs.** Possible answers must describe the real consequence of each choice (cost, latency, UX impact, compliance risk) — not just the value. "90 days — meets SOC2 retention but adds ~40GB/month storage" beats "90 days (standard practice)".
+- **State the default the TDD currently implies**, so the reviewer knows what happens if they do nothing.
+
 **Sequential MCP Prompt Template**:
 
 ```
 Analyze this TDD for unresolved decisions and ambiguities that require
 stakeholder input before implementation can begin.
 
+Each question MUST be self-contained — a reviewer should answer it
+without re-reading the TDD. Therefore:
+- Spell out every acronym on first use (PC-xx, CR-xx, DL-xx, PRD IDs).
+- Add a 1-line parenthetical summary whenever referencing another
+  rule, attribute, PRD section, or sibling TDD.
+- Describe trade-offs concretely (cost, latency, UX, compliance),
+  not with labels like "standard practice".
+- State the implicit default the TDD currently assumes.
+
 For each question:
 1. Assign a unique ID (OQ-01, OQ-02, etc.)
-2. State the question clearly
-3. Explain why this needs resolution
-4. Suggest possible answers if applicable
-5. Mark status as "Open" or "Deferred to v2"
+2. State the question as a self-contained sentence
+3. Give the 1-line context the reviewer needs to decide
+4. Explain why this needs resolution
+5. List possible answers with concrete trade-offs
+6. Note the current implicit default
+7. Mark status as "Open" or "Deferred to v2"
 
 Focus on questions that would BLOCK implementation if left unresolved.
 ```
@@ -249,24 +269,29 @@ Focus on questions that would BLOCK implementation if left unresolved.
 ```markdown
 ## Open Questions
 
-| ID    | Question                                | Status            |
-| ----- | --------------------------------------- | ----------------- |
-| OQ-01 | What is the retention policy for logs?  | Open              |
-| OQ-02 | Should admins see all user data?        | Deferred to v2    |
+| ID    | Question                                              | Status         |
+| ----- | ----------------------------------------------------- | -------------- |
+| OQ-01 | How long should audit logs be retained before purge?  | Open           |
+| OQ-02 | Should admins see other users' private notes?         | Deferred to v2 |
 
-### OQ-01: Retention Policy
+### OQ-01: Audit log retention window
 
-**Question**: How long should audit logs be retained?
+**Question**: How long should audit logs (the `audit_events` table recording every incident create/update/delete) be retained before automatic purge?
 
-**Why it matters**: Affects storage requirements and compliance obligations.
+**Context**: The data model defines `audit_events` with no retention rule, and Constraint CR-04 ("all write actions are logged") produces ~1 row per user action. At current usage (~20k actions/day) the table grows ~7M rows/year.
+
+**Why it matters**: Drives storage cost, query performance on the audit UI, and compliance posture. Too short risks losing evidence for post-incident review; too long drives up DB cost and makes the audit query slow.
 
 **Possible answers**:
 
-- [ ] 30 days (minimal compliance)
-- [ ] 90 days (standard practice)
-- [ ] 1 year (regulatory requirement)
+- [ ] 30 days — minimal storage (~600k rows), satisfies no external compliance regime, loses quarterly review window
+- [ ] 90 days — ~1.8M rows, ~12GB/year, meets SOC2 Type II retention expectation, covers a full billing cycle
+- [ ] 1 year — ~7M rows, ~45GB/year, required if we pursue HIPAA; needs partitioning to keep queries <500ms
+- [ ] Indefinite — unbounded growth; only viable if we ship archival to cold storage (not in current scope)
 
-**Status**: Open - needs legal/compliance input
+**Current implicit default**: The TDD does not specify retention, so logs would grow indefinitely — equivalent to the last option without the archival safeguard.
+
+**Status**: Open — needs legal/compliance input
 ```
 
 ### Automatic Execution
@@ -458,6 +483,7 @@ Before finalizing a TDD, verify:
 - [ ] Behavior specs use Given/When/Then
 - [ ] Open Questions generated via Sequential MCP + ultrathink (Phase 2 complete)
 - [ ] Each OQ has ID, rationale, possible answers, and status
+- [ ] **Each OQ is self-contained: acronyms spelled out, every rule/PRD/attribute reference carries a 1-line inline context, trade-offs are concrete (cost/latency/UX/compliance, not labels like "standard practice"), and the current implicit default is stated — reviewer can answer without re-reading the TDD**
 - [ ] TDD presented for user review before implementation
 - [ ] Large TDDs split with master document pattern
 
