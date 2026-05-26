@@ -286,6 +286,23 @@ ______________________________________________________________________
 - [ ] All new modules have type annotations and documentation
 - [ ] No compiler/linter warnings
 - [ ] Code formatted per project standards
+- [ ] **Every third-party UI library/framework/component-kit/CSS-tool used appears in `External Dependencies` with version, doc URL, fetch date, and section consulted**
+- [ ] **Docs for every third-party surface were fetched fresh via context7 (preferred) or WebFetch — not recalled from memory, even for well-known frameworks (React, Vue, Tailwind, etc.)**
+
+______________________________________________________________________
+
+## External Dependencies
+
+> **Non-negotiable**: Every third-party UI framework, library, component kit, CSS tool, or design-system package this surface depends on MUST be listed here with the version, the canonical doc URL, the date the docs were fetched, and the exact section/component/API consulted. Docs MUST be fetched fresh during TDD authoring — via context7 (`resolve-library-id` + `query-docs`) for libraries/frameworks, WebFetch for vendor docs and release notes — never written from training memory. A reviewer must be able to re-fetch the same source to verify every component name, prop, hook signature, CSS utility, or browser API stated in this TDD.
+
+| Name                   | Kind          | Version | Doc Source                            | Section Consulted               | Fetched (YYYY-MM-DD) |
+| ---------------------- | ------------- | ------- | ------------------------------------- | ------------------------------- | -------------------- |
+| react                  | Framework     | v19.0.0 | context7: `/facebook/react`           | useActionState, Suspense, useId | 2026-05-26           |
+| tailwindcss            | CSS Framework | v4.0.0  | context7: `/tailwindlabs/tailwindcss` | @theme, container queries       | 2026-05-26           |
+| @radix-ui/react-dialog | Component     | v1.1.4  | context7: `/radix-ui/primitives`      | Dialog.Root, Portal             | 2026-05-26           |
+| ...                    | ...           | ...     | ...                                   | ...                             | ...                  |
+
+> Omit this section only if the UI has zero third-party surfaces. Docs older than 90 days at implementation kickoff MUST be re-fetched and any drift reconciled before merge.
 
 ______________________________________________________________________
 

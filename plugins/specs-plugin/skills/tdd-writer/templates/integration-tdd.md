@@ -37,6 +37,21 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
+## External Dependencies
+
+> **Non-negotiable**: Every third-party library, SDK, API, CLI, or cloud service this TDD touches MUST be listed here with the version, the canonical doc URL, the date the docs were fetched, and the exact section/method/endpoint consulted. Docs MUST be fetched fresh during TDD authoring — via context7 (`resolve-library-id` + `query-docs`) for libraries/SDKs, WebFetch for vendor service docs and release notes — never written from training memory. A reviewer must be able to re-fetch the same source to verify every method name, endpoint, payload field, header, scope, error code, and quota stated in this TDD.
+
+| Name              | Kind    | Version        | Doc Source                                           | Section Consulted               | Fetched (YYYY-MM-DD) |
+| ----------------- | ------- | -------------- | ---------------------------------------------------- | ------------------------------- | -------------------- |
+| stripe-node       | SDK     | v17.4.0        | https://docs.stripe.com/api/payment_intents (via WF) | PaymentIntent.create, confirm   | 2026-05-26           |
+| Stripe Webhooks   | Service | API 2025-09-30 | https://docs.stripe.com/webhooks                     | Signature verification, retries | 2026-05-26           |
+| aws-sdk-s3 (Node) | SDK     | v3.620.0       | context7: `/aws/aws-sdk-js-v3`                       | PutObjectCommand, presigned URL | 2026-05-26           |
+| ...               | ...     | ...            | ...                                                  | ...                             | ...                  |
+
+**Freshness window**: docs older than 90 days at implementation kickoff MUST be re-fetched before coding begins; bump the `Fetched` column and reconcile any drift in the TDD before merging.
+
+______________________________________________________________________
+
 ## Data Flow
 
 ### Outbound Flow (Our System → External)
@@ -299,7 +314,9 @@ ______________________________________________________________________
 - [ ] Integration tests with mocked external service verify retry logic
 - [ ] Integration tests validate webhook signature verification
 - [ ] Integration tests verify dead letter queue processing
-- [ ] Contract tests ensure compatibility with external API specification
+- [ ] Contract tests ensure compatibility with external API specification (recorded fixtures dated within freshness window, or live contract test in CI — not assumed payload shapes)
+- [ ] **Every method/endpoint/payload field/header/scope/error code/quota stated in this TDD is traceable to an `External Dependencies` row**
+- [ ] **`External Dependencies` table entries were fetched within the freshness window (≤ 90 days from implementation kickoff); stale rows re-fetched and drift reconciled before merge**
 - [ ] End-to-end tests verify complete sync workflows with real test environment
 - [ ] Chaos tests validate behavior under network failures and timeouts
 - [ ] Load tests verify system handles expected event throughput

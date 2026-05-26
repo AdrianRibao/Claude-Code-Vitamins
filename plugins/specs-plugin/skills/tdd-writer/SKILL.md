@@ -10,6 +10,8 @@ allowed-tools:
   - AskUserQuestion
   - TodoWrite
   - Task
+  - WebFetch
+  - WebSearch
   - mcp__plugin_context7_context7__resolve-library-id
   - mcp__plugin_context7_context7__query-docs
 ---
@@ -101,10 +103,11 @@ Requirements-first approach: every section answers "what" not "how". Use tables 
 1. **Discover**: Read PRD, understand requirements, identify scope boundaries
 2. **Map Document Hierarchy**: Identify parent PRD, master TDD, sibling TDDs, and related specs
 3. **Analyze Existing Patterns**: Find related TDDs and resources in the codebase for consistency
-4. **Structure**: Organize into logical sections following lean TDD template
-5. **Specify**: Write requirements, data models, contracts, acceptance criteria in tables
-6. **Link Documents**: Add "Related Documents" section with all relevant PRDs and TDDs
-7. **Write TDD**: Save to file with placeholder Open Questions section
+4. **Identify Third-Party Surfaces**: Enumerate every external library, framework, SDK, API, CLI, or cloud service the feature touches. Fetch current docs (context7 → WebFetch → WebSearch as a locator) **before** writing any section that depends on them. See [Third-Party Integration Docs](#third-party-integration-docs-non-negotiable). Never write a third-party surface from memory.
+5. **Structure**: Organize into logical sections following lean TDD template
+6. **Specify**: Write requirements, data models, contracts, acceptance criteria in tables — cite fetched docs for every third-party value (method names, endpoints, payload fields, headers, scopes, error codes, quotas)
+7. **Link Documents**: Add "Related Documents" section with all relevant PRDs and TDDs
+8. **Write TDD**: Save to file with placeholder Open Questions section and a populated `External Dependencies` table
 
 ### Phase 2: Open Questions Deep Analysis
 
@@ -134,6 +137,7 @@ Requirements-first approach: every section answers "what" not "how". Use tables 
 | Authorization               | Three-layer permission model (tables)                                                                                           | Action, Data, and Condition permissions              |
 | Permission Matrix Test Plan | Enumerated PT-xx rows: every cell, every Hidden/R field-role pair, every PC-xx (met + unmet), cross-scope denies, auth boundary | "PT-07: Layer 1, Owner × approve, Deny, expects 403" |
 | Related Documents           | Links to PRDs, master TDDs, siblings                                                                                            | "Parent PRD: [link], Backend: [link]"                |
+| External Dependencies       | Every third-party library/SDK/API/CLI used, with version, doc URL, fetch date, section consulted                                | "stripe-node v17.4.0, /payment-intents, 2026-05-26"  |
 | Open Questions              | Unresolved decisions needing input                                                                                              | "OQ-01: Retention policy?" - Open                    |
 
 ### Authorization Model (Three Layers)
@@ -208,6 +212,38 @@ Total required policy tests `N = A + S + H + R + 2·P + E`, where:
 | FastAPI + HTMX   | `TestClient` or Playwright                  | `hx-post`, `hx-get`, validation swaps                          |
 
 **Tests that only assert a static string survived the request (e.g. page title, header text) after a failed submit do NOT count as coverage** — they pass even when the entire validation pipeline is broken. Acceptance criteria must force assertions on rendered error messages, field-level errors, OR backend state, not on page chrome.
+
+### Third-Party Integration Docs (non-negotiable)
+
+**Any TDD that specifies behavior depending on a third-party library, framework, SDK, API, CLI tool, or cloud service MUST be written against freshly fetched documentation — never from training memory.** Training data ages, vendors break compatibility between minor versions, and a TDD that hardcodes a stale auth flow, endpoint shape, rate limit, or SDK method name will burn the implementer downstream.
+
+**Required before writing any section that references a third-party surface**:
+
+1. **Identify the dependency precisely**: library name + intended version (or "latest stable"), exact API/SDK/CLI surface used. List them before fetching.
+2. **Fetch current docs**, in this order of preference:
+    - **context7** (`resolve-library-id` then `query-docs`) — primary source for libraries, frameworks, SDKs. Use even for well-known names (React, Stripe, Twilio, AWS SDK, etc.) — your memory may be wrong.
+    - **WebFetch** — for vendor service docs, release notes, REST API references, deprecation notices, pricing/quota pages, and anything context7 does not index.
+    - **WebSearch** — only to locate the canonical doc URL when you don't already have it; then WebFetch the canonical source.
+3. **Cite the source** in the TDD: every third-party dependency must appear in an `External Dependencies` table (see template) with the library/service name, version pinned, doc URL, and the date docs were fetched. A reviewer must be able to re-fetch the same source.
+4. **Specify the version**: hardcoded values that depend on SDK or API versions (method names, payload shapes, header names, error codes, quotas, scopes) MUST name the version they were verified against.
+
+**What this rule blocks**:
+
+| Anti-pattern                                                                              | Why it fails                                                                                                       |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| TDD names `stripe.charges.create(...)` from memory                                        | Stripe deprecated `Charges` in favour of `PaymentIntents` years ago — TDD would direct implementer to the dead API |
+| TDD specifies an OAuth flow with scopes copied from memory                                | Scopes get renamed and split between versions; a stale scope name causes silent 403s in prod                       |
+| TDD assumes a webhook payload shape without re-fetching the vendor's current event schema | Vendors add/rename fields under the same event name; the TDD's "expected payload" is fiction                       |
+| TDD pins a quota (rate limit, max payload, retention window) from memory                  | Quotas tighten without warning; the TDD silently encodes a number that is no longer the contract                   |
+| TDD describes a CLI tool's flags from memory                                              | Flags get renamed/removed; the runbook the implementer writes against the TDD will not work                        |
+| TDD says "see [vendor] docs" with no URL or fetch date                                    | Reviewer cannot verify the spec; implementer must redo the research from scratch                                   |
+
+**Acceptance gate**: a TDD that references any third-party surface is NOT acceptable for implementation until:
+
+1. The `External Dependencies` table exists and lists every third-party library/service/CLI used by the feature.
+2. Each row has: name, version (or version range), doc URL, fetch date, and the specific section/method/endpoint consulted.
+3. Every method name, endpoint path, payload field, header, scope, error code, or quota stated in the TDD is traceable to an `External Dependencies` row (i.e. the implementer can verify it from the cited source).
+4. The Acceptance Criteria > Testing subsection requires contract tests against the **current** vendor contract (e.g. recorded fixtures dated within the freshness window, or a live contract test in CI) — not against assumed shapes.
 
 ## Exclude from TDDs
 
@@ -513,6 +549,10 @@ Before finalizing a TDD, verify:
 - [ ] **UI acceptance criteria assert backend effect (persisted row, job enqueued, API call) on success — not just redirect or flash**
 - [ ] **UI acceptance criteria assert rendered error messages or field errors on failure — not just page chrome (title, header text)**
 - [ ] **Bug-fix acceptance criteria require a regression test that fails on the buggy code and passes on the fix**
+- [ ] **Every third-party library/SDK/API/CLI/service referenced in the TDD appears in an `External Dependencies` table with name, version, doc URL, fetch date, and section/method/endpoint consulted**
+- [ ] **Docs for every third-party surface were fetched fresh via context7 (preferred) or WebFetch during this TDD pass — not recalled from memory, even for well-known vendors (React, Stripe, AWS, etc.)**
+- [ ] **Every method name, endpoint path, payload field, header, OAuth scope, error code, and quota stated in the TDD is traceable to an `External Dependencies` row**
+- [ ] **Testing subsection requires contract tests against the current vendor contract (recorded fixtures dated within the freshness window, or live contract tests in CI) — not against assumed shapes**
 - [ ] No "implementation details" or "how to implement" sections
 - [ ] Authorization uses three-layer model (Action, Data, Conditions as needed)
 - [ ] Action permissions cover domain actions beyond CRUD where applicable

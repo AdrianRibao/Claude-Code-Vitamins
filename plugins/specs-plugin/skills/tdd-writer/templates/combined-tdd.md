@@ -286,6 +286,22 @@ ______________________________________________________________________
 - [ ] All new modules have type annotations and documentation
 - [ ] No compiler/linter warnings
 - [ ] Code formatted per project standards
+- [ ] **Every third-party library/SDK/API/CLI/service referenced (backend or UI) appears in `External Dependencies` with version, doc URL, fetch date, and section consulted**
+- [ ] **Docs for every third-party surface were fetched fresh via context7 (preferred) or WebFetch — not recalled from memory, even for well-known vendors**
+
+______________________________________________________________________
+
+## External Dependencies
+
+> **Non-negotiable**: Every third-party library, framework, SDK, API, CLI, or cloud service this feature depends on — backend OR UI — MUST be listed here with the version, the canonical doc URL, the date the docs were fetched, and the exact section/method/endpoint consulted. Docs MUST be fetched fresh during TDD authoring — via context7 (`resolve-library-id` + `query-docs`) for libraries/SDKs/frameworks, WebFetch for vendor service docs and release notes — never written from training memory. A reviewer must be able to re-fetch the same source to verify every method name, endpoint, payload field, header, scope, error code, and quota stated in this TDD.
+
+| Name        | Kind      | Version | Doc Source                                  | Section Consulted        | Fetched (YYYY-MM-DD) |
+| ----------- | --------- | ------- | ------------------------------------------- | ------------------------ | -------------------- |
+| react       | Framework | v19.0.0 | context7: `/facebook/react`                 | useActionState, Suspense | 2026-05-26           |
+| stripe-node | SDK       | v17.4.0 | https://docs.stripe.com/api/payment_intents | PaymentIntent.create     | 2026-05-26           |
+| ...         | ...       | ...     | ...                                         | ...                      | ...                  |
+
+> Omit this section only if the feature has zero third-party surfaces. Docs older than 90 days at implementation kickoff MUST be re-fetched and any drift reconciled before merge.
 
 ______________________________________________________________________
 
