@@ -81,6 +81,14 @@ Implementation-first approach: verify code and tests exist before marking criter
     - Extract three targets: domain logic (≥80%), business rules (≥90%), auth (≥95%)
     - Store for later validation if `--coverage` flag set
 
+5. **Extract Permission Matrix Test Plan**: Parse the `## Permission Matrix Test Plan` section if present
+
+    - Locate the `## Permission Matrix Test Plan` heading
+    - Read the formula line: `N = [A] + [S] + [H] + [R] + 2·[P] + [E] = [TOTAL]`
+    - Parse every `PT-xx` row from the table: ID, Layer, Cell/Rule, Actor, Action/Field, Type, Expected signal, State assertion
+    - Re-derive the expected `N` from the Authorization tables (Layer 1 cell count, scope-qualified cells, Hidden / R field-role pairs, PC-xx count, protected entry points) and cross-check against the declared `N`
+    - If the Authorization section is non-empty AND the Permission Matrix Test Plan is missing, record a **Critical** finding and block the entire TDD acceptance — no further checks can compensate for an absent plan
+
 ### Phase 2: Discover Test Files
 
 1. **Locate Test Directory**: Find test files relevant to TDD
@@ -117,7 +125,27 @@ Implementation-first approach: verify code and tests exist before marking criter
         - Flag mismatch if marked complete but tests/code missing
         - Flag if implemented but not marked complete
 
-2. **Verify Coverage Targets**: If `--coverage` flag set, validate test coverage
+2. **Verify Permission Matrix Test Plan (always, when present)**: This check runs unconditionally — it does NOT require `--coverage`. The permission matrix is the highest-risk surface and is checked on every invocation.
+
+    - **Plan completeness**:
+        - Declared `N` is at minimum the derived `N` from the Authorization tables. If declared < derived, mark Critical: "test count under-counted".
+        - Every `❌` cell in the Layer 1 matrix has a matching `Deny` row in the plan. Missing rows are listed by `(actor, action)`.
+        - Every scope-qualified `✅ Own / Team / Dept` cell has a paired `Cross-scope deny` (`1-S`) row.
+        - Every `PC-xx` rule appears exactly twice (`Condition met` + `Condition not met`). Single-row PC-xx coverage is Critical.
+        - Every `Hidden` (`2-H`) and `R` read-only (`2-R`) field-role pair has a row.
+        - Every protected entry point has an `E` row asserting `401`.
+    - **Row quality (per PT-xx)**:
+        - `Expected signal` cell is non-empty AND concrete (a status code, a tagged error, a framework exception). Reject "fails", "error", or empty.
+        - `Type = Deny / Cross-scope deny / Read-only deny / Condition not met` rows have a non-empty `State assertion`. A deny test without a side-effect assertion is flagged High — it can pass while the action silently mutated state.
+        - `404` in `Expected signal` is only acceptable when `Type = Anti-discovery deny` AND the row contains a justification. Otherwise Critical: "generic 404 used as deny — hides authorization decision from logs".
+        - `Type = Auth boundary` rows use `401` and not `403`. Mismatch is High.
+    - **Test discovery**:
+        - For each `PT-xx`, grep test files for the literal `PT-xx` token (in test names, `describe` blocks, tags, or comments). Missing tokens listed.
+        - For each found test, confirm the test body asserts the declared expected signal (e.g. `403`, `:forbidden`, `NotAuthorizedError`) — not merely a generic `refute` or `assert_raise` of any error.
+        - For deny tests, confirm an assertion exists on the state (e.g. `refute Repo.get(Record, id) |> changed?`, `assert_no_changes`, `expect(record.reload).to eq(...)`). A deny test that never reloads the target is flagged High.
+    - Findings go into a dedicated "Permission Matrix" section of the report, ranked Critical > High > Medium, and any Critical permission-matrix finding marks the overall TDD as **NOT acceptable for merge** regardless of other passing checks.
+
+3. **Verify Coverage Targets**: If `--coverage` flag set, validate test coverage
 
     - Run appropriate coverage command for project type:
         - Elixir: `mix test --cover`
@@ -253,6 +281,16 @@ The generated report includes:
 
 Table showing target area, required percentage, actual percentage, and pass/fail status for Domain logic, Critical business rules, and Auth/authorization.
 
+### Permission Matrix Section
+
+A dedicated section that always runs when the TDD has an Authorization section. Contents:
+
+- **Formula check**: derived `N` vs declared `N`, with the arithmetic spelled out.
+- **Coverage table**: one row per `PT-xx`, with columns: `PT-ID`, `Type` (Allow / Deny / Cross-scope / Hidden / Read-only / PC met/unmet / Auth boundary / Anti-discovery), `Test found?`, `Signal asserted?`, `State asserted?`, `Status` (✅ / ⚠️ / ❌).
+- **Missing-row table**: derived rows that should exist but don't (e.g. "Layer 1: Guest × Read is ❌ in the matrix but has no Deny row in the plan").
+- **Quality findings**: list of plan rows with vague expected signals, missing state assertions, generic `404` denies, or `Auth boundary` rows using the wrong status code.
+- **Acceptance verdict**: `ACCEPTABLE` or `BLOCKED — Critical permission matrix findings present`. Any Critical finding here blocks the overall acceptance regardless of other sections.
+
 ### Criteria Status Section
 
 Organized by subsection (Core Functionality, Validation, Authorization, Testing, Code Quality) with table columns: Number, Criterion text, Tests (present/absent), Code (present/absent), Checkbox state, Overall status.
@@ -354,6 +392,8 @@ Before completing acceptance criteria check, verify:
 - [ ] Implementation code searched for each criterion
 - [ ] Checkbox states compared with actual implementation
 - [ ] Coverage targets validated (if --coverage flag)
+- [ ] **Permission Matrix Test Plan parsed and validated (formula, row completeness, signal quality, state assertions, test discovery by `PT-xx` token)** — this check runs on every invocation, no flag required
+- [ ] **Any Critical permission-matrix finding flips the overall verdict to BLOCKED**
 - [ ] Report generated with detailed status
 - [ ] Recommendations prioritized (critical to low)
 - [ ] Next steps actionable
@@ -369,6 +409,8 @@ Before completing acceptance criteria check, verify:
 - Generate detailed implementation status reports
 - Auto-update TDD checkboxes with --update flag
 - Flag mismatches between marked status and actual implementation
+- **Parse the Permission Matrix Test Plan, re-derive the required test count from the Authorization tables, and verify each `PT-xx` row has a matching test that asserts the declared signal and the prevented state change**
+- **Block TDD acceptance when permission-matrix Critical findings exist** (missing plan, missing deny rows, vague signals, generic 404 denies, missing state assertions)
 
 **Will Not:**
 

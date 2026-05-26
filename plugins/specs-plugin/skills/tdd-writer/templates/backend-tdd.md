@@ -120,6 +120,27 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
+## Permission Matrix Test Plan
+
+> **Formula**: `N = A + S + H + R + 2·P + E` `A` = Layer 1 cells · `S` = scope-qualified ✅ cells (cross-scope denies) · `H` = Hidden field-role pairs · `R` = Read-only field-role pairs · `P` = PC-xx rules (×2 each) · `E` = protected entry points (401 boundary)
+>
+> **For this TDD**: `N = [A] + [S] + [H] + [R] + 2·[P] + [E] = [TOTAL] required policy tests`. Every Deny row MUST specify the exact rejection signal AND the state assertion (what side effect was prevented). See [style-guide.md](../../../skills/tdd-writer/style-guide.md#permission-matrix-test-plan).
+
+| PT-ID | Layer | Cell / Rule           | Actor | Action / Field                 | Type              | Expected signal                               | State assertion                       |
+| ----- | ----- | --------------------- | ----- | ------------------------------ | ----------------- | --------------------------------------------- | ------------------------------------- |
+| PT-01 | 1     | Owner × create        | Owner | create(own)                    | Allow             | `{:ok, record}`                               | Row persisted with `owner_id = actor` |
+| PT-02 | 1     | Owner × [domain-act]  | Owner | [domain action]                | Deny              | `{:error, :forbidden}`                        | No state change, no audit event       |
+| PT-03 | 1-S   | Owner × update(other) | Owner | update on other Owner's record | Cross-scope deny  | `{:error, :forbidden}`                        | Target row unchanged                  |
+| PT-04 | 2-H   | Hidden field          | Owner | response.[sensitive]           | Hidden            | Resource map omits the key                    | -                                     |
+| PT-05 | 2-R   | Read-only field       | Owner | update with [restricted]       | Read-only deny    | Changeset error `{field: ["cannot change"]}`  | Field value unchanged                 |
+| PT-06 | 3     | PC-01 met             | Owner | update (status=draft)          | Condition met     | `{:ok, record}`                               | Row updated                           |
+| PT-07 | 3     | PC-01 not met         | Owner | update (status=active)         | Condition not met | `{:error, :forbidden}`                        | Row unchanged                         |
+| PT-08 | E     | Unauthenticated call  | none  | any Domain action              | Auth boundary     | `{:error, :unauthenticated}` (NOT :forbidden) | -                                     |
+
+> Add one row per ❌ cell, per scope-qualified ✅, per Hidden / R field-role pair, per PC-xx (×2), and per protected entry point until total equals `N`.
+
+______________________________________________________________________
+
 ## Behavior Specifications
 
 ### Creating a Record
@@ -168,12 +189,14 @@ ______________________________________________________________________
 
 - [ ] Unit tests written for all business logic and validations
 - [ ] Unit tests cover all constraint rules and status transitions
-- [ ] **Policy tests verify every cell in the action permissions matrix**
-- [ ] **Policy tests validate each actor role against all actions and scopes**
-- [ ] **Policy tests cover authentication failures and unauthorized access attempts**
-- [ ] **Policy tests verify each permission condition rule (PC-xx) independently**
-- [ ] **Policy tests confirm data permissions: hidden fields excluded, read-only fields rejected on write**
-- [ ] **Policy tests cover scope boundaries (own vs team vs all) with cross-scope denial**
+- [ ] **Permission Matrix Test Plan implemented in full: total policy test count ≥ `N = A + S + H + R + 2·P + E = [TOTAL]` (substitute values from the Permission Matrix Test Plan section)**
+- [ ] **Every `PT-xx` row has a corresponding executable test, named or tagged with its `PT-xx` ID for traceability**
+- [ ] **Every Deny / Cross-scope / Read-only / Condition-not-met test asserts the exact rejection signal in its PT-xx row (e.g. `{:error, :forbidden}`, framework-specific `NotAuthorizedError`) — NEVER passes on empty result, no-op, or generic 404**
+- [ ] **Every Deny / Cross-scope / Read-only / Condition-not-met test asserts the prevented side effect: row unchanged, no audit event, no notification, no downstream job enqueued**
+- [ ] **Every Hidden field-role pair test asserts the field key is absent from the Resource map / serialized payload**
+- [ ] **Every Auth-boundary entry-point test asserts `{:error, :unauthenticated}` (distinct from `:forbidden`)**
+- [ ] **Any `404` deny is justified inline as `Anti-discovery deny` and present only when leaking existence is itself the threat**
+- [ ] **Policy tests use real authenticated actors in the denied role — never stub the policy, disable auth, or sign in as a superuser "for setup convenience"**
 - [ ] Integration tests verify complete CRUD workflows with authorization
 - [ ] Integration tests validate relationship cascades and foreign keys
 - [ ] Edge case tests for concurrent updates and data race conditions

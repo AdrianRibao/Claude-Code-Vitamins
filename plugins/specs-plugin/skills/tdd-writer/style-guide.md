@@ -197,6 +197,80 @@ Use plain language to summarize complex interactions between layers:
 - Admin override requires audit log entry
 - Salary field visible only to Managers (read) and Admins (read-write)
 
+## Permission Matrix Test Plan
+
+The Permission Matrix Test Plan is a **required, mechanically-derived artifact** of any TDD whose Authorization section is non-empty. It exists because the highest-severity bugs (privilege escalation, data exposure, IDOR) hide in the deny paths — the cells of the matrix where someone should NOT be able to do something. A test plan that only enumerates allow paths leaves those bugs unguarded.
+
+### Required Count (formula)
+
+Total required rows `N = A + S + H + R + 2·P + E`:
+
+| Symbol | Source                               | Counts                                                                                                           |
+| ------ | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `A`    | Layer 1 matrix                       | Every cell — allow cells get an Allow row, deny cells get a Deny row                                             |
+| `S`    | Layer 1 scope-qualified `✅` cells   | One cross-scope deny per scope-qualified allow (Owner-Own becomes "Owner attempts another Owner's record → 403") |
+| `H`    | Layer 2 `Hidden` (role, field) pairs | One row per pair asserting field absent from payload and DOM                                                     |
+| `R`    | Layer 2 `R` read-only (role, field)  | One row per pair asserting write attempt rejected (422 / changeset error / 403)                                  |
+| `P`    | Layer 3 `PC-xx` rules                | Two rows per rule — one Allow when condition met, one Deny when condition not met                                |
+| `E`    | Protected entry points               | One row per route/action asserting `401` for unauthenticated request (distinct signal from `403`)                |
+
+The Acceptance Criteria > Testing subsection must assert `Policy test count ≥ N` and spell out the arithmetic so a reviewer can verify it without recomputing.
+
+### Test Plan Table Format
+
+```markdown
+### Permission Matrix Test Plan
+
+> N = A (Layer 1 cells) + S (cross-scope) + H (Hidden pairs) + R (read-only pairs) + 2·P (PC rules) + E (auth boundaries)
+> For this TDD: N = 12 + 3 + 2 + 2 + 2·3 + 4 = **29 required tests**.
+
+| PT-ID  | Layer | Cell / Rule           | Actor   | Action / Field      | Type                | Expected signal                                  | State assertion                            |
+| ------ | ----- | --------------------- | ------- | ------------------- | ------------------- | ------------------------------------------------ | ------------------------------------------ |
+| PT-01  | 1     | Owner × create        | Owner   | create(own)         | Allow               | 201 Created, record returned                     | New row persisted with `owner_id = actor`  |
+| PT-02  | 1     | Owner × approve       | Owner   | approve             | Deny                | 403 Forbidden                                    | No status change, no audit event           |
+| PT-03  | 1-S   | Owner × update(other) | Owner   | update on other Owner's record | Cross-scope deny    | 403 Forbidden                                    | Target row unchanged                       |
+| PT-04  | 2-H   | Hidden field          | Guest   | response.salary     | Hidden              | 200 OK, `salary` key absent from JSON and DOM    | -                                          |
+| PT-05  | 2-R   | Read-only field       | Owner   | PATCH status        | Read-only deny      | 422 with field error `{status: ["read-only"]}`   | Row.status unchanged                       |
+| PT-06  | 3     | PC-01 (status=draft)  | Owner   | update              | Condition met       | 200 OK                                           | Row updated                                |
+| PT-07  | 3     | PC-01 (status=active) | Owner   | update              | Condition not met   | 403 Forbidden                                    | Row unchanged                              |
+| PT-08  | E     | Unauthenticated GET   | none    | GET /features       | Auth boundary       | 401 Unauthorized (NOT 403, NOT 404)              | -                                          |
+| PT-09  | 1-AD  | Cross-org GET         | Owner   | GET /features/:id   | Anti-discovery deny | 404 Not Found (justified: leaks existence)        | No record returned, no info in body         |
+```
+
+**Column rules**:
+
+- **PT-ID**: zero-padded `PT-01`, `PT-02`, … globally unique within the TDD. The `-S` (cross-scope), `-H` (Hidden), `-R` (read-only), `-AD` (anti-discovery) suffix on the Layer column makes the row type scannable.
+- **Layer**: `1`, `2`, `3`, or `E` (entry-point auth boundary). Suffix the type variant as above.
+- **Cell / Rule**: the exact matrix cell or PC-xx referenced. Bare "Owner × update" is fine when unambiguous; otherwise quote the rule.
+- **Actor**: the role under test, including `none` for unauthenticated.
+- **Action / Field**: the verb and (where applicable) the field being read/written.
+- **Type**: one of `Allow`, `Deny`, `Cross-scope deny`, `Hidden`, `Read-only deny`, `Condition met`, `Condition not met`, `Auth boundary`, `Anti-discovery deny`. No other values.
+- **Expected signal**: the concrete return contract — status code AND error shape. `403 Forbidden` is acceptable; "fails" is not. `404` is acceptable ONLY with the `Anti-discovery deny` type AND a justification in the same cell.
+- **State assertion**: for every Deny / Read-only / Cross-scope row, the row MUST also state what side effect was prevented — row unchanged, no audit event written, no notification fired. An authorization test that doesn't check the side effect didn't happen is a coin-flip dressed as a guarantee.
+
+### What Counts as a Deny Test (strict)
+
+| Counts as a deny test                                                                                                   | Does NOT count                                                                                                    |
+| ----------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Returns explicit `403 Forbidden` / `{:error, :forbidden}` / framework's `NotAuthorizedError` AND asserts no side effect | Returns empty list / nil — could be empty for many non-auth reasons                                               |
+| Read-only writes rejected with `422` + field-level error AND asserts the value didn't persist                           | Returns `200 OK` and trusts the client to ignore the rejection                                                    |
+| Hidden field asserted absent from the JSON payload AND from the rendered DOM (UI surfaces)                              | Hidden field asserted absent from one but present in the other                                                    |
+| Uses a real authenticated actor in the **denied** role to prove the policy fires                                        | Stubs/mocks the policy, disables auth middleware, or signs in as a superuser "for setup convenience"              |
+| `404` only when explicitly typed `Anti-discovery deny` with a written justification                                     | `404` used generically as a deny — hides the real authz decision from logs and breaks audit/forensic traceability |
+
+### Test Plan as Acceptance Gate
+
+The Permission Matrix Test Plan is the single artifact a reviewer (or `ac-checker`) uses to decide whether the TDD is safe to accept. The TDD is NOT acceptable for implementation if:
+
+- The plan is missing whenever the Authorization section is non-empty.
+- Row count is less than the formula's `N`.
+- Any `❌` cell in Layer 1 lacks a matching `Deny` row.
+- Any `PC-xx` rule lacks both a met and unmet row.
+- Any `Hidden` or `R` field-role pair is missing.
+- Any Deny row omits the rejection signal or the state assertion.
+- `404` is used outside an `Anti-discovery deny` row.
+- The Acceptance Criteria > Testing subsection does not assert the count.
+
 ## Behavior Specification Format
 
 ### Given/When/Then Structure
