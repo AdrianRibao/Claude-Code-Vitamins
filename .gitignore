@@ -19,7 +19,6 @@ Thumbs.db
 /.claude/
 /skills/
 /skills-lock.json
-/specs/
 
 # Logs
 *.log
