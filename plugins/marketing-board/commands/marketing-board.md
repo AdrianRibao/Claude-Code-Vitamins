@@ -1,6 +1,6 @@
 ---
 description: Convene 8 marketing specialists on a SaaS launch brief; synthesize a Marketing Plan Memo. Requires `agent_docs/marketing/` (run `:bootstrap` first).
-argument-hint: <launch brief | --consolidate [@memo]>
+argument-hint: <launch brief | --consolidate [@<memo-path>]>
 ---
 
 You are convening the **Marketing Board**. Eight specialist subagents will deliberate in parallel and you will synthesize their reports into a single Marketing Plan Memo.
