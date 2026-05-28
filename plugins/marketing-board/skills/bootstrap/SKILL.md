@@ -78,7 +78,7 @@ For each section in INTERVIEW.md (Section 1 → `product.md`, Section 2 → `aud
 | 1. Product      | `product.md`      | Q1.1 → `## Product description` · Q1.2 → `## Category` · Q1.3 → `## Value propositions` · Q1.4 → `## Positioning statement` · Q1.5 → `## Brand voice & tone`                                                                     |
 | 2. Audience     | `audience.md`     | Q2.1 → `## ICP` · Q2.2/Q2.3/Q2.4 → `## Personas` · Q2.5 → `## Anti-personas` · Q2.6 → `## Attention map` · Q2.7 → `## Vocabulary` · Q2.8 → `## Triggers to buy`                                                                  |
 | 3. Competition  | `competition.md`  | Q3.1 → `## Alternatives` · Q3.2 → `## How we differ` · Q3.3 → `## Category conventions to inherit` · Q3.4 → `## Category conventions to break` · (Q3.5, Q3.6 inform but do not own sections — fold into nearest related section) |
-| 4. Business     | `business.md`     | Q4.1+Q4.2 → `## Pricing tiers` · Q4.3 → `## Funnel state` · Q4.4 → `## Budget envelope` · Q4.5 → `## Timeline` · Q4.6 → `## Geographic focus`                                                                                    |
+| 4. Business     | `business.md`     | **Q4.3 → frontmatter `lp_url`** (single-line URL; written when non-empty) · Q4.1+Q4.2 → `## Pricing tiers` · Q4.4 → `## Funnel state` · Q4.5 → `## Budget envelope` · Q4.6 → `## Timeline` · Q4.7 → `## Geographic focus`        |
 | 5. Distribution | `distribution.md` | Q5.1 → `## Owned channels` · Q5.2 → `## Content inventory` · Q5.3 → `## Founder communities` · Q5.4 → `## Aspirational influencers` · Q5.5 → `## Past PR` · (Q5.6 informs but does not own a section)                            |
 | 6. Constraints  | `constraints.md`  | Q6.1 → `## Legal / compliance` · Q6.2 → `## Founder risk tolerance` · Q6.3 → `## Past failed experiments` · Q6.4 → `## Unfair advantages` · Q6.5 → `## Regulatory landmines`                                                     |
 
@@ -86,6 +86,26 @@ For any question marked `[skipped: <reason>]` or left with the placeholder `> _Y
 
 ```markdown
 <!-- TODO: skipped during bootstrap — <reason or "unanswered"> -->
+```
+
+### Frontmatter writing (per TDD 00 Frontmatter convention)
+
+Some Q-IDs map to YAML frontmatter at the **top of the file**, not to a body `##` section. When the mapping table above marks a Q-ID as `→ frontmatter <key>`:
+
+- Emit a YAML frontmatter block (`---\n<key>: <value>\n---`) at the very top of the target file, before the `# <Title>` H1, followed by a blank line.
+- Only emit the block when at least one mapped frontmatter field has a non-empty answer. A blank or skipped LP URL produces NO frontmatter block (never write an empty `lp_url:` key).
+- If a file has multiple frontmatter fields (none in v1, but the convention extends), order keys alphabetically for byte-identical idempotency.
+
+Example for `business.md` when Q4.3 = `https://empleo.digital`:
+
+```markdown
+---
+lp_url: https://empleo.digital
+---
+
+# Business
+
+> Consolidated from `INTERVIEW.md`…
 ```
 
 ### Pass 2 — LLM polish on free-text prose only

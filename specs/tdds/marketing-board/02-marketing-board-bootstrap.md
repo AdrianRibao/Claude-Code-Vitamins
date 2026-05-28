@@ -93,14 +93,14 @@ The scaffolded INTERVIEW.md MUST begin with this preamble (English in v1):
 
 Six sections, in this order:
 
-| #   | Section heading      | Maps to           | Q count (≈) |
-| --- | -------------------- | ----------------- | ----------- |
-| 1   | `## 1. Product`      | `product.md`      | 5           |
-| 2   | `## 2. Audience`     | `audience.md`     | 8           |
-| 3   | `## 3. Competition`  | `competition.md`  | 6           |
-| 4   | `## 4. Business`     | `business.md`     | 6           |
-| 5   | `## 5. Distribution` | `distribution.md` | 6           |
-| 6   | `## 6. Constraints`  | `constraints.md`  | 5           |
+| #   | Section heading      | Maps to           | Q count (≈)                                   |
+| --- | -------------------- | ----------------- | --------------------------------------------- |
+| 1   | `## 1. Product`      | `product.md`      | 5                                             |
+| 2   | `## 2. Audience`     | `audience.md`     | 8                                             |
+| 3   | `## 3. Competition`  | `competition.md`  | 6                                             |
+| 4   | `## 4. Business`     | `business.md`     | 7 (was 6; +1 LP URL per TDD 03 OQ-06 refined) |
+| 5   | `## 5. Distribution` | `distribution.md` | 6                                             |
+| 6   | `## 6. Constraints`  | `constraints.md`  | 5                                             |
 
 Total: ~36 questions across the six sections.
 
@@ -184,16 +184,17 @@ The TDD locks each question's **intent** (what it asks for + answer type) but **
 | Q3.5 | Competitive blind spots — what are competitors NOT addressing that you are?                      | bullet list |
 | Q3.6 | Failed predecessors — companies that tried this approach and died; what killed them (best guess) | bullet list |
 
-#### Section 4: Business (6 questions)
+#### Section 4: Business (7 questions; Q4.3 added per TDD 03 OQ-06 refined)
 
-| Q-ID | Intent                                                                                           | Type          |
-| ---- | ------------------------------------------------------------------------------------------------ | ------------- |
-| Q4.1 | Pricing tiers — table: tier, price, key inclusions, target persona                               | table         |
-| Q4.2 | Primary pricing model (freemium / trial / paid-only / flat-fee / usage-based / undecided)        | single-choice |
-| Q4.3 | Current funnel state — LP URL + signup flow description + known conversion rates (or "none yet") | free-text     |
-| Q4.4 | Budget envelope — total + per-month allocation if known; "TBD" allowed                           | free-text     |
-| Q4.5 | Timeline — target launch date or window + runway in months                                       | free-text     |
-| Q4.6 | Geographic focus — primary markets (countries / language regions) + locale code                  | bullet list   |
+| Q-ID | Intent                                                                                    | Type                                                                              |
+| ---- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| Q4.1 | Pricing tiers — table: tier, price, key inclusions, target persona                        | table                                                                             |
+| Q4.2 | Primary pricing model (freemium / trial / paid-only / flat-fee / usage-based / undecided) | single-choice                                                                     |
+| Q4.3 | Landing page URL — single URL                                                             | free-text (single-line; consolidate writes to `business.md` frontmatter `lp_url`) |
+| Q4.4 | Funnel state — signup flow description + known conversion rates (or "none yet")           | free-text                                                                         |
+| Q4.5 | Budget envelope — total + per-month allocation if known; "TBD" allowed                    | free-text                                                                         |
+| Q4.6 | Timeline — target launch date or window + runway in months                                | free-text                                                                         |
+| Q4.7 | Geographic focus — primary markets (countries / language regions) + locale code           | bullet list                                                                       |
 
 #### Section 5: Distribution (6 questions)
 
@@ -371,63 +372,41 @@ The target files (`product.md`, `audience.md`, etc.) may contain two kinds of us
 
 ### Initial scaffold (English default)
 
-**Given** project root has no `agent_docs/marketing/`
-**When** user runs `/marketing-board:bootstrap`
-**Then** `agent_docs/marketing/INTERVIEW.md` is created
-**And** the file contains the 6 sections in order, each with its "ask Claude to interview me" hint
-**And** every question follows the locked render format (Why + Example + Detail level + answer container + skip marker)
-**And** language is English
+**Given** project root has no `agent_docs/marketing/` **When** user runs `/marketing-board:bootstrap` **Then** `agent_docs/marketing/INTERVIEW.md` is created **And** the file contains the 6 sections in order, each with its "ask Claude to interview me" hint **And** every question follows the locked render format (Why + Example + Detail level + answer container + skip marker) **And** language is English
 
 ### `--lang <code>` rejected (deferred to v1.1, OQ-B-06)
 
-**Given** project root has no `agent_docs/marketing/`
-**When** user runs `/marketing-board:bootstrap --lang es` (or any other `--lang` value)
-**Then** the skill aborts with: `"--lang is not available in v1. Bootstrap ships English-only; non-English support arrives in v1.1."`
-**And** no files are created
+**Given** project root has no `agent_docs/marketing/` **When** user runs `/marketing-board:bootstrap --lang es` (or any other `--lang` value) **Then** the skill aborts with: `"--lang is not available in v1. Bootstrap ships English-only; non-English support arrives in v1.1."` **And** no files are created
 
 ### Abort on existing knowledge base
 
-**Given** `agent_docs/marketing/INTERVIEW.md` exists
-**When** user runs `/marketing-board:bootstrap` (no flag)
-**Then** skill aborts with the exact abort message
-**And** no files are modified
+**Given** `agent_docs/marketing/INTERVIEW.md` exists **When** user runs `/marketing-board:bootstrap` (no flag) **Then** skill aborts with the exact abort message **And** no files are modified
 
 ### `--reset` regenerates INTERVIEW.md only
 
-**Given** `agent_docs/marketing/INTERVIEW.md` and the six target files all exist
-**When** user runs `/marketing-board:bootstrap --reset`
-**Then** `INTERVIEW.md` is overwritten with a fresh scaffold
-**And** `product.md`, `audience.md`, `competition.md`, `business.md`, `distribution.md`, `constraints.md` are NOT touched
-**And** the user can re-fill INTERVIEW.md and `--consolidate` later to regenerate target files
+**Given** `agent_docs/marketing/INTERVIEW.md` and the six target files all exist **When** user runs `/marketing-board:bootstrap --reset` **Then** `INTERVIEW.md` is overwritten with a fresh scaffold **And** `product.md`, `audience.md`, `competition.md`, `business.md`, `distribution.md`, `constraints.md` are NOT touched **And** the user can re-fill INTERVIEW.md and `--consolidate` later to regenerate target files
 
 ### Consolidate produces all six files
 
-**Given** `INTERVIEW.md` is filled in (every question answered, none skipped)
-**When** user runs `/marketing-board:bootstrap --consolidate`
-**Then** `product.md`, `audience.md`, `competition.md`, `business.md`, `distribution.md`, `constraints.md` are all written
-**And** each contains all its required `##` sections (per TDD 00)
-**And** structured fields (checkbox state, tables, lists) appear verbatim
-**And** no `<!-- TODO: -->` callouts appear in any file
+**Given** `INTERVIEW.md` is filled in (every question answered, none skipped) **When** user runs `/marketing-board:bootstrap --consolidate` **Then** `product.md`, `audience.md`, `competition.md`, `business.md`, `distribution.md`, `constraints.md` are all written **And** each contains all its required `##` sections (per TDD 00) **And** structured fields (checkbox state, tables, lists) appear verbatim **And** no `<!-- TODO: -->` callouts appear in any file
+
+### Consolidate writes business.md frontmatter (per TDD 03 OQ-06 refined)
+
+**Given** INTERVIEW.md Q4.3 (Landing page URL) is answered with `https://empleo.digital` **When** user runs `/marketing-board:bootstrap --consolidate` **Then** `business.md` opens with a YAML frontmatter block: `---\nlp_url: https://empleo.digital\n---` followed by a blank line then `# Business` **And** `## Funnel state` body contains the prose answer from Q4.4 (signup flow + conversion rates) — without restating the LP URL
+
+**Given** INTERVIEW.md Q4.3 is left blank (no LP URL yet) **When** user runs `/marketing-board:bootstrap --consolidate` **Then** `business.md` has no frontmatter block (or has frontmatter with `lp_url` omitted) — never an empty `lp_url:` key **And** consumers (e.g., the email-sequence skill) fall back to their placeholder behavior
 
 ### Consolidate with skipped questions
 
-**Given** INTERVIEW.md has Q3.4 marked `[skipped: no real competitors yet]`
-**When** user runs `/marketing-board:bootstrap --consolidate`
-**Then** `competition.md` is still produced
-**And** the section that would have been populated by Q3.4 contains `<!-- TODO: skipped during bootstrap — no real competitors yet -->`
+**Given** INTERVIEW.md has Q3.4 marked `[skipped: no real competitors yet]` **When** user runs `/marketing-board:bootstrap --consolidate` **Then** `competition.md` is still produced **And** the section that would have been populated by Q3.4 contains `<!-- TODO: skipped during bootstrap — no real competitors yet -->`
 
 ### Consolidate idempotency
 
-**Given** INTERVIEW.md exists, filled
-**When** user runs `/marketing-board:bootstrap --consolidate` twice
-**Then** target files produced by the second run are byte-identical to the first
+**Given** INTERVIEW.md exists, filled **When** user runs `/marketing-board:bootstrap --consolidate` twice **Then** target files produced by the second run are byte-identical to the first
 
 ### Consolidate before scaffold
 
-**Given** `agent_docs/marketing/INTERVIEW.md` does not exist
-**When** user runs `/marketing-board:bootstrap --consolidate`
-**Then** skill aborts with the "INTERVIEW.md not found" message
-**And** no files are written
+**Given** `agent_docs/marketing/INTERVIEW.md` does not exist **When** user runs `/marketing-board:bootstrap --consolidate` **Then** skill aborts with the "INTERVIEW.md not found" message **And** no files are written
 
 ## Acceptance criteria
 

@@ -81,6 +81,31 @@ Marketplace registration: append a row in `.claude-plugin/marketplace.json` unde
 
 These six files MUST exist at `agent_docs/marketing/` in the SaaS project root before `/marketing-board` runs. Bootstrap (TDD 02) produces them. Agents (TDD 01) consume them. Each file is a **structured Markdown document** — section headings are part of the contract; section bodies are the user's content.
 
+### Frontmatter convention (per OQ-06 refined; see TDD 03)
+
+Each KB file MAY include a YAML frontmatter block at the top of the file (before the `# <Title>` H1) for **structured non-prose metadata** — values that downstream skills extract deterministically without LLM inference (URLs, IDs, locale codes, color hex codes, list constants). Files with no structured fields omit the block entirely.
+
+Shape:
+
+```yaml
+---
+key_one: value
+key_two: value
+---
+
+# <Title>
+
+[…body sections]
+```
+
+Canonical structured fields established in v1:
+
+| File          | Frontmatter key | Type         | Purpose                                                                                                 |
+| ------------- | --------------- | ------------ | ------------------------------------------------------------------------------------------------------- |
+| `business.md` | `lp_url`        | string (URL) | Landing page URL — consumed by `email-sequence` skill for FR-23 substitution (per TDD 03 OQ-06 refined) |
+
+The bootstrap skill (TDD 02) writes the block when consolidating answers from `INTERVIEW.md`. Founders can edit the block directly afterwards. Other KB files may adopt frontmatter as new structured fields are introduced — convention extends naturally, no spec amendment beyond adding rows to the table above.
+
 ### `product.md`
 
 | Required section           | Body shape                                                                         |
@@ -113,13 +138,13 @@ These six files MUST exist at `agent_docs/marketing/` in the SaaS project root b
 
 ### `business.md`
 
-| Required section      | Body shape                                                             |
-| --------------------- | ---------------------------------------------------------------------- |
-| `## Pricing tiers`    | Table: tier \| price \| key inclusions \| target persona               |
-| `## Funnel state`     | LP URL, signup flow description (prose), known conversion rates if any |
-| `## Budget envelope`  | Total budget + per-month allocation if known; "TBD" allowed            |
-| `## Timeline`         | Launch date or window; runway in months                                |
-| `## Geographic focus` | Primary markets (countries / language regions); locale code            |
+| Required section      | Body shape                                                                                                                                           |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `## Pricing tiers`    | Table: tier \| price \| key inclusions \| target persona                                                                                             |
+| `## Funnel state`     | Signup flow description (prose), known conversion rates if any. **LP URL moved to file frontmatter** as `lp_url` (see Frontmatter convention above). |
+| `## Budget envelope`  | Total budget + per-month allocation if known; "TBD" allowed                                                                                          |
+| `## Timeline`         | Launch date or window; runway in months                                                                                                              |
+| `## Geographic focus` | Primary markets (countries / language regions); locale code                                                                                          |
 
 ### `distribution.md`
 

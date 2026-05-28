@@ -23,15 +23,13 @@ ______________________________________________________________________
 
 **What this powers:** `product.md` — read by all 8 board seats. This is the bedrock; the rest of the interview leans on it.
 
-> 💡 **Prefer guided fill?** Paste this to Claude:
-> *"Interview me on the Product section — ask one question at a time and update INTERVIEW.md after each answer."*
+> 💡 **Prefer guided fill?** Paste this to Claude: *"Interview me on the Product section — ask one question at a time and update INTERVIEW.md after each answer."*
 
 ### Q1.1: What does your product do?
 
 **Why this matters:** Every agent needs the product baseline. The Ethnographer maps this to buyer pain; the Storyteller positions against alternatives.
 
-**Example:** *"empleo.digital is a Spanish-language job board that matches blue-collar workers with verified employers in their city, reducing the friction of job-hunting from weeks to days."* (Good: specific audience, specific outcome, time dimension.)
-*Bad: "A platform that empowers users to achieve their career goals."* (Vague, generic, jargon — every agent will struggle with this.)
+**Example:** *"empleo.digital is a Spanish-language job board that matches blue-collar workers with verified employers in their city, reducing the friction of job-hunting from weeks to days."* (Good: specific audience, specific outcome, time dimension.) *Bad: "A platform that empowers users to achieve their career goals."* (Vague, generic, jargon — every agent will struggle with this.)
 
 **Detail level:** one to two sentences
 
@@ -132,8 +130,7 @@ ______________________________________________________________________
 
 **What this powers:** `audience.md` — read by Ethnographer, Storyteller, Channel Strategist, Producer, Community/PR Lead, Contrarian. The most consequential section for plan quality.
 
-> 💡 **Prefer guided fill?** Paste this to Claude:
-> *"Interview me on the Audience section — ask one question at a time and update INTERVIEW.md after each answer."*
+> 💡 **Prefer guided fill?** Paste this to Claude: *"Interview me on the Audience section — ask one question at a time and update INTERVIEW.md after each answer."*
 
 ### Q2.1: Define the ICP — five dimensions
 
@@ -299,8 +296,7 @@ ______________________________________________________________________
 
 **What this powers:** `competition.md` — read by Storyteller, Moonshot, Contrarian.
 
-> 💡 **Prefer guided fill?** Paste this to Claude:
-> *"Interview me on the Competition section — ask one question at a time and update INTERVIEW.md after each answer."*
+> 💡 **Prefer guided fill?** Paste this to Claude: *"Interview me on the Competition section — ask one question at a time and update INTERVIEW.md after each answer."*
 
 ### Q3.1: Name 3-5 alternatives (incl. status quo / DIY)
 
@@ -426,8 +422,7 @@ ______________________________________________________________________
 
 **What this powers:** `business.md` — read by Channel Strategist, Funnel Engineer, Contrarian.
 
-> 💡 **Prefer guided fill?** Paste this to Claude:
-> *"Interview me on the Business section — ask one question at a time and update INTERVIEW.md after each answer."*
+> 💡 **Prefer guided fill?** Paste this to Claude: *"Interview me on the Business section — ask one question at a time and update INTERVIEW.md after each answer."*
 
 ### Q4.1: Pricing tiers — table
 
@@ -469,13 +464,29 @@ ______________________________________________________________________
 
 `[skip]` ← if not applicable, change this to `[skipped: <one-line reason>]`
 
-### Q4.3: Current funnel state — LP URL + signup flow + conversion rates (if any)
+### Q4.3: Landing page URL
+
+**Why this matters:** Downstream skills (e.g., the email-sequence drafter) substitute this URL inline in body copy and CTAs. Must be a single canonical URL — the LP the founder is driving traffic to. Goes into `business.md` frontmatter (`lp_url`) for deterministic extraction. Different from any chooser, onboarding, or app subdomain URLs — those go in Q4.4's prose.
+
+**Example:** *`https://empleo.digital`*
+
+(Leave blank if you don't have an LP yet — downstream skills fall back to a `<https://YOUR-LP-URL>` placeholder.)
+
+**Detail level:** single URL, one line
+
+**Your answer:**
+
+> _Your URL here..._
+
+`[skip]` ← if not applicable, change this to `[skipped: <one-line reason>]`
+
+### Q4.4: Funnel state — signup flow + conversion rates (if any)
 
 **Why this matters:** The Funnel Engineer needs a baseline to identify leaks. The Channel Strategist tunes channel expectations to the funnel that actually exists.
 
-**Example:** *LP: <https://empleo.digital>. Signup flow: LP → "Encuentra trabajo" CTA → phone-number entry → WhatsApp verification → city + role preferences. Known rates: LP visits to phone-number entry ~6%; phone-number to WhatsApp verified ~70%; verified to first application within 24h ~40%. No paid traffic data yet.*
+**Example:** *Signup flow: LP → "Encuentra trabajo" CTA → phone-number entry → WhatsApp verification → city + role preferences. Known rates: LP visits to phone-number entry ~6%; phone-number to WhatsApp verified ~70%; verified to first application within 24h ~40%. No paid traffic data yet.*
 
-(If you have no rates yet, say so explicitly — "none yet" is a valid answer.)
+(If you have no rates yet, say so explicitly — "none yet" is a valid answer. The LP URL itself goes in Q4.3 — describe the flow here, not the URL.)
 
 **Detail level:** free-text, ~1 paragraph
 
@@ -485,7 +496,7 @@ ______________________________________________________________________
 
 `[skip]` ← if not applicable, change this to `[skipped: <one-line reason>]`
 
-### Q4.4: Budget envelope — total + monthly allocation
+### Q4.5: Budget envelope — total + monthly allocation
 
 **Why this matters:** Channel Strategist matches the plan to the envelope. The Contrarian flags over-promise relative to budget.
 
@@ -499,7 +510,7 @@ ______________________________________________________________________
 
 `[skip]` ← if not applicable, change this to `[skipped: <one-line reason>]`
 
-### Q4.5: Timeline — launch date or window + runway in months
+### Q4.6: Timeline — launch date or window + runway in months
 
 **Why this matters:** Everyone reads this. Producer schedules around it; Community/PR Lead picks PR windows; Contrarian stress-tests feasibility.
 
@@ -513,7 +524,7 @@ ______________________________________________________________________
 
 `[skip]` ← if not applicable, change this to `[skipped: <one-line reason>]`
 
-### Q4.6: Geographic focus — primary markets + locale code
+### Q4.7: Geographic focus — primary markets + locale code
 
 **Why this matters:** Channel Strategist localizes; Storyteller adjusts voice for region; Community/PR Lead picks region-specific surfaces.
 
@@ -538,8 +549,7 @@ ______________________________________________________________________
 
 **What this powers:** `distribution.md` — read by Channel Strategist, Producer, Community/PR Lead, Contrarian.
 
-> 💡 **Prefer guided fill?** Paste this to Claude:
-> *"Interview me on the Distribution section — ask one question at a time and update INTERVIEW.md after each answer."*
+> 💡 **Prefer guided fill?** Paste this to Claude: *"Interview me on the Distribution section — ask one question at a time and update INTERVIEW.md after each answer."*
 
 ### Q5.1: Owned channels — platform + current audience size
 
@@ -680,8 +690,7 @@ ______________________________________________________________________
 
 **What this powers:** `constraints.md` — read by Moonshot, Contrarian.
 
-> 💡 **Prefer guided fill?** Paste this to Claude:
-> *"Interview me on the Constraints section — ask one question at a time and update INTERVIEW.md after each answer."*
+> 💡 **Prefer guided fill?** Paste this to Claude: *"Interview me on the Constraints section — ask one question at a time and update INTERVIEW.md after each answer."*
 
 ### Q6.1: Legal / compliance — bullet list; "None" allowed
 

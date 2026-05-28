@@ -1,17 +1,18 @@
 # TDD — Email Sequence Skill
 
-| Field        | Value                                                                                                                                            |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Type         | Feature TDD                                                                                                                                      |
-| Status       | v1.0 — Phase 0 decisions locked; Phase 2 OQs pending                                                                                             |
-| Owner        | Adrián Ribao                                                                                                                                     |
-| Created      | 2026-05-22                                                                                                                                       |
-| Parent PRD   | [`specs/prds/marketing-board/01-email-sequence-skill.md`](../../prds/marketing-board/01-email-sequence-skill.md)                                 |
-| Master TDD   | [`00-marketing-board-master.md`](00-marketing-board-master.md)                                                                                   |
-| Sibling TDDs | [`01-marketing-board-deliberation.md`](01-marketing-board-deliberation.md), [`02-marketing-board-bootstrap.md`](02-marketing-board-bootstrap.md) |
-| First test   | empleo.digital — drafts against `marketing-plans/empleo-digital-2026-05-22.md`                                                                   |
-| Plugin host  | `plugins/marketing-board/` (additive — no changes to existing files)                                                                             |
-| Invocation   | `/marketing-board:email-sequence`                                                                                                                |
+| Field        | Value                                                                                                                                             |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Type         | Feature TDD                                                                                                                                       |
+| Status       | v1.2 — Phase 2 OQs resolved (8/8 on 2026-05-28); OQ-06 refined to frontmatter; cascading amendments to TDD 00 + TDD 02 + bootstrap skill required |
+| Owner        | Adrián Ribao                                                                                                                                      |
+| Created      | 2026-05-22                                                                                                                                        |
+| Updated      | 2026-05-28 — `--consolidate` pass folded 8 OQ resolutions into the body                                                                           |
+| Parent PRD   | [`specs/prds/marketing-board/01-email-sequence-skill.md`](../../prds/marketing-board/01-email-sequence-skill.md)                                  |
+| Master TDD   | [`00-marketing-board-master.md`](00-marketing-board-master.md)                                                                                    |
+| Sibling TDDs | [`01-marketing-board-deliberation.md`](01-marketing-board-deliberation.md), [`02-marketing-board-bootstrap.md`](02-marketing-board-bootstrap.md)  |
+| First test   | empleo.digital — drafts against `marketing-plans/empleo-digital-2026-05-22.md`                                                                    |
+| Plugin host  | `plugins/marketing-board/` (additive — no changes to existing files)                                                                              |
+| Invocation   | `/marketing-board:email-sequence`                                                                                                                 |
 
 ______________________________________________________________________
 
@@ -44,6 +45,35 @@ Cross-cutting contracts (knowledge-base file shapes, marketplace conventions, na
 - ESP-specific export formats — v1.1
 - Calling image-generation APIs — v1.1
 - Automated test framework — manual testing only per the family convention (see TDD 00 testing strategy)
+
+## Cascading amendments required (per OQ-06)
+
+OQ-06's resolution (frontmatter `lp_url` key in `business.md` — refined post-consolidation; see resolution-log note) commits sibling-doc amendments **before** this skill ships. This establishes YAML frontmatter as the family's structured-metadata convention for the six `agent_docs/marketing/*.md` knowledge-base files (optional per file; used when there are non-prose values like URLs, IDs, locale codes, color hex):
+
+| Doc                                                 | Amendment                                                                                                                                                                                       |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [TDD 00 master](00-marketing-board-master.md)       | Adds a "Frontmatter convention" section for KB files; `business.md` shape spec adds an optional YAML frontmatter block with `lp_url: <url>` as the first canonical structured field             |
+| [TDD 02 bootstrap](02-marketing-board-bootstrap.md) | `INTERVIEW.md` Section 4 (Business) gains a dedicated LP URL question (single-line); `:bootstrap --consolidate` writes the answer to `business.md`'s frontmatter; section question count: 6 → 7 |
+
+Example resulting `business.md`:
+
+```markdown
+---
+lp_url: https://empleo.digital
+---
+
+# Business
+
+## Pricing tiers
+
+[…]
+
+## Funnel state
+
+[prose about the funnel]
+```
+
+The email-sequence skill parses `business.md`'s YAML frontmatter and reads `lp_url` deterministically (no LLM inference for the URL). Falls back to the obvious placeholder `<https://YOUR-LP-URL>` when the frontmatter is absent or `lp_url` is missing.
 
 ## File structure
 
@@ -99,12 +129,12 @@ Per Phase 0 decision: extraction happens in the **same synthesis turn** as draft
 
 ## Knowledge-base reading contract
 
-| File                                  | Sections read                                        | Required?   | Purpose                                                                                             |
-| ------------------------------------- | ---------------------------------------------------- | ----------- | --------------------------------------------------------------------------------------------------- |
-| `agent_docs/marketing/product.md`     | `## Brand voice & tone`, `## Value propositions`     | Required    | Voice calibration; body content material                                                            |
-| `agent_docs/marketing/audience.md`    | `## Personas`, `## Vocabulary`, `## Triggers to buy` | Required    | Persona scene; buyer terms; subject-line trigger material                                           |
-| `agent_docs/marketing/business.md`    | `## Funnel state`                                    | Optional    | LP URL — substituted inline per FR-23 when present                                                  |
-| `agent_docs/marketing/constraints.md` | `## Legal / compliance`                              | Conditional | Read always; compliance block emitted only when section names GDPR / CAN-SPAM / similar (per FR-24) |
+| File                                  | Sections read                                        | Required?   | Purpose                                                                                                                                                                                                                    |
+| ------------------------------------- | ---------------------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `agent_docs/marketing/product.md`     | `## Brand voice & tone`, `## Value propositions`     | Required    | Voice calibration; body content material                                                                                                                                                                                   |
+| `agent_docs/marketing/audience.md`    | `## Personas`, `## Vocabulary`, `## Triggers to buy` | Required    | Persona scene; buyer terms; subject-line trigger material                                                                                                                                                                  |
+| `agent_docs/marketing/business.md`    | YAML frontmatter `lp_url` key (per OQ-06 refined)    | Optional    | LP URL — substituted inline per FR-23 when present; deterministic extraction via frontmatter parse (no LLM inference); falls back to `<https://YOUR-LP-URL>` placeholder when frontmatter is absent or `lp_url` is missing |
+| `agent_docs/marketing/constraints.md` | `## Legal / compliance`                              | Conditional | Read always; compliance block emitted only when section names GDPR / CAN-SPAM / similar (per FR-24)                                                                                                                        |
 
 If `product.md` or `audience.md` is missing OR lacks any required `##` section → hard-fail per FR-05 with the exact message `"Bootstrap your product context first: /marketing-board:bootstrap"`.
 
@@ -223,6 +253,8 @@ The LLM matches the sequence name against this lookup (case-insensitive substrin
 
 The lookup is intentionally narrow — common sequence-name patterns get tuned defaults; anything novel gets a sane fallback.
 
+**Non-English sequence names (per OQ-05)**: the LLM internally translates each sequence name to English-keyword space during the synthesis turn before matching the lookup. Spanish examples: `Bienvenida` → matches `welcome`; `Activación` → matches `activation`; `Reenganche` → matches `re-engagement`; `Conversión` → matches `trial-to-paid`. Translation is implicit (no separate prompt step); the table stays English-canonical; multilingual memos work without code changes.
+
 ## Persona ask-back UX (per AD-9 + Phase-0 decision)
 
 When the LLM judges multiple sequences with ambiguous persona, the skill emits a SINGLE message at the top of the turn listing all of them, then waits for one founder reply, then drafts all sequences in one synthesis pass.
@@ -245,6 +277,8 @@ Edge cases:
 - No ambiguity → skill proceeds directly to drafting; no message
 - Ambiguity in only one sequence → still uses this format (singular bullet)
 - Founder reply doesn't cover all asked → skill re-asks the unanswered ones in one follow-up
+
+**Ambiguity threshold (per OQ-04)**: the LLM judges ambiguity with no explicit numeric or lexical criterion — black-box judgment. Trust the model; the batch ask-back UX (one pause max per run) bounds the cost of false positives. The SKILL.md body does NOT enumerate when to call a persona ambiguous beyond "the LLM judges multiple personas plausibly fit the sequence's trigger / target metric."
 
 ## Flag contracts
 
@@ -272,6 +306,78 @@ Mutually exclusive: `--consolidate` cannot be combined with `<sequence-name>` AN
 | HF-CONFLICTING-ARGS | `<name>`, `@<path>`, and `--consolidate` combined illegally | `"Conflicting arguments. Use one of: <name>, @<path>, or --consolidate [<name>|@<path>]."`                                                                                              |
 
 No partial-context fallback. No silent degradation. Inheriting marketing-board's hard-fail discipline (AD-6).
+
+## Sequence-slug normalization rules (per OQ-02)
+
+The sequence name → filename slug conversion is Unicode-aware (preserves accented characters):
+
+1. Apply Unicode NFC normalization
+2. Lowercase (Unicode-aware — `İ` → `i̇` per Unicode case-folding)
+3. Replace whitespace, dots, and underscores with single hyphens
+4. Strip characters that are not Unicode letters, Unicode digits, or hyphens (parentheses, brackets, slashes, etc. removed)
+5. Collapse multiple consecutive hyphens into one
+6. Trim leading and trailing hyphens
+
+| Sequence name        | Slug                |
+| -------------------- | ------------------- |
+| `Welcome`            | `welcome`           |
+| `Bienvenida`         | `bienvenida`        |
+| `Activación early`   | `activación-early`  |
+| `Welcome (week 1)`   | `welcome-week-1`    |
+| `Trial-to-paid`      | `trial-to-paid`     |
+| `Reenganche / dormant` | `reenganche-dormant` |
+
+Accents are preserved as Unicode codepoints in the filename. This requires a filesystem with Unicode filename support (ext4, APFS, NTFS — all modern targets). The skill does NOT strip-accents-to-ASCII.
+
+## Consolidate flow contract (per OQ-01, OQ-03, OQ-08)
+
+### File targeting (per OQ-03)
+
+When `--consolidate` runs without `@<path>`:
+
+1. Scope candidates to `email-sequences/*.md`
+2. If `<name>` is supplied, filter to filenames whose slug matches `<name>` (case-insensitive)
+3. Pick the candidate with the most recent mtime
+4. **Print the chosen path in the run summary** along with the hint: `"To consolidate a different file, pass @<path>."`
+
+If zero candidates → hard-fail `HF-CONSOLIDATE-NOFILE`. If multiple candidates match a `<name>` filter, the visible report shows the founder which file was picked (no silent default).
+
+### Variant rendering after consolidate (per OQ-01)
+
+For each email block, the three variant blocks (Subject, Preheader, CTA) collapse from a checkbox list to a single line based on the founder's `- [x]` picks:
+
+| Pre-consolidate                                                                 | Post-consolidate (single pick)                |
+| ------------------------------------------------------------------------------- | --------------------------------------------- |
+| `**Subject (pick one):**\n\n- [x] First pick\n- [ ] Alternative\n- [ ] Other`   | `**Subject:** First pick`                     |
+| `**Preheader (pick one):**\n\n- [x] First pick\n- [ ] Alternative`              | `**Preheader:** First pick`                   |
+| `**CTA (pick one):**\n\n- [x] First pick\n- [ ] Alternative`                    | `**CTA:** First pick`                         |
+
+The unticked alternatives are removed from the file. Git history preserves them if the founder needs to recover them. Re-running `--consolidate` on a post-consolidate file is a byte-identical no-op (idempotency).
+
+### Sequence-level OQ-block consolidate (per OQ-08)
+
+When the drafted sequence file contains a `## Open Questions` block (per FR-25) and the founder has ticked answers, `--consolidate` mirrors marketing-board's memo consolidate behavior:
+
+1. Fold the picked OQ answer into the relevant per-email block where applicable (e.g., if OQ resolved which trigger to use, update affected email blocks' `**Trigger:**` line)
+2. Mark each resolved OQ in the summary table with `Resolved (YYYY-MM-DD) — <one-line answer>`
+3. Drop the `### OQ-NN — <title>` detail blocks for resolved questions; keep only the summary table row
+4. When ALL OQs in the block are resolved, replace the `## Open Questions` block with a compact one-line resolution log: `*All N sequence-level decisions resolved on YYYY-MM-DD and integrated above.*`
+
+Unresolved OQs (no `[x]` ticked) remain visible with full detail blocks.
+
+## Run summary contract (per OQ-07)
+
+After every drafting run (not `--consolidate`), the skill emits a run summary to the conversation containing:
+
+| Item                              | Purpose                                                                                                                  |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Extracted sequence names + counts | Founder cross-check: `"Extracted 3 sequences from memo: Welcome (4 emails), Activation (5), Win-back (3)."`              |
+| Saved file paths                  | One bullet per sequence: `"- email-sequences/welcome-2026-05-22.md"`                                                     |
+| Re-run guidance for misses        | Verbatim: `"If a sequence in the memo is missing here, re-run with /marketing-board:email-sequence <name> @<memo-path>."` |
+| Variant-pick reminder             | `"Tick - [x] on one variant per Subject / Preheader / CTA block, then run /marketing-board:email-sequence --consolidate."` |
+| Freshness warning (conditional)   | Same text as the file-preamble warning, when `product.md` mtime > memo mtime (per FR-22)                                  |
+
+For `--consolidate` runs, the summary instead contains: chosen-file path (per OQ-03), count of variants collapsed, count of OQs resolved (if any), list of emails added to "still needs decisions" (no-picks or all-picks per FR-15 / FR-16).
 
 ## Behavior specifications
 
@@ -400,6 +506,69 @@ No partial-context fallback. No silent degradation. Inheriting marketing-board's
 **When** the founder runs `/marketing-board:email-sequence`
 **Then** no `## Open Questions` block is emitted in that sequence's file
 
+### Non-English sequence name (per OQ-05)
+
+**Given** the memo's outline lists a sequence named `Bienvenida`
+**When** the founder runs `/marketing-board:email-sequence`
+**Then** the LLM internally translates `Bienvenida` to `welcome` for the body-length lookup
+**And** body length falls in the 100-180 word range (welcome bucket)
+**And** the saved file is `email-sequences/bienvenida-2026-05-22.md` (slug preserves the original name, per OQ-02)
+**And** body prose is in Spanish (per FR-09 implicit language detection)
+
+### LP URL substitution (per OQ-06)
+
+**Given** `business.md`'s YAML frontmatter contains `lp_url: https://empleo.digital`
+**When** the founder runs `/marketing-board:email-sequence`
+**Then** every body / CTA reference to "the landing page" in drafted emails is substituted with `https://empleo.digital` inline
+**And** the substitution is deterministic (frontmatter parse, no LLM inference for the URL itself)
+
+**Given** `business.md` has no YAML frontmatter (or has frontmatter but no `lp_url` key)
+**When** the founder runs `/marketing-board:email-sequence`
+**Then** body / CTA references to the landing page use the placeholder `<https://YOUR-LP-URL>`
+**And** no hard-fail is triggered (LP URL is optional)
+
+### Unicode-aware slug (per OQ-02)
+
+**Given** the memo's outline lists a sequence named `Activación early`
+**When** the founder runs `/marketing-board:email-sequence`
+**Then** the saved file is `email-sequences/activación-early-2026-05-22.md` (the accented character is preserved)
+**And** the file opens correctly on Linux ext4, macOS APFS, and Windows NTFS
+
+### Consolidate disambiguation — multiple files match the slug (per OQ-03)
+
+**Given** `email-sequences/welcome-2026-05-22.md` AND `email-sequences/welcome-2026-05-29.md` both exist
+**And** the founder edited `welcome-2026-05-29.md` most recently
+**When** the founder runs `/marketing-board:email-sequence --consolidate welcome`
+**Then** the skill picks `welcome-2026-05-29.md` (most recent mtime)
+**And** the run summary contains the chosen path verbatim and the hint `"To consolidate a different file, pass @<path>."`
+**And** `welcome-2026-05-22.md` is not modified
+
+### Consolidate — variant rendering collapses to single line (per OQ-01)
+
+**Given** `email-sequences/welcome-2026-05-22.md` exists with email 01 having Subject block of 3 variants, second variant ticked
+**When** the founder runs `/marketing-board:email-sequence --consolidate`
+**Then** email 01's Subject section is rewritten as `**Subject:** <second variant text>`
+**And** the unticked variants are removed from the file
+**And** the same transformation applies to Preheader and CTA blocks
+**And** re-running `--consolidate` on the resulting file produces a byte-identical output
+
+### Consolidate — sequence-level OQ block resolved (per OQ-08)
+
+**Given** `email-sequences/welcome-2026-05-22.md` has a `## Open Questions` block with one OQ
+**And** the founder ticked one possible answer
+**When** the founder runs `/marketing-board:email-sequence --consolidate`
+**Then** the relevant per-email block(s) are updated with the picked answer's content (e.g., `**Trigger:**` line updated when the OQ resolved which trigger to use)
+**And** the OQ's summary-table row shows `Resolved (YYYY-MM-DD) — <one-line answer>`
+**And** the OQ's `### OQ-NN — <title>` detail block is removed
+**And** when ALL OQs in the block are resolved, the entire `## Open Questions` block is replaced with `*All N sequence-level decisions resolved on YYYY-MM-DD and integrated above.*`
+
+### Run summary contents (per OQ-07)
+
+**Given** the happy-path scenario (3 sequences extracted)
+**When** the founder runs `/marketing-board:email-sequence`
+**Then** the run summary contains all 5 mandated items: extracted sequence names + email counts; saved file paths; re-run guidance for misses (verbatim); variant-pick reminder; freshness warning if applicable
+**And** the re-run guidance is exactly `"If a sequence in the memo is missing here, re-run with /marketing-board:email-sequence <name> @<memo-path>."`
+
 ## Acceptance criteria
 
 ### Skill structure
@@ -428,9 +597,16 @@ No partial-context fallback. No silent degradation. Inheriting marketing-board's
 - [ ] `--sequence <name>` (or positional) scopes to one sequence; case-insensitive name match
 - [ ] Every drafted email has the 7 required block elements: header, Trigger, Target metric, Subject (2-3 `- [ ]` variants), Preheader (2 `- [ ]` variants), Body, CTA (1-2 `- [ ]` variants)
 - [ ] Body length matches the sequence-type lookup (Welcome/Win-back 100-180; Activation 150-250; Trial-to-paid 200-350; fallback 150-250)
+- [ ] Non-English sequence names are internally translated to English-keyword space before the body-length lookup (per OQ-05); the table stays English-canonical
 - [ ] Visual block is emitted ONLY when the LLM judges it would strengthen the email (no keyword matching)
 - [ ] Drafts follow the memo's language (LLM implicit detection)
 - [ ] `## Drafted from:` line at the file top names the source memo path
+
+### Run summary (per OQ-07)
+
+- [ ] Drafting-mode run summary contains: extracted sequence names + email counts; saved file paths (one bullet each); re-run guidance for misses; variant-pick reminder; conditional freshness warning
+- [ ] Re-run guidance is verbatim `"If a sequence in the memo is missing here, re-run with /marketing-board:email-sequence <name> @<memo-path>."`
+- [ ] Consolidate-mode run summary contains: chosen-file path (per OQ-03); count of variants collapsed; count of OQs resolved (if any); list of emails added to "still needs decisions"
 
 ### Persona ask-back UX
 
@@ -438,14 +614,16 @@ No partial-context fallback. No silent degradation. Inheriting marketing-board's
 - [ ] When ≥1 sequences are persona-ambiguous, the skill emits ONE batch message at the top of the turn listing all of them
 - [ ] After the founder's reply, the skill drafts all sequences in one synthesis pass
 - [ ] If the founder's reply doesn't cover all asked sequences, the skill re-asks only the unanswered ones
+- [ ] Persona ambiguity uses black-box LLM judgment (per OQ-04) — no explicit numeric or lexical threshold encoded in SKILL.md
 
 ### File writing
 
 - [ ] Output dir is `email-sequences/` in the working directory; created if absent
-- [ ] Filename is `<sequence-slug>-<YYYY-MM-DD>.md`; slug is the sequence name kebab-cased
+- [ ] Filename is `<sequence-slug>-<YYYY-MM-DD>.md`; slug follows the Unicode-aware normalization rule (per OQ-02): NFC + lowercase + replace whitespace/dots/underscores with `-` + strip non-alphanumeric (Unicode-aware) + collapse consecutive `-` + trim
+- [ ] Accented characters in sequence names are preserved in filenames (e.g., `Activación` → `activación`)
 - [ ] Same-day collision → `-<HHMMSS>` suffix; existing files are never overwritten
 - [ ] No binary files are written (no image files in v1)
-- [ ] LP URL from `business.md`'s `## Funnel state` is substituted inline when present; obvious placeholder (`<https://YOUR-…>`) otherwise
+- [ ] LP URL is extracted deterministically from `business.md`'s YAML frontmatter `lp_url` key (per OQ-06 refined); falls back to `<https://YOUR-LP-URL>` placeholder when the frontmatter is absent or `lp_url` is missing — no LLM inference for URL extraction
 
 ### Conditional blocks
 
@@ -459,10 +637,13 @@ No partial-context fallback. No silent degradation. Inheriting marketing-board's
 - [ ] `--consolidate` (no args) operates on the most recently modified `email-sequences/*.md` file
 - [ ] `--consolidate <name>` targets the named sequence's file (slug match)
 - [ ] `--consolidate @<path>` targets the specified file
+- [ ] When multiple files match the `<name>` filter, most-recent-mtime wins and the chosen path is printed in the run summary along with the `@<path>` override hint (per OQ-03)
 - [ ] Ticked variants kept; unticked variants removed
+- [ ] After consolidate, each variant block collapses to a single line: `**Subject:** <pick>`, `**Preheader:** <pick>`, `**CTA:** <pick>` (per OQ-01)
 - [ ] Founder's prose edits to body content preserved verbatim
 - [ ] No picks (or all picks) per email → keep all + add to "still needs decisions" list in the run summary; file otherwise unchanged
-- [ ] Running `--consolidate` twice on the same file + same in-file picks produces a byte-identical file
+- [ ] Running `--consolidate` twice on the same file + same in-file picks produces a byte-identical file (idempotency)
+- [ ] Sequence-level OQ blocks (per FR-25) consolidate by mirroring marketing-board's memo-consolidate behavior (per OQ-08): fold answers into per-email blocks, mark resolved OQs `Resolved (YYYY-MM-DD)`, drop resolved detail blocks, collapse block to one-line log when fully resolved
 
 ### Hard-fail messaging
 
@@ -496,7 +677,7 @@ No partial-context fallback. No silent degradation. Inheriting marketing-board's
 | **Conditional visual**        | Manual review of 5 drafted emails; assert at most one or two carry a `**Visual:**` block (those where the LLM judged it added value)                                                  |
 | **Conditional sequence OQ**   | Manual review; assert a `## Open Questions` block appears only when the drafting surfaced an execution-blocker                                                                        |
 | **Freshness warning**         | Touch `product.md` to a newer mtime than the memo; run skill; assert warning appears in run summary and preamble                                                                      |
-| **LP URL substitution**       | Set `business.md` `## Funnel state` to contain `https://empleo.digital`; run; assert that URL appears inline in body / CTA where the email references the landing page                |
+| **LP URL substitution**       | Set `business.md` frontmatter to `lp_url: https://empleo.digital`; run; assert that URL appears inline in body / CTA where the email references the landing page                       |
 | **Empleo end-to-end**         | Manual: run against `marketing-plans/empleo-digital-2026-05-22.md`; review one sequence; assert it would be usable with light editing                                                  |
 
 No automated test framework in v1 (per TDD 00 testing strategy). All tests are manual + lint-style assertions on file structure.
@@ -515,136 +696,16 @@ No automated test framework in v1 (per TDD 00 testing strategy). All tests are m
 
 ## Open Questions
 
-*Generated via deep analysis after synthesis — resolve before implementation. Answer in this file (tick the checkboxes, add notes), then run `/specs-plugin:tdd-writer --consolidate @specs/tdds/marketing-board/03-email-sequence-skill.md` to fold answers in.*
+*All 8 questions resolved on 2026-05-28 and integrated into the body sections above. This TDD is ready for implementation pending the cascading amendments to TDD 00 + TDD 02 (see the `## Cascading amendments required` callout at the top of this file).*
 
-| ID    | Question                                                                                                | Status                              |
-| ----- | ------------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| OQ-01 | Consolidated-variant render shape — single line vs preserved block vs single line + comment trail       | Open — recommend Option 1           |
-| OQ-02 | Sequence-slug normalization rules (accents, special chars, multi-word names)                            | Open — recommend Option 3           |
-| OQ-03 | `--consolidate <name>` disambiguation when multiple files match the slug                                | Open — recommend Option 2           |
-| OQ-04 | Persona ambiguity threshold — operationalizing AD-9's "LLM judges as ambiguous"                         | Open — recommend Option 1           |
-| OQ-05 | Non-English sequence names — how the body-length lookup handles them                                    | Open — recommend Option 1           |
-| OQ-06 | LP URL extraction heuristic from `business.md`'s `## Funnel state` prose                                | Open — recommend Option 4           |
-| OQ-07 | Extraction validation — preventing silent miss of a sequence by the LLM                                  | Open — recommend Option 4           |
-| OQ-08 | `--consolidate` semantics for the sequence-level `## Open Questions` block (per FR-25)                  | Open — recommend Option 1           |
-
-### OQ-01 — Consolidated-variant render shape
-
-**Question:** After `--consolidate` resolves variant picks, how should the kept variant be rendered? E.g., the `**Subject (pick one):**` block of three checkboxed variants becomes what exactly in the post-consolidate file?
-
-**Why it matters:** Every consolidated email has three variant blocks (Subject, Preheader, CTA) that need a render decision. Inconsistent rendering complicates the parse on re-consolidate. The chosen shape sets a stable contract that affects every consolidated email the skill ever produces.
-
-**Possible answers:**
-
-- [ ] Single line: `**Subject:** <chosen variant>`. Removes the checkbox infrastructure entirely. Re-consolidate becomes trivially idempotent (no variants left to pick).
-- [ ] Preserve block with one ticked variant: `**Subject (pick one):**\n\n- [x] <chosen variant>`. Keeps the format consistent across pre- and post-consolidate but is visually weird (a single-option "pick one").
-- [ ] Single line + comment trail: `**Subject:** <chosen>\n\n<!-- alternatives removed during consolidate: <list> -->`. Preserves the rejected alternatives inline as comments for the founder's reference.
-- [ ] Option 1 plus a `## Consolidation log` footer at the file bottom listing what was kept for each email. Clean visible record without inline noise.
-
-**Status:** Open — recommend Option 1 (single line). Clean; git history preserves the alternatives if the founder needs them; re-consolidate is trivially idempotent.
-
-### OQ-02 — Sequence-slug normalization rules
-
-**Question:** What's the exact normalization rule for converting a sequence name to its filename slug? Accent handling? Special characters? Multi-word names with parentheses?
-
-**Why it matters:** Filenames must be safe across platforms (Linux/macOS/Windows). The rule determines what `--sequence trial-to-paid` matches against, what file gets written for "Activación early" or "Welcome (week 1)", and whether the founder ever has to debug encoding issues.
-
-**Possible answers:**
-
-- [ ] Lowercase + replace whitespace/dots/underscores with hyphens + strip non-alphanumeric (Unicode-aware). Preserves accented letters as Unicode in filenames: `Activación` → `activación`. Locale-friendly, less portable.
-- [ ] Same as Option 1 but strip-accents first (Unicode NFD-then-strip-marks): `Activación` → `activacion`. ASCII-friendly slugs.
-- [ ] Strict ASCII-safe: lowercase + strip accents + collapse any run of non-`[a-z0-9]` characters into a single hyphen + trim leading/trailing hyphens. `Welcome (week 1)` → `welcome-week-1`; `Activación early` → `activacion-early`. Most portable.
-- [ ] Preserve case and accents; only replace whitespace with hyphens. Most readable but breaks portability and case-sensitive matching.
-
-**Status:** Open — recommend Option 3 (strict ASCII-safe + collapse non-alphanumerics). Portable across filesystems; deterministic; the founder doesn't need to debug encoding issues; matches the convention the rest of the family uses for slugs.
-
-### OQ-03 — `--consolidate <name>` disambiguation when multiple files match
-
-**Question:** When the founder runs `/marketing-board:email-sequence --consolidate welcome` and `email-sequences/` contains multiple files matching the welcome slug (e.g., from different days of iteration), which file does the skill consolidate?
-
-**Why it matters:** Common scenario after a few days of iteration on the same sequence — the founder has `welcome-2026-05-22.md` (annotated heavily) and `welcome-2026-05-29.md` (re-drafted later). Silently consolidating the wrong file overwrites annotations; refusing to pick is friction.
-
-**Possible answers:**
-
-- [ ] Most recently modified file (mtime). Silent default.
-- [ ] Most recently modified file, but the run summary prints the chosen path + how to override with `@<path>`. Defaults sensibly; transparent about the choice.
-- [ ] List matching files + ask the founder which to consolidate. Interactive; safer; one extra round-trip.
-- [ ] Most recent date in the filename (parsed `<slug>-<YYYY-MM-DD>.md`). Deterministic by name; ignores mtime; potentially surprising if the founder edited an older file recently.
-
-**Status:** Open — recommend Option 2 (mtime + visible report). The most-recently-touched file is almost always the one the founder is working on; the visible report keeps the choice transparent; `@<path>` available for explicit override.
-
-### OQ-04 — Persona ambiguity threshold
-
-**Question:** AD-9 says the skill pauses for ask-back when the LLM's persona confidence is "low." What signal makes the LLM call a sequence's persona ambiguous?
-
-**Why it matters:** Setting the threshold too low triggers ask-back on every sequence (annoying UX bloat). Too high produces silent best-guesses on genuinely ambiguous cases. Operationalizes AD-9's "low confidence" — the difference between a slick UX and a frustrating one.
-
-**Possible answers:**
-
-- [ ] Black-box LLM judgment — the LLM decides per sequence with no explicit criteria. Trust the model's reasoning; the batch-upfront ask-back UX bounds the cost of false positives.
-- [ ] Explicit numeric criterion in the SKILL.md: "Ambiguous when ≥2 personas have ≥40% relevance to the trigger AND the gap between top-1 and top-2 is <20 percentage points." Quantifies the LLM's reasoning; potentially over-constraining.
-- [ ] Explicit lexical criterion: "Ambiguous when the audience file has ≥2 personas AND the Funnel Engineer's trigger doesn't lexically reference any persona's day-in-the-life or JTBD." Simple test the LLM can apply consistently.
-- [ ] Founder-overridable: default to LLM judgment; `--strict-persona` flag forces ask-back on every sequence (founder always picks).
-
-**Status:** Open — recommend Option 1 (black-box LLM judgment). The model is good at this kind of judgment; explicit numeric thresholds mis-fire; the batch ask-back UX (one pause max per run) bounds the cost when the LLM gets it wrong. Keep the criterion implicit; trust the model.
-
-### OQ-05 — Non-English sequence names + body-length lookup
-
-**Question:** The body-length lookup table (FR-08) uses English keywords (welcome / activation / trial-to-paid / win-back / etc.). How does it match non-English sequence names like "Bienvenida" or "Activación" or "Reenganche"?
-
-**Why it matters:** Empleo.digital is Spanish — its Funnel Engineer will likely name sequences in Spanish. Mis-matching (or always falling back to the 150-250 default) loses the per-sequence length tuning the PRD locked in via OQ-02. First acceptance test depends on this.
-
-**Possible answers:**
-
-- [ ] LLM translates each sequence name to English-keyword space internally during the synthesis turn, then matches the table. Single source of truth (table stays English-canonical); multilingual memos work without code changes.
-- [ ] Extend the lookup table with bilingual keywords (es: bienvenida → welcome; activación → activation; reenganche → win-back; conversión → trial-to-paid; etc.). Predictable; deterministic; needs a table extension per supported language.
-- [ ] LLM judges body length per sequence using its own knowledge of email norms (no table). Drops the table entirely; trusts the model; loses the locked length-per-type contract.
-- [ ] All non-English sequence names fall back to default 150-250; no per-type tuning for non-English memos. Simple; loses the FR-08 advantage for non-English memos.
-
-**Status:** Open — recommend Option 1 (LLM translates internally). Preserves the locked length-per-type contract from FR-08; the table stays English-canonical; multilingual memos work without code changes.
-
-### OQ-06 — LP URL extraction heuristic
-
-**Question:** `business.md`'s `## Funnel state` is prose — TDD 00 specifies the body as "LP URL, signup flow description (prose), known conversion rates if any." How does the skill find the LP URL within that prose for FR-23 substitution?
-
-**Why it matters:** Wrong URL extracted (or no extraction when one is present) breaks the FR-23 promise of "LP URL substituted inline when present." Affects every email body / CTA that references the landing page across every sequence.
-
-**Possible answers:**
-
-- [ ] Regex match for the first URL pattern (`https?://[^\s]+`) in the section. Simple and fast; can mis-match when the section mentions multiple URLs (LP + competitor URL + tracking URL).
-- [ ] LLM extracts the URL with context awareness ("which of these URLs is the landing page?"). Smarter; adds an LLM step.
-- [ ] Require a structured `**LP URL:**` line in `business.md`'s `## Funnel state` (TDD 00 amendment + bootstrap-skill amendment). Deterministic but extends the family.
-- [ ] LLM extracts during the existing synthesis turn — no separate extraction step, the model is already reading the full section for drafting. One less moving part.
-
-**Status:** Open — recommend Option 4 (LLM extracts during synthesis). The model is already reading `business.md` for the drafting pass; one less moving part than a separate regex or extraction step; no TDD 00 amendment needed.
-
-### OQ-07 — Extraction validation (silent-miss prevention)
-
-**Question:** If the LLM extracts only 2 sequences from a memo that actually outlines 3, the skill silently produces 2 drafts. How does the skill prevent that silent failure?
-
-**Why it matters:** The founder might not notice the missing sequence — they get a usable output for 2 sequences and assume the third didn't exist in the outline. Hours of email work missed, no error message. Real failure mode for an LLM-driven extraction.
-
-**Possible answers:**
-
-- [ ] Run summary lists the extracted sequence names + email counts; the founder cross-checks visually against the memo. Lightweight; no extra LLM call.
-- [ ] Two-pass extraction: first prompt asks the LLM to COUNT sequences only; second prompt extracts and drafts; skill compares counts and warns on mismatch. Defensive but adds a round-trip + cost.
-- [ ] Accept the silent miss — the founder reviews the output anyway, and the failure mode is rare enough not to engineer for. Lean.
-- [ ] Run summary + explicit "if a sequence is missing, re-run with `--sequence <name>` and the original memo" reminder. Visible, founder-actionable, no extra LLM cost.
-
-**Status:** Open — recommend Option 4 (run summary + re-run guidance). Visible, founder-actionable, no extra LLM cost; the re-run guidance turns a silent failure into a self-correctable one.
-
-### OQ-08 — `--consolidate` semantics for the sequence-level OQ block
-
-**Question:** When a drafted sequence file has a `## Open Questions` block (per FR-25) and the founder ticks answers and runs `--consolidate`, what does the skill do with the OQ block? Mirror marketing-board's memo-consolidate behavior, or leave it alone?
-
-**Why it matters:** The drafted file's OQ block is rendered in marketing-board's locked OQ shape (intro line + summary table + per-OQ detail blocks). Marketing-board's `--consolidate` folds answers into the memo's relevant sections and marks OQs Resolved. The TDD doesn't specify whether email-sequence's consolidate inherits the same behavior.
-
-**Possible answers:**
-
-- [ ] Mirror marketing-board's consolidate — fold answers into the relevant per-email blocks where applicable; mark resolved OQs `Resolved (YYYY-MM-DD)`; collapse the OQ block to a resolution log when all are resolved.
-- [ ] Leave the OQ block alone — `--consolidate` only handles variant picks; OQ-block answers are the founder's responsibility to fold into the prose manually.
-- [ ] Mark answered OQs as Resolved in the block but don't auto-fold answers anywhere; the founder edits prose separately.
-- [ ] Strip the OQ block entirely after consolidate — the answers have been picked; the questions no longer block execution; the file gets cleaner.
-
-**Status:** Open — recommend Option 1 (mirror marketing-board). The founder already knows that pattern from marketing-board's memos; reusing it minimizes the mental model; the OQ-block render shape matches marketing-board's exactly, so the consolidation logic is structurally identical.
+| ID    | Resolution                                                                                                                                       |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| OQ-01 | **Resolved (2026-05-28) — Option 1.** Variant blocks collapse to a single line post-consolidate. See `## Consolidate flow contract`.             |
+| OQ-02 | **Resolved (2026-05-28) — Option 1.** Unicode-aware slug; accents preserved. See `## Sequence-slug normalization rules`.                          |
+| OQ-03 | **Resolved (2026-05-28) — Option 2.** mtime wins; chosen path + override hint printed in the run summary. See `## Consolidate flow contract`.    |
+| OQ-04 | **Resolved (2026-05-28) — Option 1.** Black-box LLM judgment; no explicit numeric or lexical threshold. See `## Persona ask-back UX`.            |
+| OQ-05 | **Resolved (2026-05-28) — Option 1.** LLM internally translates non-English sequence names before the lookup. See body-length defaults section.  |
+| OQ-06 | **Resolved (2026-05-28; refined 2026-05-28).** Frontmatter `lp_url` key in `business.md` (refined from "structured body line" to YAML frontmatter — establishes the family's metadata convention). Cascading amendments to TDD 00 + TDD 02 + bootstrap skill required. |
+| OQ-07 | **Resolved (2026-05-28) — Option 4.** Run summary lists extracted sequences + verbatim re-run guidance. See `## Run summary contract`.            |
+| OQ-08 | **Resolved (2026-05-28) — Option 1.** Sequence-level OQ blocks mirror marketing-board's consolidate. See `## Consolidate flow contract`.         |
 ```
