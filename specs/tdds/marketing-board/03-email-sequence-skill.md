@@ -1,18 +1,18 @@
 # TDD — Email Sequence Skill
 
-| Field        | Value                                                                                                                                             |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Type         | Feature TDD                                                                                                                                       |
-| Status       | v1.2 — Phase 2 OQs resolved (8/8 on 2026-05-28); OQ-06 refined to frontmatter; cascading amendments to TDD 00 + TDD 02 + bootstrap skill required |
-| Owner        | Adrián Ribao                                                                                                                                      |
-| Created      | 2026-05-22                                                                                                                                        |
-| Updated      | 2026-05-28 — `--consolidate` pass folded 8 OQ resolutions into the body                                                                           |
-| Parent PRD   | [`specs/prds/marketing-board/01-email-sequence-skill.md`](../../prds/marketing-board/01-email-sequence-skill.md)                                  |
-| Master TDD   | [`00-marketing-board-master.md`](00-marketing-board-master.md)                                                                                    |
-| Sibling TDDs | [`01-marketing-board-deliberation.md`](01-marketing-board-deliberation.md), [`02-marketing-board-bootstrap.md`](02-marketing-board-bootstrap.md)  |
-| First test   | empleo.digital — drafts against `marketing-plans/empleo-digital-2026-05-22.md`                                                                    |
-| Plugin host  | `plugins/marketing-board/` (additive — no changes to existing files)                                                                              |
-| Invocation   | `/marketing-board:email-sequence`                                                                                                                 |
+| Field        | Value                                                                                                                                                          |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Type         | Feature TDD                                                                                                                                                    |
+| Status       | v1.3 — implemented 2026-05-28; reconciled to no-Bash capability limits (count-based collision suffix; filename-date recency; FR-22 freshness deferred to v1.1) |
+| Owner        | Adrián Ribao                                                                                                                                                   |
+| Created      | 2026-05-22                                                                                                                                                     |
+| Updated      | 2026-05-28 — `--consolidate` folded 8 OQ resolutions; implementation pass reconciled mtime/clock contracts to the no-Bash tool grant                           |
+| Parent PRD   | [`specs/prds/marketing-board/01-email-sequence-skill.md`](../../prds/marketing-board/01-email-sequence-skill.md)                                               |
+| Master TDD   | [`00-marketing-board-master.md`](00-marketing-board-master.md)                                                                                                 |
+| Sibling TDDs | [`01-marketing-board-deliberation.md`](01-marketing-board-deliberation.md), [`02-marketing-board-bootstrap.md`](02-marketing-board-bootstrap.md)               |
+| First test   | empleo.digital — drafts against `marketing-plans/empleo-digital-2026-05-22.md`                                                                                 |
+| Plugin host  | `plugins/marketing-board/` (additive — no changes to existing files)                                                                                           |
+| Invocation   | `/marketing-board:email-sequence`                                                                                                                              |
 
 ______________________________________________________________________
 
@@ -33,7 +33,7 @@ Cross-cutting contracts (knowledge-base file shapes, marketplace conventions, na
 - Per-email block shape — header, trigger, metric, subject + 2-3 `- [ ]` variants, preheader + 2 `- [ ]` variants, body (sequence-type-driven length), optional Visual block, CTA + 1-2 `- [ ]` variants
 - Persona ask-back UX (batch upfront — one pause max per run)
 - `--sequence <name>` and `--consolidate` flag contracts
-- Conditional emissions: compliance block, visual block, sequence-level OQ block, freshness warning
+- Conditional emissions: compliance block, visual block, sequence-level OQ block
 - Hard-fail message contracts (verbatim strings)
 
 **Out:**
@@ -44,7 +44,20 @@ Cross-cutting contracts (knowledge-base file shapes, marketplace conventions, na
 - Sibling future production skills (video-script, lp-audit) — separate future TDDs
 - ESP-specific export formats — v1.1
 - Calling image-generation APIs — v1.1
+- **Freshness warning (FR-22)** — v1.1. Warning when `product.md` changed after the memo was generated needs cross-directory file-mtime comparison, which a no-Bash skill cannot do reliably (see [Capability constraints](#capability-constraints-no-bash-skill)). Deferred until the skill can read mtimes.
 - Automated test framework — manual testing only per the family convention (see TDD 00 testing strategy)
+
+## Capability constraints (no-Bash skill)
+
+`allowed-tools` is `Read, Grep, Glob, Write, Edit` — deliberately no Bash. This bounds what the skill can observe about the filesystem, and several contracts below follow from it:
+
+| Constraint                                  | Consequence                                                                                                                                                             |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| No wall-clock access                        | Same-day collision suffix is a **count-based `-<N>`** (`-2`, `-3`, …), not a timestamp. The skill `Glob`s existing `<slug>-<date>*.md` and picks the next free integer. |
+| No file-mtime access                        | "Most recent" memo / sequence file is resolved by the **date encoded in the filename** (`<slug>-<YYYY-MM-DD>.md`, ties broken by highest `-<N>`), not by mtime.         |
+| Cross-directory mtime comparison impossible | The **freshness warning (FR-22) is deferred to v1.1** — `product.md` carries no filename date, so its recency relative to the memo is unobservable without Bash.        |
+
+`Glob` does sort by mtime, but only **within one pattern**, capped at 100 results, and exposes ordering — not timestamps. That supports single-directory "latest" only when filenames lack a usable date; here filenames always carry the date, so date-from-filename is the deterministic, clock-free signal used throughout.
 
 ## Cascading amendments required (per OQ-06)
 
@@ -111,7 +124,7 @@ The body MUST contain these sections in this order:
 | `## Consolidate flow`      | Step-by-step: locate file → parse checkbox state → apply picks + preserve prose edits → emit run summary with "still needs decisions" list → rewrite in place |
 | `## Output file shape`     | Per-sequence file template structure: preamble, optional compliance block, per-email blocks, optional sequence-level OQ block                                 |
 | `## Per-email block shape` | Detailed structural contract per FR-08: header, trigger, metric, subject variants, preheader variants, body, optional visual, CTA variants                    |
-| `## Idempotency & safety`  | Same-day collision suffix, never-overwrite, consolidate idempotency, KB freshness warning                                                                     |
+| `## Idempotency & safety`  | Same-day collision suffix (count-based), never-overwrite, consolidate idempotency, filename-date recency                                                      |
 
 No other top-level sections in v1.
 
@@ -140,7 +153,7 @@ If `product.md` or `audience.md` is missing OR lacks any required `##` section �
 
 ## Output file shape (locked)
 
-One file per sequence at `email-sequences/<sequence-slug>-<YYYY-MM-DD>.md`. Same-day collision → `-<HHMMSS>` suffix (never overwrite).
+One file per sequence at `email-sequences/<sequence-slug>-<YYYY-MM-DD>.md`. Same-day collision → count-based `-<N>` suffix (`-2`, `-3`, …; never overwrite).
 
 ```markdown
 # <Sequence name> sequence — <product>
@@ -151,9 +164,6 @@ One file per sequence at `email-sequences/<sequence-slug>-<YYYY-MM-DD>.md`. Same
 **Target metric:** <from memo>
 **Persona:** <name from audience.md>
 **Voice notes:** <adjective list from product.md>
-
-⚠️  Brand voice has been updated since this memo was generated; drafts use the current voice. Re-run /marketing-board for a consistent memo.
-   <!-- emitted only when product.md mtime > memo mtime (per FR-22) -->
 
 ## Compliance check
    <!-- emitted only when constraints.md `## Legal / compliance` names GDPR / CAN-SPAM / similar (per FR-24, OQ-10) -->
@@ -284,11 +294,11 @@ Edge cases:
 
 | Invocation                                                  | Behavior                                                                                                                  |
 | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `/marketing-board:email-sequence`                           | Default. Drafts ALL sequences in the most recently modified `marketing-plans/*.md` memo                                   |
+| `/marketing-board:email-sequence`                           | Default. Drafts ALL sequences in the latest-dated `marketing-plans/*.md` memo (date from filename)                        |
 | `/marketing-board:email-sequence <name>`                    | Positional `--sequence`. Drafts ONLY the named sequence; case-insensitive exact match against the memo's sequence-name list |
 | `/marketing-board:email-sequence --sequence <name>`         | Explicit form of the positional. Same behavior                                                                            |
 | `/marketing-board:email-sequence @<memo-path>`              | Uses the specified memo file instead of "most recent." Combinable with `<name>`                                          |
-| `/marketing-board:email-sequence --consolidate`             | Consolidate mode. Operates on the most recently modified `email-sequences/*.md` file                                      |
+| `/marketing-board:email-sequence --consolidate`             | Consolidate mode. Operates on the latest-dated `email-sequences/*.md` file (date from filename)                           |
 | `/marketing-board:email-sequence --consolidate <name>`      | Consolidate mode targeting the named sequence's file (matches filename slug)                                              |
 | `/marketing-board:email-sequence --consolidate @<path>`     | Consolidate mode targeting the specified file                                                                             |
 
@@ -337,7 +347,7 @@ When `--consolidate` runs without `@<path>`:
 
 1. Scope candidates to `email-sequences/*.md`
 2. If `<name>` is supplied, filter to filenames whose slug matches `<name>` (case-insensitive)
-3. Pick the candidate with the most recent mtime
+3. Pick the candidate with the latest date in its filename (ties broken by highest `-<N>` suffix)
 4. **Print the chosen path in the run summary** along with the hint: `"To consolidate a different file, pass @<path>."`
 
 If zero candidates → hard-fail `HF-CONSOLIDATE-NOFILE`. If multiple candidates match a `<name>` filter, the visible report shows the founder which file was picked (no silent default).
@@ -375,7 +385,8 @@ After every drafting run (not `--consolidate`), the skill emits a run summary to
 | Saved file paths                  | One bullet per sequence: `"- email-sequences/welcome-2026-05-22.md"`                                                     |
 | Re-run guidance for misses        | Verbatim: `"If a sequence in the memo is missing here, re-run with /marketing-board:email-sequence <name> @<memo-path>."` |
 | Variant-pick reminder             | `"Tick - [x] on one variant per Subject / Preheader / CTA block, then run /marketing-board:email-sequence --consolidate."` |
-| Freshness warning (conditional)   | Same text as the file-preamble warning, when `product.md` mtime > memo mtime (per FR-22)                                  |
+
+(Freshness warning row removed — FR-22 deferred to v1.1; see [Capability constraints](#capability-constraints-no-bash-skill).)
 
 For `--consolidate` runs, the summary instead contains: chosen-file path (per OQ-03), count of variants collapsed, count of OQs resolved (if any), list of emails added to "still needs decisions" (no-picks or all-picks per FR-15 / FR-16).
 
@@ -439,7 +450,7 @@ For `--consolidate` runs, the summary instead contains: chosen-file path (per OQ
 
 **Given** `email-sequences/welcome-2026-05-22.md` already exists (founder ran the skill earlier today and annotated the file)
 **When** the founder runs `/marketing-board:email-sequence welcome` again on the same day
-**Then** the new draft is written to `email-sequences/welcome-2026-05-22-<HHMMSS>.md`
+**Then** the new draft is written to `email-sequences/welcome-2026-05-22-2.md` (count-based `-<N>` suffix)
 **And** the original file is not modified
 
 ### Consolidate — happy path
@@ -469,13 +480,9 @@ For `--consolidate` runs, the summary instead contains: chosen-file path (per OQ
 **And** the run summary includes that email under "still needs decisions" with a hint about over-ticking
 **And** other emails consolidate normally
 
-### Freshness warning (FR-22)
+### Freshness warning (FR-22) — deferred to v1.1
 
-**Given** `agent_docs/marketing/product.md` has a more recent mtime than the source memo
-**When** the founder runs `/marketing-board:email-sequence`
-**Then** the skill drafts using the current `product.md` voice
-**And** the run summary includes the freshness warning verbatim per FR-22
-**And** each saved sequence file includes the same warning in the preamble area
+Not implemented in v1. Surfacing a warning when `product.md` changed after the memo was generated requires cross-directory file-mtime comparison, which a no-Bash skill cannot do reliably (see [Capability constraints](#capability-constraints-no-bash-skill)). When the skill gains a way to read mtimes, restore: draft using the current `product.md` voice, and emit the warning in both the run summary and each saved file's preamble.
 
 ### Conditional compliance block (FR-24)
 
@@ -537,9 +544,8 @@ For `--consolidate` runs, the summary instead contains: chosen-file path (per OQ
 ### Consolidate disambiguation — multiple files match the slug (per OQ-03)
 
 **Given** `email-sequences/welcome-2026-05-22.md` AND `email-sequences/welcome-2026-05-29.md` both exist
-**And** the founder edited `welcome-2026-05-29.md` most recently
 **When** the founder runs `/marketing-board:email-sequence --consolidate welcome`
-**Then** the skill picks `welcome-2026-05-29.md` (most recent mtime)
+**Then** the skill picks `welcome-2026-05-29.md` (latest date in filename)
 **And** the run summary contains the chosen path verbatim and the hint `"To consolidate a different file, pass @<path>."`
 **And** `welcome-2026-05-22.md` is not modified
 
@@ -566,7 +572,7 @@ For `--consolidate` runs, the summary instead contains: chosen-file path (per OQ
 
 **Given** the happy-path scenario (3 sequences extracted)
 **When** the founder runs `/marketing-board:email-sequence`
-**Then** the run summary contains all 5 mandated items: extracted sequence names + email counts; saved file paths; re-run guidance for misses (verbatim); variant-pick reminder; freshness warning if applicable
+**Then** the run summary contains all 4 mandated items: extracted sequence names + email counts; saved file paths; re-run guidance for misses (verbatim); variant-pick reminder
 **And** the re-run guidance is exactly `"If a sequence in the memo is missing here, re-run with /marketing-board:email-sequence <name> @<memo-path>."`
 
 ## Acceptance criteria
@@ -604,7 +610,7 @@ For `--consolidate` runs, the summary instead contains: chosen-file path (per OQ
 
 ### Run summary (per OQ-07)
 
-- [ ] Drafting-mode run summary contains: extracted sequence names + email counts; saved file paths (one bullet each); re-run guidance for misses; variant-pick reminder; conditional freshness warning
+- [ ] Drafting-mode run summary contains: extracted sequence names + email counts; saved file paths (one bullet each); re-run guidance for misses; variant-pick reminder
 - [ ] Re-run guidance is verbatim `"If a sequence in the memo is missing here, re-run with /marketing-board:email-sequence <name> @<memo-path>."`
 - [ ] Consolidate-mode run summary contains: chosen-file path (per OQ-03); count of variants collapsed; count of OQs resolved (if any); list of emails added to "still needs decisions"
 
@@ -621,7 +627,7 @@ For `--consolidate` runs, the summary instead contains: chosen-file path (per OQ
 - [ ] Output dir is `email-sequences/` in the working directory; created if absent
 - [ ] Filename is `<sequence-slug>-<YYYY-MM-DD>.md`; slug follows the Unicode-aware normalization rule (per OQ-02): NFC + lowercase + replace whitespace/dots/underscores with `-` + strip non-alphanumeric (Unicode-aware) + collapse consecutive `-` + trim
 - [ ] Accented characters in sequence names are preserved in filenames (e.g., `Activación` → `activación`)
-- [ ] Same-day collision → `-<HHMMSS>` suffix; existing files are never overwritten
+- [ ] Same-day collision → count-based `-<N>` suffix (`-2`, `-3`, …); existing files are never overwritten
 - [ ] No binary files are written (no image files in v1)
 - [ ] LP URL is extracted deterministically from `business.md`'s YAML frontmatter `lp_url` key (per OQ-06 refined); falls back to `<https://YOUR-LP-URL>` placeholder when the frontmatter is absent or `lp_url` is missing — no LLM inference for URL extraction
 
@@ -630,14 +636,14 @@ For `--consolidate` runs, the summary instead contains: chosen-file path (per OQ
 - [ ] Compliance block appears at the file top (after preamble, before email 01) ONLY when `constraints.md` `## Legal / compliance` names GDPR/CAN-SPAM/similar
 - [ ] Visual block appears in a per-email block ONLY when the LLM judges a visual would strengthen that specific email
 - [ ] Sequence-level OQ block appears at the file bottom ONLY when the LLM identifies execution-blocking decisions for that sequence
-- [ ] Freshness warning appears in the file preamble AND run summary ONLY when `product.md` mtime > source memo mtime
+- [ ] Freshness warning — deferred to v1.1 (no-Bash skill cannot compare mtimes; see Capability constraints). Not asserted in v1.
 
 ### Consolidate
 
-- [ ] `--consolidate` (no args) operates on the most recently modified `email-sequences/*.md` file
+- [ ] `--consolidate` (no args) operates on the latest-dated `email-sequences/*.md` file (date from filename)
 - [ ] `--consolidate <name>` targets the named sequence's file (slug match)
 - [ ] `--consolidate @<path>` targets the specified file
-- [ ] When multiple files match the `<name>` filter, most-recent-mtime wins and the chosen path is printed in the run summary along with the `@<path>` override hint (per OQ-03)
+- [ ] When multiple files match the `<name>` filter, the latest filename date wins (ties → highest `-<N>`) and the chosen path is printed in the run summary along with the `@<path>` override hint (per OQ-03)
 - [ ] Ticked variants kept; unticked variants removed
 - [ ] After consolidate, each variant block collapses to a single line: `**Subject:** <pick>`, `**Preheader:** <pick>`, `**CTA:** <pick>` (per OQ-01)
 - [ ] Founder's prose edits to body content preserved verbatim
@@ -670,13 +676,13 @@ For `--consolidate` runs, the summary instead contains: chosen-file path (per OQ
 | **Body length defaults**      | For one Welcome-named and one Trial-to-paid-named sequence, assert body lengths fall in 100-180 and 200-350 word ranges respectively                                                  |
 | **Single-sequence scope**     | Run with positional `welcome` arg; assert only `email-sequences/welcome-<date>.md` is written                                                                                          |
 | **Persona ask-back batch**    | Simulate two persona-ambiguous sequences; assert single batch message; assert drafting proceeds after one reply                                                                       |
-| **Same-day collision**        | Run twice on the same day; assert second filename has `-<HHMMSS>` suffix and the first file is unchanged                                                                              |
+| **Same-day collision**        | Run twice on the same day; assert second filename has a count-based `-<N>` suffix (`-2`) and the first file is unchanged                                                              |
 | **Consolidate idempotency**   | Pre-create a file with ticked variants; run `--consolidate` twice; diff between the two outputs is empty                                                                              |
 | **Consolidate no-picks**      | Pre-create a file with zero ticked variants; run `--consolidate`; assert "still needs decisions" appears in the run summary; assert file content unchanged                            |
 | **Conditional compliance**    | Set `constraints.md` `## Legal / compliance` to (a) name GDPR, (b) say "None"; run skill in each; assert compliance block present in (a), absent in (b)                              |
 | **Conditional visual**        | Manual review of 5 drafted emails; assert at most one or two carry a `**Visual:**` block (those where the LLM judged it added value)                                                  |
 | **Conditional sequence OQ**   | Manual review; assert a `## Open Questions` block appears only when the drafting surfaced an execution-blocker                                                                        |
-| **Freshness warning**         | Touch `product.md` to a newer mtime than the memo; run skill; assert warning appears in run summary and preamble                                                                      |
+| **Freshness warning**         | Deferred to v1.1 — not tested in v1 (no-Bash skill cannot compare mtimes; see Capability constraints)                                                                                |
 | **LP URL substitution**       | Set `business.md` frontmatter to `lp_url: https://empleo.digital`; run; assert that URL appears inline in body / CTA where the email references the landing page                       |
 | **Empleo end-to-end**         | Manual: run against `marketing-plans/empleo-digital-2026-05-22.md`; review one sequence; assert it would be usable with light editing                                                  |
 
@@ -702,7 +708,7 @@ No automated test framework in v1 (per TDD 00 testing strategy). All tests are m
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | OQ-01 | **Resolved (2026-05-28) — Option 1.** Variant blocks collapse to a single line post-consolidate. See `## Consolidate flow contract`.             |
 | OQ-02 | **Resolved (2026-05-28) — Option 1.** Unicode-aware slug; accents preserved. See `## Sequence-slug normalization rules`.                          |
-| OQ-03 | **Resolved (2026-05-28) — Option 2.** mtime wins; chosen path + override hint printed in the run summary. See `## Consolidate flow contract`.    |
+| OQ-03 | **Resolved (2026-05-28; refined at implementation).** Latest filename date wins (ties → highest `-<N>`); chosen path + override hint printed in the run summary. Refined from "mtime" to "filename date" because a no-Bash skill cannot observe mtimes. See `## Consolidate flow contract` + `## Capability constraints`. |
 | OQ-04 | **Resolved (2026-05-28) — Option 1.** Black-box LLM judgment; no explicit numeric or lexical threshold. See `## Persona ask-back UX`.            |
 | OQ-05 | **Resolved (2026-05-28) — Option 1.** LLM internally translates non-English sequence names before the lookup. See body-length defaults section.  |
 | OQ-06 | **Resolved (2026-05-28; refined 2026-05-28).** Frontmatter `lp_url` key in `business.md` (refined from "structured body line" to YAML frontmatter — establishes the family's metadata convention). Cascading amendments to TDD 00 + TDD 02 + bootstrap skill required. |

@@ -1,7 +1,7 @@
 {
   "name": "marketing-board",
-  "version": "0.3.0",
-  "description": "Eight-seat marketing deliberation board for SaaS launches. Mirrors `ceo-board` pattern: 8 specialist subagents (Ethnographer, Storyteller, Channel Strategist, Producer, Funnel Engineer, Community/PR Lead, Moonshot, Contrarian) plus a `/marketing-board` slash command and a `:bootstrap` skill that scaffolds the product knowledge base.",
+  "version": "0.4.0",
+  "description": "Eight-seat marketing deliberation board for SaaS launches. Mirrors `ceo-board` pattern: 8 specialist subagents (Ethnographer, Storyteller, Channel Strategist, Producer, Funnel Engineer, Community/PR Lead, Moonshot, Contrarian) plus a `/marketing-board` slash command, a `:bootstrap` skill that scaffolds the product knowledge base, and an `:email-sequence` skill that drafts ESP-paste-ready email sequences from a saved Marketing Plan Memo.",
   "author": {
     "name": "Adrián",
     "email": "adrian@adrima.es"
