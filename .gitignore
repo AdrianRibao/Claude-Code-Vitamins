@@ -12,12 +12,14 @@ Thumbs.db
 # Claude Code local settings
 .claude/settings.local.json
 
-# Local-only workspace artifacts (per-machine, not part of the marketplace)
-.agents/
-.claude/
-skills/
-skills-lock.json
-specs/
+# Local-only workspace artifacts (per-machine, not part of the marketplace).
+# These rules are root-anchored so per-plugin skills/specs (e.g.
+# plugins/marketing-board/skills/) stay tracked.
+/.agents/
+/.claude/
+/skills/
+/skills-lock.json
+/specs/
 
 # Logs
 *.log
