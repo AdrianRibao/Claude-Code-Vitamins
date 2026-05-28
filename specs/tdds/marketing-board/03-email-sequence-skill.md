@@ -3,7 +3,7 @@
 | Field        | Value                                                                                                                                                          |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Type         | Feature TDD                                                                                                                                                    |
-| Status       | v1.3 — implemented 2026-05-28; reconciled to no-Bash capability limits (count-based collision suffix; filename-date recency; FR-22 freshness deferred to v1.1) |
+| Status       | v1.4 — implemented 2026-05-28; reconciled to no-Bash limits (count suffix; filename-date recency; FR-22 deferred); heading matcher made level-agnostic after TDD 01 added `## Email sequences (outlines)` to the memo |
 | Owner        | Adrián Ribao                                                                                                                                                   |
 | Created      | 2026-05-22                                                                                                                                                     |
 | Updated      | 2026-05-28 — `--consolidate` folded 8 OQ resolutions; implementation pass reconciled mtime/clock contracts to the no-Bash tool grant                           |
@@ -134,7 +134,7 @@ Per Phase 0 decision: extraction happens in the **same synthesis turn** as draft
 
 | Aspect                 | Spec                                                                                                                                                                                                                                                                                    |
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Target heading         | `### Email sequences (outlines)` — LLM matches case-insensitively and tolerates minor variants (extra whitespace, alternate punctuation). If absent → hard-fail per FR-04                                                                                                               |
+| Target heading         | `Email sequences (outlines)` heading at any level (`## ` in the memo, `### ` in the raw Funnel Engineer report) — LLM matches the heading text case-insensitively and tolerates minor variants (whitespace, punctuation, heading level). If absent → hard-fail per FR-04                  |
 | Extracted shape        | Per sequence: `{name, trigger, target_metric, email_count, per_email_outlines[]}`. `per_email_outlines` is a list of 1-line descriptions (may be empty if the outline is thin — triggers FR-21 invention gate)                                                                          |
 | Invention gate (FR-21) | When `per_email_outlines` is empty AND the outline supplies sequence name + trigger + target metric, the LLM infers per-email arcs and marks each with `<!-- INFERRED: outline was thin; review carefully -->`. When any of name/trigger/target metric is missing → hard-fail per FR-21 |
 | Source of truth        | Memo only — the skill never proposes sequences absent from the outline (per AD-7)                                                                                                                                                                                                       |
@@ -309,7 +309,7 @@ Mutually exclusive: `--consolidate` cannot be combined with `<sequence-name>` AN
 | ID         | Condition                                                          | Message (verbatim)                                                                                                                                                                       |
 | ---------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | HF-NO-MEMO | No memo file resolvable (default mode)                              | `"No memo found. Run /marketing-board <brief> first."`                                                                                                                                   |
-| HF-NO-OUTLINE | Memo lacks parseable email-sequences section                     | `"Memo has no parseable '### Email sequences (outlines)' section. The Funnel Engineer seat must have produced an outline. Re-run /marketing-board to regenerate."`                       |
+| HF-NO-OUTLINE | Memo lacks parseable email-sequences section                     | `"Memo has no parseable 'Email sequences (outlines)' section. The Funnel Engineer seat must have produced an outline. Re-run /marketing-board to regenerate."`                           |
 | HF-NO-KB   | `product.md` or `audience.md` missing or required `##` section absent | `"Bootstrap your product context first: /marketing-board:bootstrap"`                                                                                                                    |
 | HF-THIN-OUTLINE | Sequence outline lacks sequence name + trigger + target metric  | `"Sequence '<name>' lacks the minimum context (trigger or target metric) needed to infer per-email content. Edit the memo to add this context, then re-run."`                            |
 | HF-CONSOLIDATE-NOFILE | `--consolidate` invoked but no `email-sequences/*.md` file found | `"No email-sequence file found to consolidate. Run /marketing-board:email-sequence first."`                                                                                              |
@@ -428,7 +428,7 @@ For `--consolidate` runs, the summary instead contains: chosen-file path (per OQ
 
 ### Memo lacks email-sequences section
 
-**Given** a memo exists but the Funnel Engineer's `### Email sequences (outlines)` block is absent
+**Given** a memo exists but its `## Email sequences (outlines)` section is absent (e.g. the Funnel Engineer seat failed, so the synthesizer omitted it)
 **When** the founder runs `/marketing-board:email-sequence`
 **Then** the skill aborts with the HF-NO-OUTLINE message
 **And** no files are written
@@ -586,7 +586,7 @@ Not implemented in v1. Surfacing a warning when `product.md` changed after the m
 ### Memo parsing
 
 - [ ] LLM extraction happens in the same synthesis turn as drafting (one Claude round-trip, not two)
-- [ ] Skill matches `### Email sequences (outlines)` heading case-insensitively with reasonable tolerance for whitespace / punctuation variants
+- [ ] Skill matches the `Email sequences (outlines)` heading at any level (`##` or `###`) case-insensitively, with reasonable tolerance for whitespace / punctuation variants
 - [ ] Skill never proposes sequences absent from the memo's outline
 
 ### Knowledge-base reads

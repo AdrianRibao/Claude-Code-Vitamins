@@ -64,14 +64,14 @@ If `product.md` or `audience.md` is missing, or lacks any of its required `##` s
 
 No partial-context fallback. No silent degradation. On any condition below, print the message **verbatim** and stop — write no files.
 
-| ID                    | Condition                                                                | Message (verbatim)                                                                                                                                               |
-| --------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| HF-NO-MEMO            | No memo file resolvable (draft mode)                                     | `No memo found. Run /marketing-board <brief> first.`                                                                                                             |
-| HF-NO-OUTLINE         | Memo lacks a parseable email-sequences section                           | `Memo has no parseable '### Email sequences (outlines)' section. The Funnel Engineer seat must have produced an outline. Re-run /marketing-board to regenerate.` |
-| HF-NO-KB              | `product.md` or `audience.md` missing, or a required `##` section absent | `Bootstrap your product context first: /marketing-board:bootstrap`                                                                                               |
-| HF-THIN-OUTLINE       | A sequence outline lacks sequence name + trigger + target metric         | `Sequence '<name>' lacks the minimum context (trigger or target metric) needed to infer per-email content. Edit the memo to add this context, then re-run.`      |
-| HF-CONSOLIDATE-NOFILE | `--consolidate` but no `email-sequences/*.md` file found                 | `No email-sequence file found to consolidate. Run /marketing-board:email-sequence first.`                                                                        |
-| HF-CONFLICTING-ARGS   | `<name>`, `@<path>`, and `--consolidate` combined illegally              | \`Conflicting arguments. Use one of: <name>, @<path>, or --consolidate \[<name>                                                                                  |
+| ID                    | Condition                                                                | Message (verbatim)                                                                                                                                           |
+| --------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| HF-NO-MEMO            | No memo file resolvable (draft mode)                                     | `No memo found. Run /marketing-board <brief> first.`                                                                                                         |
+| HF-NO-OUTLINE         | Memo lacks a parseable email-sequences section                           | `Memo has no parseable 'Email sequences (outlines)' section. The Funnel Engineer seat must have produced an outline. Re-run /marketing-board to regenerate.` |
+| HF-NO-KB              | `product.md` or `audience.md` missing, or a required `##` section absent | `Bootstrap your product context first: /marketing-board:bootstrap`                                                                                           |
+| HF-THIN-OUTLINE       | A sequence outline lacks sequence name + trigger + target metric         | `Sequence '<name>' lacks the minimum context (trigger or target metric) needed to infer per-email content. Edit the memo to add this context, then re-run.`  |
+| HF-CONSOLIDATE-NOFILE | `--consolidate` but no `email-sequences/*.md` file found                 | `No email-sequence file found to consolidate. Run /marketing-board:email-sequence first.`                                                                    |
+| HF-CONFLICTING-ARGS   | `<name>`, `@<path>`, and `--consolidate` combined illegally              | \`Conflicting arguments. Use one of: <name>, @<path>, or --consolidate \[<name>                                                                              |
 
 ## Drafting flow
 
@@ -79,7 +79,7 @@ Run these steps in order. Extraction and drafting happen in **this same turn** �
 
 1. **Parse args** and determine mode + scope. If args conflict -> `HF-CONFLICTING-ARGS`.
 2. **Resolve the memo** per **Inputs**. If none -> `HF-NO-MEMO`.
-3. **Read the memo** and locate the `### Email sequences (outlines)` heading (case-insensitive; tolerate extra whitespace and alternate punctuation). If absent -> `HF-NO-OUTLINE`.
+3. **Read the memo** and locate the `Email sequences (outlines)` heading at any level (level-2 `##` or level-3 `###`) — match the heading text case-insensitively, tolerating extra whitespace and punctuation variants. Memos emit it as a top-level `## Email sequences (outlines)` section; the Funnel Engineer's raw report uses level-3. If absent -> `HF-NO-OUTLINE`.
 4. **Verify the knowledge base.** Read `product.md` and `audience.md` and confirm every required `##` section is present. If anything is missing -> `HF-NO-KB`.
 5. **Read the optional / conditional KB.** Parse `business.md` frontmatter for `lp_url`. Read `constraints.md`'s `## Legal / compliance` section.
 6. **Extract sequences** from the outline. For each: `{name, trigger, target_metric, email_count, per_email_outlines[]}`.

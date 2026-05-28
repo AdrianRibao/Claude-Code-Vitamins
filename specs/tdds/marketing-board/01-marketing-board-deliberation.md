@@ -1,14 +1,14 @@
 # TDD — Marketing Board: Deliberation
 
-| Field       | Value                                                                                                                |
-| ----------- | -------------------------------------------------------------------------------------------------------------------- |
-| Type        | Feature TDD                                                                                                          |
-| Status      | v1.1 — OQ-generation contract tightened to mirror PRD/TDD skill Phase 2                                              |
-| Owner       | Adrián Ribao                                                                                                         |
-| Created     | 2026-05-20                                                                                                           |
-| Parent TDD  | [`00-marketing-board-master.md`](00-marketing-board-master.md)                                                       |
-| Parent PRD  | [`specs/prds/marketing-board/00-marketing-board-master.md`](../../prds/marketing-board/00-marketing-board-master.md) |
-| Sibling TDD | [`02-marketing-board-bootstrap.md`](02-marketing-board-bootstrap.md)                                                 |
+| Field       | Value                                                                                                                                |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Type        | Feature TDD                                                                                                                          |
+| Status      | v1.2 — added `## Email sequences (outlines)` to the memo template (S-10b) so the email-sequence skill (TDD 03) has a parseable input |
+| Owner       | Adrián Ribao                                                                                                                         |
+| Created     | 2026-05-20                                                                                                                           |
+| Parent TDD  | [`00-marketing-board-master.md`](00-marketing-board-master.md)                                                                       |
+| Parent PRD  | [`specs/prds/marketing-board/00-marketing-board-master.md`](../../prds/marketing-board/00-marketing-board-master.md)                 |
+| Sibling TDD | [`02-marketing-board-bootstrap.md`](02-marketing-board-bootstrap.md)                                                                 |
 
 ______________________________________________________________________
 
@@ -139,19 +139,20 @@ The synthesizer is **not a separate agent** (per Architecture Decision 1 — sub
 
 After loading the reference prompt at step 5, the main session executes:
 
-| Synthesizer step | Action                                                                                                                                                                                                                                                                                         |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| S-1              | Read all 8 reports from the Agent-tool return values                                                                                                                                                                                                                                           |
-| S-2              | Extract each seat's one-line position (from `### One-line position` / `### Verdict` / `### Reframing` header)                                                                                                                                                                                  |
-| S-3              | Populate the **Board verdicts at a glance** table with the 8 one-liners                                                                                                                                                                                                                        |
-| S-4              | Identify convergent points across reports → populate **Where the board agrees**                                                                                                                                                                                                                |
-| S-5              | Identify conflicting positions → populate **Where the board disagrees** (attributed per OQ-10: name the seats taking each side)                                                                                                                                                                |
-| S-6              | Synthesize a single-voice **plan I'm proposing**, addressing the strongest Contrarian objection explicitly                                                                                                                                                                                     |
-| S-7              | Lift Contrarian's strongest objection into **What I'm accepting as risk**                                                                                                                                                                                                                      |
-| S-8              | Build **Pre-launch checklist** from the cross-seat must-haves                                                                                                                                                                                                                                  |
-| S-9              | Build **First 30 days** from Channel Strategist + Producer + Community/PR Lead near-term recommendations                                                                                                                                                                                       |
-| S-10             | Build **Metrics to track** from Funnel Engineer + Channel Strategist KPIs                                                                                                                                                                                                                      |
-| S-11             | Generate Open Questions section inline per the **Open Questions generation contract** below (mirrors prd-writer / tdd-writer skill Phase 2) — same Claude turn as memo synthesis (per OQ-D-01), deep-analysis pass over memo + raw reports, locked render shape (table + per-OQ detail blocks) |
+| Synthesizer step | Action                                                                                                                                                                                                                                                                                                       |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| S-1              | Read all 8 reports from the Agent-tool return values                                                                                                                                                                                                                                                         |
+| S-2              | Extract each seat's one-line position (from `### One-line position` / `### Verdict` / `### Reframing` header)                                                                                                                                                                                                |
+| S-3              | Populate the **Board verdicts at a glance** table with the 8 one-liners                                                                                                                                                                                                                                      |
+| S-4              | Identify convergent points across reports → populate **Where the board agrees**                                                                                                                                                                                                                              |
+| S-5              | Identify conflicting positions → populate **Where the board disagrees** (attributed per OQ-10: name the seats taking each side)                                                                                                                                                                              |
+| S-6              | Synthesize a single-voice **plan I'm proposing**, addressing the strongest Contrarian objection explicitly                                                                                                                                                                                                   |
+| S-7              | Lift Contrarian's strongest objection into **What I'm accepting as risk**                                                                                                                                                                                                                                    |
+| S-8              | Build **Pre-launch checklist** from the cross-seat must-haves                                                                                                                                                                                                                                                |
+| S-9              | Build **First 30 days** from Channel Strategist + Producer + Community/PR Lead near-term recommendations                                                                                                                                                                                                     |
+| S-10             | Build **Metrics to track** from Funnel Engineer + Channel Strategist KPIs                                                                                                                                                                                                                                    |
+| S-10b            | Carry the Funnel Engineer's `### Email sequences (outlines)` report block into the memo's `## Email sequences (outlines)` section, near-verbatim (light tightening only). This is the parseable contract the `email-sequence` skill consumes (TDD 03). If the Funnel Engineer seat failed, omit the section. |
+| S-11             | Generate Open Questions section inline per the **Open Questions generation contract** below (mirrors prd-writer / tdd-writer skill Phase 2) — same Claude turn as memo synthesis (per OQ-D-01), deep-analysis pass over memo + raw reports, locked render shape (table + per-OQ detail blocks)               |
 
 ### Attribution convention (Architecture Decision 10)
 
@@ -174,6 +175,7 @@ Same as PRD §"Marketing Plan Memo — Output Structure (v1)". Restated for test
 | `## Pre-launch checklist`             | Bullet list                                                                                                                                                                                                                                                                                                                                                                                                |
 | `## First 30 days — concrete actions` | Numbered list, 3-7 items                                                                                                                                                                                                                                                                                                                                                                                   |
 | `## Metrics to track`                 | Table: KPI \| baseline (if known) \| target window                                                                                                                                                                                                                                                                                                                                                         |
+| `## Email sequences (outlines)`       | Carried near-verbatim from the Funnel Engineer's `### Email sequences (outlines)` report block (synthesizer step S-10b). One subsection per sequence: sequence name, trigger, target metric, email count, and a 1-line outline per email. Parsed by the `email-sequence` skill (TDD 03). Omitted entirely if the Funnel Engineer seat failed.                                                              |
 | `## Open Questions`                   | Generated by deep-analysis pass (synthesizer step S-11). **Mirrors prd-writer / tdd-writer skill Phase 2 verbatim** — see "Open Questions generation contract" below. Same render shape as this TDD's own OQ section: intro line → summary table (`ID \| Question \| Status`) → per-OQ detail block (`**Question:**`, `**Why it matters:**`, `**Possible answers:**` as `- [ ]` checkboxes, `**Status:**`) |
 
 ### Open Questions generation contract (mirrors PRD/TDD skill Phase 2)
@@ -242,65 +244,31 @@ Every deliberation writes its memo to disk at step 7. There is no flag — persi
 
 ### Happy path
 
-**Given** `agent_docs/marketing/` exists with all 6 required files, all sections present
-**When** user runs `/marketing-board <brief>`
-**Then** 8 agents dispatch in parallel within one Agent-tool fan-out
-**And** each agent loads its required files and produces a structured report
-**And** the synthesizer produces a Marketing Plan Memo following the template
-**And** the OQ section is appended after the memo
-**And** the memo is written to `marketing-plans/<product-slug>-<YYYY-MM-DD>.md` at step 7
+**Given** `agent_docs/marketing/` exists with all 6 required files, all sections present **When** user runs `/marketing-board <brief>` **Then** 8 agents dispatch in parallel within one Agent-tool fan-out **And** each agent loads its required files and produces a structured report **And** the synthesizer produces a Marketing Plan Memo following the template **And** the OQ section is appended after the memo **And** the memo is written to `marketing-plans/<product-slug>-<YYYY-MM-DD>.md` at step 7
 
 ### Missing knowledge base
 
-**Given** `agent_docs/marketing/audience.md` is missing
-**When** user runs `/marketing-board <brief>`
-**Then** the command aborts at step 1
-**And** the exact hard-fail message (FR-15) is displayed
-**And** no agents are dispatched
+**Given** `agent_docs/marketing/audience.md` is missing **When** user runs `/marketing-board <brief>` **Then** the command aborts at step 1 **And** the exact hard-fail message (FR-15) is displayed **And** no agents are dispatched
 
 ### Knowledge-base section missing
 
-**Given** `agent_docs/marketing/audience.md` exists but `## Personas` header is absent
-**When** user runs `/marketing-board <brief>`
-**Then** the command aborts at step 1 with the section-missing message
-**And** the message names the file and missing section
+**Given** `agent_docs/marketing/audience.md` exists but `## Personas` header is absent **When** user runs `/marketing-board <brief>` **Then** the command aborts at step 1 with the section-missing message **And** the message names the file and missing section
 
 ### Consolidation
 
-**Given** a saved memo file exists in `marketing-plans/` with 4 Open Questions
-**And** the user has ticked a `- [x]` answer on all 4 OQs in that file
-**When** user runs `/marketing-board --consolidate`
-**Then** the consolidator locates the most recently written memo file
-**And** updates the memo's relevant sections with the 4 resolutions
-**And** marks each OQ `Resolved (2026-05-20)`
-**And** writes the consolidated memo back to the same file
+**Given** a saved memo file exists in `marketing-plans/` with 4 Open Questions **And** the user has ticked a `- [x]` answer on all 4 OQs in that file **When** user runs `/marketing-board --consolidate` **Then** the consolidator locates the most recently written memo file **And** updates the memo's relevant sections with the 4 resolutions **And** marks each OQ `Resolved (2026-05-20)` **And** writes the consolidated memo back to the same file
 
 ### Memo persistence (automatic)
 
-**Given** a deliberation runs to completion for the empleo.digital project
-**When** the synthesizer finishes the memo at step 7
-**Then** `marketing-plans/empleo-digital-2026-05-20.md` is created in the working directory
-**And** the file content matches the memo exactly
-**And** a second deliberation the same day is written to `marketing-plans/empleo-digital-2026-05-20-<HHMMSS>.md`, leaving the first file untouched
+**Given** a deliberation runs to completion for the empleo.digital project **When** the synthesizer finishes the memo at step 7 **Then** `marketing-plans/empleo-digital-2026-05-20.md` is created in the working directory **And** the file content matches the memo exactly **And** a second deliberation the same day is written to `marketing-plans/empleo-digital-2026-05-20-<HHMMSS>.md`, leaving the first file untouched
 
 ### Single-seat invocation (Workflow 3)
 
-**Given** all knowledge-base files exist
-**When** user types `@agent-marketing-board:ethnographer <brief>`
-**Then** only the Ethnographer is dispatched
-**And** it produces its standard report
-**And** no synthesizer step runs
+**Given** all knowledge-base files exist **When** user types `@agent-marketing-board:ethnographer <brief>` **Then** only the Ethnographer is dispatched **And** it produces its standard report **And** no synthesizer step runs
 
 ### Agent failure during deliberation (OQ-D-04)
 
-**Given** all knowledge-base files exist
-**And** one agent (e.g. Moonshot) returns an error or times out during the parallel fan-out
-**When** the dispatch step detects the failure
-**Then** the command **retries that agent once**
-**And** if retry succeeds → proceeds with all 8 reports (happy path)
-**And** if retry fails → proceeds with **N-1 reports** and the synthesizer emits the failed seat's verdicts-table row as `[FAILED: <retry exhausted: <reason>>]`
-**And** the synthesizer notes the failure once in the memo's `Brief recap` so the user knows the deliberation was partial
-**And** the OQ section includes a `[verify retry]` callout flagging the failure
+**Given** all knowledge-base files exist **And** one agent (e.g. Moonshot) returns an error or times out during the parallel fan-out **When** the dispatch step detects the failure **Then** the command **retries that agent once** **And** if retry succeeds → proceeds with all 8 reports (happy path) **And** if retry fails → proceeds with **N-1 reports** and the synthesizer emits the failed seat's verdicts-table row as `[FAILED: <retry exhausted: <reason>>]` **And** the synthesizer notes the failure once in the memo's `Brief recap` so the user knows the deliberation was partial **And** the OQ section includes a `[verify retry]` callout flagging the failure
 
 ## Acceptance criteria
 
@@ -355,6 +323,12 @@ Every deliberation writes its memo to disk at step 7. There is no flag — persi
 - [x] `--consolidate` resolves answered OQs, tightens the memo, and writes the result back to the same file
 - [ ] `--consolidate` is idempotent (same file + same in-file answers → byte-identical file)
 
+### Email sequences (outlines) section
+
+- [ ] Memo includes a `## Email sequences (outlines)` section carrying the Funnel Engineer's outline (synthesizer step S-10b), placed after `## Metrics to track` and before `## Open Questions`
+- [ ] Section is omitted entirely when the Funnel Engineer seat failed twice
+- [ ] Section is parseable by the `email-sequence` skill (TDD 03): one subsection per sequence with name + trigger + target metric + per-email outline
+
 ### Acceptance test
 
 - [ ] First end-to-end test on empleo.digital produces a usable memo (PRD Success Metrics row 5)
@@ -373,7 +347,8 @@ Every deliberation writes its memo to disk at step 7. There is no flag — persi
 | **OQ-contract shape lint**      | For 3 sample memos, assert OQ section has: (a) intro line, (b) summary table with `ID \| Question \| Status` columns, (c) one `### OQ-NN — <title>` detail block per row, (d) each detail block contains `**Question:**`, `**Why it matters:**`, `**Possible answers:**` (with `- [ ]` checkboxes), `**Status:**`. Matches prd-writer / tdd-writer output verbatim |
 | **OQ relevance check**          | Manual: review each OQ in 3 sample memos; assert each would actually block a launch decision (not cosmetic, not already answered in brief / KB)                                                                                                                                                                                                                    |
 | **H2 wrapper present**          | For 3 sample deliberations, assert each agent's report begins with `## <Seat> Report`                                                                                                                                                                                                                                                                              |
-| **Memo template**               | Run 3 deliberations on different briefs; assert all 11 memo sections present in every output                                                                                                                                                                                                                                                                       |
+| **Memo template**               | Run 3 deliberations on different briefs; assert every section in the locked template is present in each output, including `## Email sequences (outlines)` (when the Funnel Engineer seat succeeded)                                                                                                                                                                |
+| **Email-sequences carry**       | For 3 deliberations, assert the memo's `## Email sequences (outlines)` section is present and carries the Funnel Engineer report's sequences (name + trigger + target metric + per-email outline each); assert it is omitted only when the Funnel Engineer seat failed. This is the contract the `email-sequence` skill (TDD 03) parses                            |
 | **Verdicts-table count**        | Assert table row count = 8 in every memo                                                                                                                                                                                                                                                                                                                           |
 | **Attribution rule**            | Inspect memo: "Where the board disagrees" entries name seats; other sections do not                                                                                                                                                                                                                                                                                |
 | **Consolidate idempotency**     | Run `--consolidate` twice on the same memo file + same in-file answers; diff = empty                                                                                                                                                                                                                                                                               |
