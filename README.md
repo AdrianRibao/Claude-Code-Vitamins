@@ -14,6 +14,36 @@ Generate excellent Product Requirements Documents (PRDs) and Technical Design Do
 | `/specs-plugin:tdd`        | tdd-writer | Generate TDDs focused on requirements, contracts, and acceptance criteria |
 | `/specs-plugin:ac-checker` | ac-checker | Verify acceptance criteria are implemented with tests and code            |
 
+### marketing-board
+
+Eight-seat marketing deliberation board for SaaS launches. Convenes 8 specialist subagents in parallel against a launch brief and synthesizes a Marketing Plan Memo you iterate on with `--consolidate`.
+
+| Command / Skill              | Purpose                                                                                              |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `/marketing-board`           | Convene the board on a brief. 8 specialists deliberate in parallel; output is a Marketing Plan Memo. |
+| `/marketing-board:bootstrap` | Scaffold the product knowledge base (`agent_docs/marketing/`) the board reads before deliberating.   |
+
+**Specialists**: Ethnographer, Storyteller, Channel Strategist, Producer, Funnel Engineer, Community/PR Lead, Moonshot, Contrarian. Each runs in its own context window and returns a structured contribution; the synthesizer reconciles them into a coherent plan.
+
+**Install**:
+
+```bash
+/plugin install marketing-board@claude-code-vitamins
+```
+
+**Usage**:
+
+```bash
+# 1. Bootstrap product context (one-time per product)
+/marketing-board:bootstrap
+
+# 2. Run the board on a launch brief
+/marketing-board "Launching <product> in <market>. Goal: <metric>."
+
+# 3. Iterate on the memo
+/marketing-board --consolidate @marketing-plans/<slug>-<date>.md
+```
+
 ## Requirements
 
 - Claude Code 2.1.0 or later

@@ -8,6 +8,11 @@
       "name": "specs-plugin",
       "source": "./plugins/specs-plugin",
       "description": "Generate PRDs and TDDs with prd-writer, tdd-writer, and ac-checker skills. Includes /prd and /tdd commands."
+    },
+    {
+      "name": "marketing-board",
+      "source": "./plugins/marketing-board",
+      "description": "Eight-seat marketing deliberation board for SaaS launches. Convenes 8 specialists in parallel via /marketing-board and synthesizes a Marketing Plan Memo. Includes a :bootstrap skill for the product knowledge base."
     }
   ]
 }

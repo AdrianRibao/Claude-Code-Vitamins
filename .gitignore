@@ -12,6 +12,13 @@ Thumbs.db
 # Claude Code local settings
 .claude/settings.local.json
 
+# Local-only workspace artifacts (per-machine, not part of the marketplace)
+.agents/
+.claude/
+skills/
+skills-lock.json
+specs/
+
 # Logs
 *.log
 
