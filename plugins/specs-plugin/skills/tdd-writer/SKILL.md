@@ -453,10 +453,11 @@ After Open Questions are answered in discussion, use `--consolidate` to apply an
     - Update Data Model with clarified constraints
     - Add missing Behavior Specs for resolved edge cases
     - Adjust Acceptance Criteria based on scope decisions
-3. **Update Open Questions**:
-    - Mark resolved OQs with status "Resolved" and brief answer
-    - Remove fully integrated OQs from the table
-    - Keep unresolved OQs visible
+3. **Collapse resolved questions into a Decisions table** (do NOT leave answered questions in the verbose `### OQ-NN` Question / Why it matters / Possible answers / Status format):
+    - Move every **resolved** question into a `## ✅ Decisions (Resolved)` table with columns **Decision | Choice | Rationale**. Keep the `OQ-NN` / `FQ-NN` id inline in the Decision cell (e.g. `Retention policy (OQ-01)`) so cross-references elsewhere in the doc still resolve.
+    - **Delete** the verbose detail blocks of resolved questions (the table is now the record).
+    - Keep only genuinely **open** questions under `## Open Questions`, retaining their detail blocks. If none remain, write `*All questions resolved and integrated — see ✅ Decisions (Resolved).*`
+    - Update any footer/summary line to reference "✅ Decisions (Resolved)" instead of listing resolved OQ ids.
 4. **Tighten Document**:
     - Remove redundant prose
     - Consolidate overlapping sections
@@ -493,9 +494,16 @@ After Open Questions are answered in discussion, use `--consolidate` to apply an
 |-------|-------------------------------------------|
 | CR-05 | Audit logs retained for 90 days           |  <!-- Applied from OQ-01 -->
 
+## ✅ Decisions (Resolved)
+
+| Decision | Choice | Rationale |
+| --- | --- | --- |
+| Audit-log retention (OQ-01) | 90 days | Compliance window; bounds storage growth |
+| Max file upload size (OQ-02) | 10MB | Covers expected documents; caps abuse |
+
 ## Open Questions
 
-*All questions resolved and integrated.*
+*All questions resolved and integrated — see ✅ Decisions (Resolved).*
 ```
 
 ### When to Consolidate

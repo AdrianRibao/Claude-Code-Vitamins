@@ -315,10 +315,12 @@ After Open Questions are answered in discussion, use `--consolidate` to apply an
    - Add missing User Workflows for resolved edge cases
    - Adjust Requirements based on scope decisions
    - Update Success Metrics with agreed baselines
-3. **Update Open Questions**:
-   - Mark resolved OQs with status "Resolved" and brief answer
-   - Remove fully integrated OQs from the table
-   - Keep unresolved OQs visible
+3. **Collapse resolved questions into a Decisions table** (do NOT leave answered questions in the verbose `### OQ-NN` Question / Why it matters / Possible answers / Status format):
+   - Move every **resolved** question into a `## ✅ Decisions (Resolved)` table with columns **Decision | Choice | Rationale**. Keep the `OQ-NN` / `FQ-NN` id inline in the Decision cell (e.g. `Reveal timing (OQ-01)`) so cross-references elsewhere in the doc still resolve.
+   - **Delete** the verbose detail blocks of resolved questions (the table is now the record).
+   - Keep only genuinely **open** questions under `## Open Questions`, retaining their detail blocks. If none remain, write `*All questions resolved and integrated — see ✅ Decisions (Resolved).*`
+   - Leave partner/business question sets (e.g. an `AT-*` "Questions for [partner]" section) in their own section.
+   - Update any footer/summary line to reference "✅ Decisions (Resolved)" instead of listing resolved OQ ids.
 4. **Tighten Document**:
    - Remove redundant prose
    - Consolidate overlapping sections
@@ -352,9 +354,16 @@ After Open Questions are answered in discussion, use `--consolidate` to apply an
 |----|-------------|----------|
 | FR-05 | System enforces 60-hour weekly maximum | P1 |  <!-- Applied from OQ-02 -->
 
+## ✅ Decisions (Resolved)
+
+| Decision | Choice | Rationale |
+| --- | --- | --- |
+| Employer multiplicity (OQ-01) | Single employer per employee (v1) | Simpler data model + UI; multi-employer deferred to v2 |
+| Weekly hours cap (OQ-02) | 60-hour weekly maximum | Legal compliance + payroll correctness |
+
 ## Open Questions
 
-*All questions resolved and integrated.*
+*All questions resolved and integrated — see ✅ Decisions (Resolved).*
 ```
 
 ### When to Consolidate
