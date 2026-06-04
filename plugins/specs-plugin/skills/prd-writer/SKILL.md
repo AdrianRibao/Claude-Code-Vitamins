@@ -33,12 +33,12 @@ allowed-tools:
 /prd [feature-name] [--type master|feature|api|integration] [--no-questions] [--review] [--consolidate @path]
 ```
 
-| Flag | Purpose |
-|------|---------||
-| `--type` | PRD type: master, feature, api, integration |
-| `--no-questions` | Skip upfront questions (use with comprehensive brief) |
-| `--review` | Analyze existing PRD for scope creep or gaps |
-| `--consolidate @path` | Apply OQ answers, tighten document |
+| Flag                  | Purpose                                               |
+| --------------------- | ----------------------------------------------------- |
+| `--type`              | PRD type: master, feature, api, integration           |
+| `--no-questions`      | Skip upfront questions (use with comprehensive brief) |
+| `--review`            | Analyze existing PRD for scope creep or gaps          |
+| `--consolidate @path` | Apply OQ answers, tighten document                    |
 
 ## Output Location
 
@@ -50,13 +50,14 @@ specs/prds/{product}/{nn}-{product}-{type}.md
 
 **Examples:**
 
-| Command | Output Path |
-|---------|-------------|
-| `/prd user-auth --type master` | `specs/prds/user-auth/00-user-auth-master.md` |
-| `/prd user-auth-login --type feature` | `specs/prds/user-auth/01-user-auth-login.md` |
-| `/prd user-auth-api --type api` | `specs/prds/user-auth/02-user-auth-api.md` |
+| Command                               | Output Path                                   |
+| ------------------------------------- | --------------------------------------------- |
+| `/prd user-auth --type master`        | `specs/prds/user-auth/00-user-auth-master.md` |
+| `/prd user-auth-login --type feature` | `specs/prds/user-auth/01-user-auth-login.md`  |
+| `/prd user-auth-api --type api`       | `specs/prds/user-auth/02-user-auth-api.md`    |
 
 **Numbering convention:**
+
 - `00-` Master PRD (product overview, document hierarchy)
 - `01+` Feature PRDs (specific features, ordered by priority)
 
@@ -81,65 +82,65 @@ Requirements-first approach: every section answers "what" and "why", never "how"
 1. **Read Context**: Review existing documents, related PRDs, market context
 2. **Identify Problem**: Understand the core problem being solved
 3. **Ask Questions**: Use `AskUserQuestion` to clarify before writing
-   - What problem are we solving? For whom?
-   - What are the primary goals and non-goals?
-   - Who are the target users and their key workflows?
-   - What does success look like? How will we measure it?
-   - What constraints exist (timeline, resources, technical)?
-   - What's explicitly out of scope?
+    - What problem are we solving? For whom?
+    - What are the primary goals and non-goals?
+    - Who are the target users and their key workflows?
+    - What does success look like? How will we measure it?
+    - What constraints exist (timeline, resources, technical)?
+    - What's explicitly out of scope?
 4. **Confirm Understanding**: Summarize answers before proceeding
 
 **Skip questioning only if:** User provides comprehensive brief AND explicitly says "no questions needed".
 
 ### Phase 1: PRD Core Generation
 
-5. **Discover**: Analyze problem space, understand user needs, identify scope boundaries
-6. **Map Document Hierarchy**: Identify parent PRDs, child feature PRDs, related TDDs
-7. **Analyze Existing Patterns**: Find related PRDs in the codebase for consistency
-8. **Structure**: Organize into logical sections following lean PRD template
-9. **Specify**: Write problem statement, goals, user workflows, requirements, success metrics
-10. **Link Documents**: Add "Related Documents" section with all relevant PRDs and TDDs
-11. **Write PRD**: Save to file with placeholder Open Questions section
+1. **Discover**: Analyze problem space, understand user needs, identify scope boundaries
+2. **Map Document Hierarchy**: Identify parent PRDs, child feature PRDs, related TDDs
+3. **Analyze Existing Patterns**: Find related PRDs in the codebase for consistency
+4. **Structure**: Organize into logical sections following lean PRD template
+5. **Specify**: Write problem statement, goals, user workflows, requirements, success metrics
+6. **Link Documents**: Add "Related Documents" section with all relevant PRDs and TDDs
+7. **Write PRD**: Save to file with placeholder Open Questions section
 
 ### Phase 2: Open Questions Deep Analysis
 
-12. **Invoke Sequential MCP**: Use `--ultrathink` for maximum depth analysis
-13. **Analyze Gaps**: Identify ambiguities, missing decisions, edge cases, scope boundaries
-14. **Generate Questions**: Create structured OQ entries with IDs, rationale, and possible answers
-15. **Append to PRD**: Update the Open Questions section with generated content
+1. **Invoke Sequential MCP**: Use `--ultrathink` for maximum depth analysis
+2. **Analyze Gaps**: Identify ambiguities, missing decisions, edge cases, scope boundaries
+3. **Generate Questions**: Create structured OQ entries with IDs, rationale, and possible answers
+4. **Append to PRD**: Update the Open Questions section with generated content
 
 ### Phase 3: Finalization
 
-16. **Update References**: Update master PRDs and related documents to reference the new PRD
-17. **Validate**: Review for clarity, completeness, and measurability
-18. **Quality Check**: Ensure no implementation details, all requirements testable, all links valid
-19. **Present for Review**: Show complete PRD to user, await approval before TDD creation
+1. **Update References**: Update master PRDs and related documents to reference the new PRD
+2. **Validate**: Review for clarity, completeness, and measurability
+3. **Quality Check**: Ensure no implementation details, all requirements testable, all links valid
+4. **Present for Review**: Show complete PRD to user, await approval before TDD creation
 
 ## Include in PRDs
 
-| Element | Purpose | Example |
-|---------|---------|---------|
-| Problem Statement | WHY this exists | "Users struggle to track their hours worked" |
-| Goals | SUCCESS looks like | "Reduce time-tracking errors by 50%" |
-| Non-Goals | What we're NOT doing | "Not replacing payroll system" |
-| Target Users | WHO we're building for | "Household employees and employers" |
-| User Workflows | HOW users accomplish tasks | Step-by-step scenarios with time estimates |
-| Requirements | Functional needs | "System must calculate overtime automatically" |
-| Success Metrics | HOW we measure | "90% user adoption within 3 months" |
-| Scope Boundaries | IN/OUT of scope | "In: Time tracking. Out: Payroll processing" |
-| Constraints | LIMITATIONS we accept | "Must work offline on mobile" |
-| Open Questions | Unresolved decisions | "OQ-01: Should we support multiple employers?" |
+| Element           | Purpose                    | Example                                        |
+| ----------------- | -------------------------- | ---------------------------------------------- |
+| Problem Statement | WHY this exists            | "Users struggle to track their hours worked"   |
+| Goals             | SUCCESS looks like         | "Reduce time-tracking errors by 50%"           |
+| Non-Goals         | What we're NOT doing       | "Not replacing payroll system"                 |
+| Target Users      | WHO we're building for     | "Household employees and employers"            |
+| User Workflows    | HOW users accomplish tasks | Step-by-step scenarios with time estimates     |
+| Requirements      | Functional needs           | "System must calculate overtime automatically" |
+| Success Metrics   | HOW we measure             | "90% user adoption within 3 months"            |
+| Scope Boundaries  | IN/OUT of scope            | "In: Time tracking. Out: Payroll processing"   |
+| Constraints       | LIMITATIONS we accept      | "Must work offline on mobile"                  |
+| Open Questions    | Unresolved decisions       | "OQ-01: Should we support multiple employers?" |
 
 ## Exclude from PRDs
 
-| Element | Why Exclude | Where It Belongs |
-|---------|-------------|------------------|
-| Implementation code | PRDs define WHAT, not HOW | TDD, Codebase |
-| Database schemas | Technical detail | TDD |
-| API specifications | Technical detail | TDD (API type) |
-| UI wireframes | Unless high-level concepts | Design docs |
-| Architecture decisions | Technical detail | TDD, ADRs |
-| Deployment plans | Operations detail | DevOps docs |
+| Element                | Why Exclude                | Where It Belongs |
+| ---------------------- | -------------------------- | ---------------- |
+| Implementation code    | PRDs define WHAT, not HOW  | TDD, Codebase    |
+| Database schemas       | Technical detail           | TDD              |
+| API specifications     | Technical detail           | TDD (API type)   |
+| UI wireframes          | Unless high-level concepts | Design docs      |
+| Architecture decisions | Technical detail           | TDD, ADRs        |
+| Deployment plans       | Operations detail          | DevOps docs      |
 
 ## MCP Integration
 
@@ -179,15 +180,15 @@ After the PRD core is written, invoke Sequential MCP with `--ultrathink` depth t
 
 **Analysis Focus Areas**:
 
-| Area | Question Types |
-|------|----------------|
-| Problem Clarity | Is the problem well-defined? Are we solving the right problem? |
-| User Understanding | Do we understand all user segments? Edge cases? |
-| Scope Boundaries | What should explicitly be out of scope? Future phases? |
-| Success Measurement | Are metrics measurable? Do we have baselines? |
-| Stakeholder Input | Business decisions, policy clarifications needed? |
-| Dependencies | External dependencies? Integration requirements? |
-| Risk Factors | What could prevent success? Mitigation strategies? |
+| Area                | Question Types                                                 |
+| ------------------- | -------------------------------------------------------------- |
+| Problem Clarity     | Is the problem well-defined? Are we solving the right problem? |
+| User Understanding  | Do we understand all user segments? Edge cases?                |
+| Scope Boundaries    | What should explicitly be out of scope? Future phases?         |
+| Success Measurement | Are metrics measurable? Do we have baselines?                  |
+| Stakeholder Input   | Business decisions, policy clarifications needed?              |
+| Dependencies        | External dependencies? Integration requirements?               |
+| Risk Factors        | What could prevent success? Mitigation strategies?             |
 
 **Sequential MCP Prompt Template**:
 
@@ -311,26 +312,27 @@ After Open Questions are answered in discussion, use `--consolidate` to apply an
 
 1. **Read Context**: Parse PRD and recent conversation for OQ answers
 2. **Apply Answers**: Integrate resolved decisions into relevant sections
-   - Update Goals with clarified success criteria
-   - Add missing User Workflows for resolved edge cases
-   - Adjust Requirements based on scope decisions
-   - Update Success Metrics with agreed baselines
+    - Update Goals with clarified success criteria
+    - Add missing User Workflows for resolved edge cases
+    - Adjust Requirements based on scope decisions
+    - Update Success Metrics with agreed baselines
 3. **Collapse resolved questions into a Decisions table** (do NOT leave answered questions in the verbose `### OQ-NN` Question / Why it matters / Possible answers / Status format):
-   - Move every **resolved** question into a `## ✅ Decisions (Resolved)` table with columns **Decision | Choice | Rationale**. Keep the `OQ-NN` / `FQ-NN` id inline in the Decision cell (e.g. `Reveal timing (OQ-01)`) so cross-references elsewhere in the doc still resolve.
-   - **Delete** the verbose detail blocks of resolved questions (the table is now the record).
-   - Keep only genuinely **open** questions under `## Open Questions`, retaining their detail blocks. If none remain, write `*All questions resolved and integrated — see ✅ Decisions (Resolved).*`
-   - Leave partner/business question sets (e.g. an `AT-*` "Questions for [partner]" section) in their own section.
-   - Update any footer/summary line to reference "✅ Decisions (Resolved)" instead of listing resolved OQ ids.
+    - Move every **resolved** question into a `## ✅ Decisions (Resolved)` table with columns **Decision | Choice | Rationale**. Keep the `OQ-NN` / `FQ-NN` id inline in the Decision cell (e.g. `Reveal timing (OQ-01)`) so cross-references elsewhere in the doc still resolve.
+    - **Delete** the verbose detail blocks of resolved questions (the table is now the record).
+    - Keep only genuinely **open** questions under `## Open Questions`, retaining their detail blocks. If none remain, write `*All questions resolved and integrated — see ✅ Decisions (Resolved).*`
+    - Leave partner/business question sets (e.g. an `AT-*` "Questions for [partner]" section) in their own section.
+    - Update any footer/summary line to reference "✅ Decisions (Resolved)" instead of listing resolved OQ ids.
 4. **Tighten Document**:
-   - Remove redundant prose
-   - Consolidate overlapping sections
-   - Ensure tables are scannable
+    - Remove redundant prose
+    - Consolidate overlapping sections
+    - Ensure tables are scannable
 5. **Verify Thresholds**: Check document stays under line limits
 6. **Present Changes**: Show summary of modifications
 
 ### Before/After Example
 
 **Before consolidation:**
+
 ```markdown
 ## Open Questions
 
@@ -341,6 +343,7 @@ After Open Questions are answered in discussion, use `--consolidate` to apply an
 ```
 
 **After consolidation** (user answered: single employer v1, 60 hours max):
+
 ```markdown
 ## Scope
 
@@ -379,13 +382,13 @@ After Open Questions are answered in discussion, use `--consolidate` to apply an
 
 If a PRD exceeds these thresholds, suggest splitting into multiple documents:
 
-| Indicator | Threshold | Action |
-|-----------|-----------|--------|
-| User workflows | > 8 workflows | Split by user segment or journey |
-| Requirements | > 30 requirements | Split by feature area |
-| Target users | > 4 distinct personas | Split by persona |
-| Document length | > 400 lines | Review for bloat |
-| Document length | > 1000 lines | **Hard limit** - must split |
+| Indicator       | Threshold             | Action                           |
+| --------------- | --------------------- | -------------------------------- |
+| User workflows  | > 8 workflows         | Split by user segment or journey |
+| Requirements    | > 30 requirements     | Split by feature area            |
+| Target users    | > 4 distinct personas | Split by persona                 |
+| Document length | > 400 lines           | Review for bloat                 |
+| Document length | > 1000 lines          | **Hard limit** - must split      |
 
 ### Master PRD Pattern
 
