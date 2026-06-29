@@ -8,6 +8,7 @@ claude-code-vitamins is a Claude Code plugin marketplace containing reusable ski
 
 - `/prd` - Generate Product Requirements Documents
 - `/tdd` - Generate Technical Design Documents
+- `/bugfix` - Generate bugfix specifications (symptom, root cause, red->green regression test) and optionally drive the fix
 - `ac-checker` skill - Verify acceptance criteria are implemented in code (automatically invoked)
 
 ## Repository Structure
@@ -23,6 +24,7 @@ plugins/
     commands/
       prd.md                # /prd command wrapper
       tdd.md                # /tdd command wrapper
+      bugfix.md             # /bugfix command wrapper
     skills/
       prd-writer/
         SKILL.md            # PRD skill definition
@@ -36,6 +38,11 @@ plugins/
         style-guide.md      # TDD writing conventions
         templates/          # TDD templates (backend, ui, api, integration)
         examples/           # Reference TDD examples
+      bugfix-writer/
+        SKILL.md            # Bugfix skill definition
+        style-guide.md      # Bugfix writing conventions
+        templates/          # Bugfix document template
+        examples/           # Reference bug docs (UI fix, backend fix)
       ac-checker/
         SKILL.md            # Acceptance criteria checker skill
         README.md           # AC checker documentation
@@ -153,7 +160,7 @@ Both skills use a two-phase approach:
 
 ### Output Conventions
 
-PRDs: `specs/prds/{product}/{nn}-{product}-{type}.md` TDDs: `specs/tdds/{feature}/{nn}-{feature}-{type}.md`
+PRDs: `specs/prds/{product}/{nn}-{product}-{type}.md` TDDs: `specs/tdds/{feature}/{nn}-{feature}-{type}.md` Bug docs: `specs/bugs/{nnn}-{slug}.md` (moved to `specs/bugs/fixed/` once resolved)
 
 Numbering:
 
@@ -206,3 +213,12 @@ PRDs split when: >8 workflows, >30 requirements, >4 personas, >1000 lines TDDs s
 - Maximum 5 lines per code block
 - Given/When/Then for behavior specs
 - Testable checkboxes for acceptance criteria
+
+### Bugfix Style
+
+- Diagnose the root cause, never the symptom (name the defect at `file:line`)
+- Reproduce before fixing; record concrete evidence
+- Every fix is anchored by a red->green regression test (must fail on the buggy code first)
+- Bound the fix: explicit Do NOT change + Out of scope
+- Proceed by default; only block on genuinely fix-blocking questions
+- Acceptance criteria are a table + a mirrored `- [ ]` checklist (ac-checker compatible)
