@@ -66,6 +66,11 @@ Expected: [one line].
 
 \[The one test that captures this bug. State what it asserts and WHY it fails on the buggy code. With `--fix`, paste RED output then GREEN output.\]
 
+### Unit & E2E tests
+
+- [unit tests for the changed logic / validation]
+- [E2E test for the user-facing flow, when the bug was user-visible]
+
 ### Unchanged-behavior tests
 
 - [one per blast-radius item]
@@ -73,7 +78,7 @@ Expected: [one line].
 ### How to demo
 
 1. [reproduce]
-2. [confirm the fix] — ✅ [expected] / ❌ [failure signal]
+2. [confirm the fix in the running app — browser for UI bugs] — ✅ [expected] / ❌ [failure signal]
 
 ## Acceptance criteria
 

@@ -201,6 +201,8 @@ For `--fix` runs, work lands on a dedicated branch so a fix never commits straig
 - **Record** the branch in the metadata `Related` line and in `Deploy & rollback`, so the doc, the branch, and the eventual PR all cross-reference.
 - **Spec-only** runs do not create a branch — they only propose the name; there is no code to isolate.
 
+**Pre-commit gate**: a `--fix` change is not committable until unit tests cover the changed logic and E2E tests cover the user-facing flow (created where the fix warrants them) and pass, the regression test is green and the suite passes, AND the original issue has been reproduced and confirmed gone in the running app (drive a browser for UI bugs). Passing tests alone are not enough — confirm the real symptom is gone before any commit.
+
 ## Anti-Patterns
 
 | Anti-pattern                         | Why it fails                                                         |

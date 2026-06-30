@@ -99,8 +99,11 @@ Bugfix Progress:
 - [ ] 3. (--fix) Proved the regression test RED on unfixed code (output recorded)
 - [ ] 3. (--fix) Applied the smallest fix; proved it GREEN
 - [ ] 3. (--fix) Ran unchanged-behavior tests + suite; no regressions
+- [ ] 4. Created unit + E2E tests at the levels the fix warrants; all green
+- [ ] 4. (--fix) Confirmed the ORIGINAL issue is gone in the running app (browser for UI)
 - [ ] 4. Wrote verification + manual demo mapped to acceptance criteria
 - [ ] 5. Triaged for blockers; emitted `## Open decisions` only if blocked
+- [ ] 6. (--fix) Did NOT commit until all seven gates hold (tests green + issue verified in app)
 - [ ] 6. Presented for review; on confirmed fix, updated Status + moved to fixed/
 ```
 
@@ -152,9 +155,14 @@ Without `--fix`, this phase is written as a plan (red expectation + fix + verifi
 
 ### Phase 4: Verification & Demo
 
-1. **Automated**: regression test + unchanged-behavior tests + any coverage relevant to the changed code.
-2. **Manual / How to demo**: step-by-step reproduction-then-confirmation, with ✅ expected and ❌ failure signals, mapped to acceptance criteria (P11 demo style).
-3. **Trace**: every acceptance criterion maps to a symptom and to a test.
+1. **Automated tests at the right levels** (create them if missing — do not stop at the single regression test):
+    - **Unit tests** for the changed logic, branch, or validation.
+    - **E2E tests** for the user-facing flow where the bug was visible (UI journey, API contract) when the fix warrants it.
+    - **Unchanged-behavior tests** for each blast-radius item.
+    - Run them all; every test must pass.
+2. **Confirm the issue in the running app**: reproduce the ORIGINAL steps and confirm the symptom is actually gone — passing tests alone are not proof. For UI bugs, drive a real browser (e.g. the `claude-in-chrome` browser skill); for APIs, hit the live endpoint. Capture evidence (screenshot / response).
+3. **Manual / How to demo**: step-by-step reproduction-then-confirmation, with ✅ expected and ❌ failure signals, mapped to acceptance criteria (P11 demo style).
+4. **Trace**: every acceptance criterion maps to a symptom and to a test.
 
 ### Phase 5: Blocking-Question Triage (replaces heavyweight Open Questions)
 
@@ -164,23 +172,26 @@ Without `--fix`, this phase is written as a plan (red expectation + fix + verifi
 
 ### Phase 6: Finalize & Lifecycle
 
-1. **Present for review**: show the complete bug doc; await approval before any implementation (when not `--fix`).
-2. **On a confirmed fix**: update the `Status` metadata line to `fixed — <PR/commit> (<one-line summary>)` and **move the file** from `specs/bugs/` to `specs/bugs/fixed/` (use Bash `git mv`).
-3. **Quality check**: run the [Quality Checklist](#quality-checklist) and `mdformat` on the doc.
+1. **Verify before any commit**: a fix counts as "confirmed" only when all [Seven Non-Negotiable Gates](#the-seven-non-negotiable-gates) hold — tests green AND the original issue confirmed gone in the running app. **Do not commit (or advise committing) while any gate is unmet.**
+2. **Present for review**: show the complete bug doc; await approval before any implementation (when not `--fix`).
+3. **On a confirmed fix**: update the `Status` metadata line to `fixed — <PR/commit> (<one-line summary>)` and **move the file** from `specs/bugs/` to `specs/bugs/fixed/` (use Bash `git mv`).
+4. **Quality check**: run the [Quality Checklist](#quality-checklist) and `mdformat` on the doc.
 
-## The Five Non-Negotiable Gates
+## The Seven Non-Negotiable Gates
 
-These are the bugfix analog of the TDD permission-matrix gate. A bug doc is **not acceptable** until all five hold (or are explicitly, justifiably waived in the doc):
+These are the bugfix analog of the TDD permission-matrix gate. A bug doc is **not acceptable**, and a `--fix` change **must not be committed**, until all seven hold (or are explicitly, justifiably waived in the doc):
 
-| Gate                             | Requirement                                                                                                                   |
-| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| **Reproduction**                 | The bug is reproduced with concrete evidence, OR the doc records "not reproducible — hypothesis: …"                           |
-| **Root cause, not symptom**      | The root cause names the actual defect with `file:line` and provenance — not a restatement of the symptom                     |
-| **Red->green regression test**   | Exactly the test that fails on the buggy code and passes on the fix; with `--fix`, the RED state is demonstrated, not assumed |
-| **Blast radius / Do-NOT-change** | Adjacent behavior that could break is enumerated and covered by unchanged-behavior tests                                      |
-| **Scope discipline**             | Explicit In/Out of scope; the fix is the smallest change that addresses the root cause                                        |
+| Gate                             | Requirement                                                                                                                    |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| **Reproduction**                 | The bug is reproduced with concrete evidence, OR the doc records "not reproducible — hypothesis: …"                            |
+| **Root cause, not symptom**      | The root cause names the actual defect with `file:line` and provenance — not a restatement of the symptom                      |
+| **Red->green regression test**   | Exactly the test that fails on the buggy code and passes on the fix; with `--fix`, the RED state is demonstrated, not assumed  |
+| **Tests at the right levels**    | Unit tests cover the changed logic and E2E tests cover the user-facing flow, created where the fix warrants them — all green   |
+| **Blast radius / Do-NOT-change** | Adjacent behavior that could break is enumerated and covered by unchanged-behavior tests                                       |
+| **Confirmed fixed in the app**   | The original issue is reproduced and confirmed gone in the running app (drive a browser for UI bugs) — not inferred from tests |
+| **Scope discipline**             | Explicit In/Out of scope; the fix is the smallest change that addresses the root cause                                         |
 
-> A green regression test that was never shown to fail on the buggy code proves nothing — it may pass for reasons unrelated to the fix. Demonstrating the RED state is the load-bearing step.
+> A green regression test that was never shown to fail on the buggy code proves nothing — it may pass for reasons unrelated to the fix. And passing tests are necessary but not sufficient: a bug is "fixed" only once the original issue is reproduced and confirmed gone in the running app. **The skill never commits while any gate is unmet** — with `--fix` it stops at a verified, staged change and hands off.
 
 ## Question Policy
 
@@ -251,8 +262,8 @@ The skill owns the bug's lifecycle so the `fixed/` convention is applied consist
 ## Outputs
 
 - **Bug doc** (default): symptom, reproduction, root cause, scoped fix plan, regression-test design, verification plan, acceptance criteria.
-- **Fixed bug** (`--fix`): all of the above plus demonstrated red->green evidence, a passing suite, updated `Status`, and the file moved to `fixed/`.
-- **Bug doc review** (`--review`): gap analysis against the five gates (missing repro, symptom-as-cause, no red->green test, unbounded scope).
+- **Fixed bug** (`--fix`): all of the above plus demonstrated red->green evidence, unit + E2E tests, the issue confirmed fixed in the running app, a passing suite, updated `Status`, and the file moved to `fixed/`.
+- **Bug doc review** (`--review`): gap analysis against the seven gates (missing repro, symptom-as-cause, no red->green test, missing unit/E2E coverage, no app confirmation, unbounded scope).
 - **Consolidated bug doc** (`--consolidate`): answered decisions applied, collapsed into a Decisions table, tightened.
 
 ## Examples
@@ -296,6 +307,9 @@ Before finalizing a bug doc, verify:
 - [ ] **Blast radius enumerated; adjacent behavior covered by unchanged-behavior tests**
 - [ ] **A regression test is specified that fails on the buggy code and passes on the fix**
 - [ ] **With `--fix`: the RED state was demonstrated (failure output recorded), then GREEN, then the suite passed**
+- [ ] **Unit tests and E2E tests created at the levels the fix warrants — all green**
+- [ ] **With `--fix`: the original issue was reproduced and confirmed GONE in the running app (browser for UI bugs) — not inferred from tests**
+- [ ] **No commit was made (or advised) until all seven gates hold**
 - [ ] Acceptance criteria present as BOTH a table and a mirrored `- [ ]` checklist (ac-checker compatible)
 - [ ] **The regression-test acceptance criterion is present in the checklist**
 - [ ] Any third-party behavior was verified against freshly fetched docs, not memory
@@ -315,6 +329,8 @@ Before finalizing a bug doc, verify:
 - Design (and with `--fix`, execute and prove) a red->green regression test
 - Proceed by default, asking only genuine fix-blocking questions
 - In `--fix`, work on a dedicated `fix/...` branch — auto-created when on a protected branch
+- Add unit and E2E tests at the levels the fix warrants
+- Confirm the original issue is gone in the running app (browser for UI) before declaring it fixed
 - Manage the bug lifecycle (Status + move to `fixed/`)
 
 **Will Not:**
@@ -325,4 +341,5 @@ Before finalizing a bug doc, verify:
 - Block a well-specified, ready-to-fix bug on non-essential questions
 - Mark a bug fixed without evidence (passing regression test, merged PR, or explicit confirmation)
 - Commit `--fix` changes onto a protected branch (main/master/develop/release) — it branches first
+- **Commit (or advise committing) a fix until all seven gates hold: unit + E2E tests green AND the issue confirmed resolved in the running app**
 - Edit code unless `--fix` is passed
