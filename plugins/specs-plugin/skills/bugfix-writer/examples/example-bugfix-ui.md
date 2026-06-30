@@ -5,7 +5,7 @@
 - **Reported:** 2026-06-23 (PO: Pau; confirmed by CEO)
 - **Area:** `catalogue` — variant dropdown label builder (`src/widgets/booking/variant-label.js`)
 - **Repo:** `bloowatch-web` (frontend). Backend variant data is already correct — P2 ships separate selectable entries; only the label string is wrong.
-- **Related:** Jira OP-6979; Confluence "P11"; parent OP-6970
+- **Related:** Jira OP-6979; Confluence "P11"; parent OP-6970; branch `fix/OP-6979-variant-dropdown-labels`
 
 ______________________________________________________________________
 

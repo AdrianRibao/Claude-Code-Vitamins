@@ -5,7 +5,7 @@
 - **Reported:** [YYYY-MM-DD] ([reporter / confirmed by])
 - **Area:** [subsystem] — \[`key/file.ext`\]
 - **Repo:** \[`repo-name`\] ([layer]). [Note sibling repos and whether they need changes.]
-- **Related:** [ticket id; wiki page; PR/commit; sibling bug spec]
+- **Related:** [ticket id; branch; wiki page; PR/commit; sibling bug spec]
 
 ______________________________________________________________________
 

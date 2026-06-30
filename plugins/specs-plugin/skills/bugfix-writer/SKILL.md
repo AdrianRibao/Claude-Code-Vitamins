@@ -33,18 +33,20 @@ allowed-tools:
 ## Usage
 
 ```
-/bugfix [name] [--ticket ID] [--page URL] [--from @path] [--fix] [--ask] [--review @path] [--consolidate @path]
+/bugfix [name] [--ticket ID] [--page URL] [--from @path] [--fix] [--branch NAME] [--no-branch] [--ask] [--review @path] [--consolidate @path]
 ```
 
-| Flag                  | Purpose                                                                                        |
-| --------------------- | ---------------------------------------------------------------------------------------------- |
-| `--ticket ID`         | Ingest the bug report from a tracker issue (Jira/Linear/GitHub) via MCP                        |
-| `--page URL`          | Ingest the bug report from a spec page (Confluence/Notion) via MCP or WebFetch                 |
-| `--from @path`        | Ingest the bug report from a local file or pasted text                                         |
-| `--fix`               | Execute the fix loop: prove the regression test red, apply the fix, prove green, run the suite |
-| `--ask`               | Force surfacing of non-blocking decisions for review (default: proceed silently)               |
-| `--review @path`      | Analyze an existing bug doc for gaps (no root cause, no repro, no red->green test)             |
-| `--consolidate @path` | Apply answered decisions, collapse to a Decisions table, tighten the doc                       |
+| Flag                  | Purpose                                                                                                          |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `--ticket ID`         | Ingest the bug report from a tracker issue (Jira/Linear/GitHub) via MCP                                          |
+| `--page URL`          | Ingest the bug report from a spec page (Confluence/Notion) via MCP or WebFetch                                   |
+| `--from @path`        | Ingest the bug report from a local file or pasted text                                                           |
+| `--fix`               | Execute the fix loop: prove the regression test red, apply the fix, prove green, run the suite                   |
+| `--branch NAME`       | Use/create this branch for the fix; default auto-creates `fix/<ticket-or-NNN>-<slug>` when on a protected branch |
+| `--no-branch`         | Apply the fix on the current branch; do not create or switch branches                                            |
+| `--ask`               | Force surfacing of non-blocking decisions for review (default: proceed silently)                                 |
+| `--review @path`      | Analyze an existing bug doc for gaps (no root cause, no repro, no red->green test)                               |
+| `--consolidate @path` | Apply answered decisions, collapse to a Decisions table, tighten the doc                                         |
 
 ## Output Location
 
@@ -93,6 +95,7 @@ Bugfix Progress:
 - [ ] 1. Traced symptom -> actual defect (file:line + provenance)
 - [ ] 2. Specified the fix; listed Do-NOT-change + Out-of-scope; mapped blast radius
 - [ ] 2. Designed the regression test (states why it fails on the buggy code)
+- [ ] 3. (--fix) On a dedicated fix branch (auto-created if on a protected branch)
 - [ ] 3. (--fix) Proved the regression test RED on unfixed code (output recorded)
 - [ ] 3. (--fix) Applied the smallest fix; proved it GREEN
 - [ ] 3. (--fix) Ran unchanged-behavior tests + suite; no regressions
@@ -133,11 +136,17 @@ Bugfix Progress:
 
 ### Phase 3: Fix Execution (only with `--fix`)
 
-1. **Prove red**: write the regression test and run it against the unfixed code. Confirm it FAILS for the expected reason. Record the failure output.
-2. **Apply the fix**: make the smallest change that addresses the root cause.
-3. **Prove green**: re-run the regression test. Confirm it PASSES.
-4. **Prove no regressions**: run the unchanged-behavior tests and the surrounding suite. If anything breaks, fix and re-run from step 2 — repeat until the regression test is green AND the suite passes.
-5. **Record evidence**: capture red output, green output, and suite result in the doc.
+1. **Select the working branch** (before changing any code):
+    - `--branch NAME` -> create/switch to it.
+    - On a protected branch (`main`/`master`/`develop`/`release/*`) -> create `fix/<ticket>-<slug>` (fall back to `fix/<NNN>-<slug>` when no ticket) and switch; announce the branch.
+    - Already on a feature branch -> use it as-is.
+    - `--no-branch` -> stay on the current branch.
+    - Record the chosen branch in the doc's `Related` and `Deploy & rollback`.
+2. **Prove red**: write the regression test and run it against the unfixed code. Confirm it FAILS for the expected reason. Record the failure output.
+3. **Apply the fix**: make the smallest change that addresses the root cause.
+4. **Prove green**: re-run the regression test. Confirm it PASSES.
+5. **Prove no regressions**: run the unchanged-behavior tests and the surrounding suite. If anything breaks, fix and re-run from step 3 — repeat until the regression test is green AND the suite passes.
+6. **Record evidence**: capture red output, green output, and suite result in the doc.
 
 Without `--fix`, this phase is written as a plan (red expectation + fix + verification), executed later by the implementer.
 
@@ -228,6 +237,7 @@ The regression-test criterion is mandatory: `- [ ] Regression test fails on the 
 
 The skill owns the bug's lifecycle so the `fixed/` convention is applied consistently:
 
+- **Branch** (`--fix` only): work lands on a dedicated `fix/<ticket-or-NNN>-<slug>` branch — auto-created when the current branch is protected (`main`/`master`/`develop`/`release/*`), reused when already on a feature branch, overridable with `--branch` / `--no-branch`.
 - **Status values**: `open` -> `in progress` -> `fixed — <PR #/commit> (<one-line>)`.
 - **On confirmed fix**: update the `Status` line and `git mv` the file from `specs/bugs/` into `specs/bugs/fixed/`. Preserve the `NNN` number.
 - Never silently change status without evidence (a passing regression test, a merged PR, or explicit user confirmation).
@@ -304,6 +314,7 @@ Before finalizing a bug doc, verify:
 - Specify the smallest correct fix and bound its scope explicitly
 - Design (and with `--fix`, execute and prove) a red->green regression test
 - Proceed by default, asking only genuine fix-blocking questions
+- In `--fix`, work on a dedicated `fix/...` branch — auto-created when on a protected branch
 - Manage the bug lifecycle (Status + move to `fixed/`)
 
 **Will Not:**
@@ -313,4 +324,5 @@ Before finalizing a bug doc, verify:
 - Expand scope into unrelated cleanups or new features
 - Block a well-specified, ready-to-fix bug on non-essential questions
 - Mark a bug fixed without evidence (passing regression test, merged PR, or explicit confirmation)
+- Commit `--fix` changes onto a protected branch (main/master/develop/release) — it branches first
 - Edit code unless `--fix` is passed

@@ -18,6 +18,7 @@ Conventions for bug docs produced by the `bugfix-writer` skill. The skill's SKIL
 - Verification and the red->green regression test
 - Acceptance criteria (hybrid format)
 - Assumptions vs Open decisions
+- Branch and commit
 - Anti-patterns
 
 ## Document Structure and Section Order
@@ -190,6 +191,15 @@ The final regression-test checkbox is **mandatory** in every bug doc.
 
 - **Assumption** (default-and-document): a minor uncertainty you resolved with a sensible default. Record it inline where it applies: *"Assumed Option letters re-number on delete (creation-order) — flag if stability is required."* Does not block the fix.
 - **Open decision** (blocking): a genuine fork where a *correct* fix is impossible without an answer. Goes under `## Open decisions` with an `OD-NN` id, the choices, and their consequences. Omit the section entirely when there are none — do not manufacture questions.
+
+## Branch and Commit
+
+For `--fix` runs, work lands on a dedicated branch so a fix never commits straight to a protected branch.
+
+- **Name**: `fix/<ticket>-<slug>` when a tracker id is known (e.g. `fix/OP-6979-variant-dropdown-labels`); fall back to `fix/<NNN>-<slug>` keyed to the bug doc number when there is no ticket.
+- **Auto-create**: if the current branch is protected (`main`, `master`, `develop`, `release/*`), create and switch to the fix branch and announce it. If already on a feature branch, reuse it. `--branch NAME` overrides the name; `--no-branch` stays on the current branch.
+- **Record** the branch in the metadata `Related` line and in `Deploy & rollback`, so the doc, the branch, and the eventual PR all cross-reference.
+- **Spec-only** runs do not create a branch — they only propose the name; there is no code to isolate.
 
 ## Anti-Patterns
 

@@ -125,7 +125,7 @@ RED expectation:  assert 1 == online_product_count  →  AssertionError: 2 != 1
 
 ## Deploy & rollback
 
-- Branch `fix/online-count-availability` -> PR -> CircleCI -> `staging_deploy_hold` -> promote.
+- Branch `fix/003-online-product-count-availability` -> PR -> CircleCI -> `staging_deploy_hold` -> promote.
 - Rollback: revert the PR; the change is isolated to one query helper.
 
 ## When fixed
