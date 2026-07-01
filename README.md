@@ -6,13 +6,14 @@ A plugin marketplace for [Claude Code](https://claude.ai/code) containing reusab
 
 ### specs-plugin
 
-Generate excellent Product Requirements Documents (PRDs) and Technical Design Documents (TDDs) with structured workflows and deep analysis. Verify implementation completeness against TDD acceptance criteria.
+Generate excellent Product Requirements Documents (PRDs), Technical Design Documents (TDDs), and bugfix specifications with structured workflows and deep analysis. Verify implementation completeness against TDD acceptance criteria.
 
-| Command                    | Skill      | Purpose                                                                   |
-| -------------------------- | ---------- | ------------------------------------------------------------------------- |
-| `/specs-plugin:prd`        | prd-writer | Generate PRDs focused on problems, goals, users, and success metrics      |
-| `/specs-plugin:tdd`        | tdd-writer | Generate TDDs focused on requirements, contracts, and acceptance criteria |
-| `/specs-plugin:ac-checker` | ac-checker | Verify acceptance criteria are implemented with tests and code            |
+| Command                    | Skill         | Purpose                                                                                           |
+| -------------------------- | ------------- | ------------------------------------------------------------------------------------------------- |
+| `/specs-plugin:prd`        | prd-writer    | Generate PRDs focused on problems, goals, users, and success metrics                              |
+| `/specs-plugin:tdd`        | tdd-writer    | Generate TDDs focused on requirements, contracts, and acceptance criteria                         |
+| `/specs-plugin:bugfix`     | bugfix-writer | Diagnose and optionally fix bugs — symptom, root cause, red->green regression test, verify in app |
+| `/specs-plugin:ac-checker` | ac-checker    | Verify acceptance criteria are implemented with tests and code                                    |
 
 ### marketing-board
 
@@ -163,6 +164,38 @@ Generate Technical Design Documents focused on requirements, contracts, and acce
 
 **Output:** `specs/tdds/{feature}/{nn}-{feature}-{type}.md`
 
+### Bugfix Writer
+
+Document a bug (symptom, reproduction, root cause, scoped fix, red->green regression test) and optionally drive the fix end to end.
+
+```bash
+# Document a bug from a Jira ticket (follows smartlinks to the spec page)
+/specs-plugin:bugfix variant-dropdown-labels --ticket OP-6979
+
+# Reproduce, fix, and verify end to end (auto-branches, runs tests, confirms in app)
+/specs-plugin:bugfix online-product-count --from @notes/bug.md --fix
+
+# Review an existing bug doc for gaps (no root cause, no red->green test)
+/specs-plugin:bugfix --review @specs/bugs/002-seasonal-pricing.md
+
+# Close a confirmed bug: set Status to fixed and move it to specs/bugs/fixed/
+/specs-plugin:bugfix --resolve @specs/bugs/003-online-product-count.md
+```
+
+**Flags:**
+
+| Flag                                          | Purpose                                                                   |
+| --------------------------------------------- | ------------------------------------------------------------------------- |
+| `--ticket ID` / `--page URL` / `--from @path` | Ingest the bug report from a tracker, wiki page, or local file            |
+| `--fix`                                       | Reproduce -> red test -> fix -> green -> unit/E2E tests -> confirm in app |
+| `--branch NAME` / `--no-branch`               | Override branch selection (default: auto-branch on protected branches)    |
+| `--ask`                                       | Surface non-blocking decisions for review                                 |
+| `--review @path`                              | Analyze an existing bug doc for gaps                                      |
+| `--consolidate @path`                         | Apply answered decisions, tighten the doc                                 |
+| `--resolve @path`                             | Mark a confirmed bug fixed: update Status and move to `specs/bugs/fixed/` |
+
+**Output:** `specs/bugs/{nnn}-{slug}.md` -> `specs/bugs/fixed/{nnn}-{slug}.md` once resolved
+
 ### Acceptance Criteria Checker
 
 Verify that acceptance criteria from TDDs are actually implemented in code with tests and proper coverage.
@@ -238,6 +271,78 @@ Verify that acceptance criteria from TDDs are actually implemented in code with 
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
+## Bugfix Workflow
+
+The bugfix skill runs a defect from report to closed. With `--fix` it will not let an unproven fix be committed — every gate must hold first.
+
+```
+┌───────────────────────────────────────────────────────────────────────────┐
+│  1. INTAKE & REPRODUCE                                                      │
+│     /specs-plugin:bugfix labels --ticket OP-6979                           │
+│     • Pull the report (ticket / wiki / file / prompt); reproduce w/ evidence│
+│     • Triage severity; ask only genuinely fix-blocking questions           │
+│     -> writes specs/bugs/{NNN}-{slug}.md            Status: open            │
+└───────────────────────────────────────────────────────────────────────────┘
+                                     ↓
+┌───────────────────────────────────────────────────────────────────────────┐
+│  2. DIAGNOSE                                                                │
+│     • Trace symptom -> the actual defect at file:line (cause, not symptom) │
+│     • Scope the fix (Do-NOT-change + Out-of-scope); design red->green test  │
+└───────────────────────────────────────────────────────────────────────────┘
+                                     ↓
+┌───────────────────────────────────────────────────────────────────────────┐
+│  3. FIX  (--fix)                                                           │
+│     /specs-plugin:bugfix labels --ticket OP-6979 --fix                     │
+│     • Auto-branch fix/<ticket-or-NNN>-<slug> if on a protected branch       │
+│     • Prove test RED -> apply fix -> prove GREEN; add unit + E2E tests      │
+│                                                     Status: in progress    │
+└───────────────────────────────────────────────────────────────────────────┘
+                                     ↓
+┌───────────────────────────────────────────────────────────────────────────┐
+│  4. VERIFY — the Seven Gates   (COMMITS FORBIDDEN until all seven hold)    │
+│     reproduction · root cause · red->green · unit+E2E · blast radius ·      │
+│     confirmed-in-app · scope discipline                                    │
+│     • Confirm the ORIGINAL issue is gone in the running app                │
+│       (drive a browser for UI bugs, e.g. claude-in-chrome)                 │
+└───────────────────────────────────────────────────────────────────────────┘
+                                     ↓
+┌───────────────────────────────────────────────────────────────────────────┐
+│  5. LAND & CLOSE   (in the fix PR)                                         │
+│     • Commit the fix on the branch; in the SAME PR: git mv the doc into     │
+│       specs/bugs/fixed/ and set Status: fixed — PR #NNN, commit <hash>      │
+│     • Lands on main when the PR merges                                      │
+└───────────────────────────────────────────────────────────────────────────┘
+```
+
+### Updating status and moving a bug to `fixed/`
+
+A bug doc starts at `specs/bugs/{nnn}-{slug}.md` with `Status: open`. It moves to `specs/bugs/fixed/` **only once the fix is confirmed** — all seven gates hold (including a real-app confirmation, not just green tests). Two ways to make that transition:
+
+**Automatic** — a `--fix` run does it for you in the final step: after the gates pass it sets the `Status` line to `fixed` and `git mv`s the doc into `specs/bugs/fixed/`, all inside the fix PR.
+
+**Explicit close** — when the fix was made outside a `--fix` run, resolve the doc in one command:
+
+```bash
+/specs-plugin:bugfix --resolve @specs/bugs/003-online-product-count.md
+```
+
+It verifies the fix is confirmed, then updates the metadata block and moves the file:
+
+```
+- **Status:** open           ->  - **Status:** fixed — PR #517, commit 9c1a4f0 (...)
+specs/bugs/003-...-count.md   ->  specs/bugs/fixed/003-...-count.md   (git mv, NNN kept)
+```
+
+**Manual equivalent** (same effect, if you prefer to do it by hand):
+
+```bash
+# 1. Edit the metadata block: Status: fixed — PR #NNN, commit <hash> (one-line)
+# 2. Move the file (preserve the number), committed inside the fix PR:
+git mv specs/bugs/003-online-product-count.md specs/bugs/fixed/003-online-product-count.md
+```
+
+> Never move a doc to `fixed/` until the seven gates hold — a passing test alone is not proof the bug is fixed.
+
 ## Philosophy
 
 ### PRD: WHAT and WHY
@@ -265,6 +370,18 @@ TDDs specify **what needs to be built** in technical terms. They focus on:
 
 **TDDs never include**: full implementation code, function bodies, algorithm details, test implementations.
 
+### Bugfix: Diagnose and Prove
+
+Bugfix specs close the gap between observed and expected behavior with the smallest correct change, proven by a test that fails on the bug and passes on the fix. They focus on:
+
+- Symptom and reproduction (concrete evidence)
+- Root cause at `file:line` (never the symptom)
+- A scoped fix with explicit Do-NOT-change / Out-of-scope
+- A red->green regression test plus unit and E2E coverage
+- Confirmation the issue is gone in the running app
+
+**Bugfix specs never ship an unproven fix**: commits are forbidden until the seven gates pass — including a real-app confirmation, not just green tests.
+
 ## Document Structure
 
 ### PRD Structure
@@ -291,6 +408,21 @@ TDDs specify **what needs to be built** in technical terms. They focus on:
 | Behavior Specs       | Given/When/Then scenarios               |
 | Acceptance Criteria  | Testable checkboxes                     |
 | Open Questions       | Unresolved decisions with IDs           |
+
+### Bugfix Structure
+
+| Section             | Purpose                                         |
+| ------------------- | ----------------------------------------------- |
+| Metadata            | Status, Severity, Reported, Area, Repo, Related |
+| Summary             | What's broken, who's hit, scope statement       |
+| Symptom             | Observed vs expected, concrete evidence         |
+| Reproduction        | Deterministic steps / seed                      |
+| Root cause          | The defect at `file:line` + provenance          |
+| Expected behavior   | The correct behavior (rules)                    |
+| The fix             | WHAT changes + Do-NOT-change + Out of scope     |
+| Blast radius        | Adjacent behavior at risk                       |
+| Verification        | Regression + unit/E2E + manual/app demo         |
+| Acceptance criteria | Table + mirrored checkbox list                  |
 
 ## Open Questions
 

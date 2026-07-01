@@ -33,20 +33,21 @@ allowed-tools:
 ## Usage
 
 ```
-/bugfix [name] [--ticket ID] [--page URL] [--from @path] [--fix] [--branch NAME] [--no-branch] [--ask] [--review @path] [--consolidate @path]
+/bugfix [name] [--ticket ID] [--page URL] [--from @path] [--fix] [--branch NAME] [--no-branch] [--ask] [--review @path] [--consolidate @path] [--resolve @path]
 ```
 
-| Flag                  | Purpose                                                                                                          |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `--ticket ID`         | Ingest the bug report from a tracker issue (Jira/Linear/GitHub) via MCP                                          |
-| `--page URL`          | Ingest the bug report from a spec page (Confluence/Notion) via MCP or WebFetch                                   |
-| `--from @path`        | Ingest the bug report from a local file or pasted text                                                           |
-| `--fix`               | Execute the fix loop: prove the regression test red, apply the fix, prove green, run the suite                   |
-| `--branch NAME`       | Use/create this branch for the fix; default auto-creates `fix/<ticket-or-NNN>-<slug>` when on a protected branch |
-| `--no-branch`         | Apply the fix on the current branch; do not create or switch branches                                            |
-| `--ask`               | Force surfacing of non-blocking decisions for review (default: proceed silently)                                 |
-| `--review @path`      | Analyze an existing bug doc for gaps (no root cause, no repro, no red->green test)                               |
-| `--consolidate @path` | Apply answered decisions, collapse to a Decisions table, tighten the doc                                         |
+| Flag                  | Purpose                                                                                                                                 |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `--ticket ID`         | Ingest the bug report from a tracker issue (Jira/Linear/GitHub) via MCP                                                                 |
+| `--page URL`          | Ingest the bug report from a spec page (Confluence/Notion) via MCP or WebFetch                                                          |
+| `--from @path`        | Ingest the bug report from a local file or pasted text                                                                                  |
+| `--fix`               | Execute the fix loop: prove the regression test red, apply the fix, prove green, run the suite                                          |
+| `--branch NAME`       | Use/create this branch for the fix; default auto-creates `fix/<ticket-or-NNN>-<slug>` when on a protected branch                        |
+| `--no-branch`         | Apply the fix on the current branch; do not create or switch branches                                                                   |
+| `--ask`               | Force surfacing of non-blocking decisions for review (default: proceed silently)                                                        |
+| `--review @path`      | Analyze an existing bug doc for gaps (no root cause, no repro, no red->green test)                                                      |
+| `--consolidate @path` | Apply answered decisions, collapse to a Decisions table, tighten the doc                                                                |
+| `--resolve @path`     | Mark a confirmed bug fixed: set `Status` to `fixed` and `git mv` the doc into `specs/bugs/fixed/` (refuses unless the fix is confirmed) |
 
 ## Output Location
 
@@ -104,7 +105,7 @@ Bugfix Progress:
 - [ ] 4. Wrote verification + manual demo mapped to acceptance criteria
 - [ ] 5. Triaged for blockers; emitted `## Open decisions` only if blocked
 - [ ] 6. (--fix) Did NOT commit until all seven gates hold (tests green + issue verified in app)
-- [ ] 6. Presented for review; on confirmed fix, updated Status + moved to fixed/
+- [ ] 6. Presented for review; on confirmed fix, moved to fixed/ + Status updated in the fix PR
 ```
 
 ### Phase 0: Intake & Reproduce (Always)
@@ -174,7 +175,7 @@ Without `--fix`, this phase is written as a plan (red expectation + fix + verifi
 
 1. **Verify before any commit**: a fix counts as "confirmed" only when all [Seven Non-Negotiable Gates](#the-seven-non-negotiable-gates) hold — tests green AND the original issue confirmed gone in the running app. **Do not commit (or advise committing) while any gate is unmet.**
 2. **Present for review**: show the complete bug doc; await approval before any implementation (when not `--fix`).
-3. **On a confirmed fix**: update the `Status` metadata line to `fixed — <PR/commit> (<one-line summary>)` and **move the file** from `specs/bugs/` to `specs/bugs/fixed/` (use Bash `git mv`).
+3. **Land the fix, then move the doc — in the same PR**: once all seven gates pass, commit the fix on the `fix/...` branch and, in that same commit/PR, `git mv` the doc from `specs/bugs/` to `specs/bugs/fixed/` and set `Status` to `fixed — PR #NNN, commit <hash> (<one-line summary>)`. The move rides in the fix PR and lands on `main` when the PR merges; `main` shows the doc under `fixed/` only after merge. Preserve the `NNN`.
 4. **Quality check**: run the [Quality Checklist](#quality-checklist) and `mdformat` on the doc.
 
 ## The Seven Non-Negotiable Gates
@@ -249,9 +250,10 @@ The regression-test criterion is mandatory: `- [ ] Regression test fails on the 
 The skill owns the bug's lifecycle so the `fixed/` convention is applied consistently:
 
 - **Branch** (`--fix` only): work lands on a dedicated `fix/<ticket-or-NNN>-<slug>` branch — auto-created when the current branch is protected (`main`/`master`/`develop`/`release/*`), reused when already on a feature branch, overridable with `--branch` / `--no-branch`.
-- **Status values**: `open` -> `in progress` -> `fixed — <PR #/commit> (<one-line>)`.
-- **On confirmed fix**: update the `Status` line and `git mv` the file from `specs/bugs/` into `specs/bugs/fixed/`. Preserve the `NNN` number.
-- Never silently change status without evidence (a passing regression test, a merged PR, or explicit user confirmation).
+- **Status values**: `open` -> `in progress` -> `fixed — PR #NNN, commit <hash> (<one-line>)`.
+- **The move rides in the fix PR**: once all seven gates pass on the `fix/...` branch, `git mv` the doc into `specs/bugs/fixed/` and set `Status` to `fixed` **in the same commit/PR as the fix** (preserve the `NNN`). It lands on `main` atomically when the PR merges — `main` shows the doc under `fixed/` only after the fix is actually merged.
+- **Evidence bar**: never mark a bug `fixed` or move it until all [Seven Non-Negotiable Gates](#the-seven-non-negotiable-gates) hold — a passing regression test alone is not enough.
+- **`--resolve @path`** (explicit close command): verifies the evidence bar, sets `Status` to `fixed — PR #NNN, commit <hash> (<one-line>)`, and `git mv`s the doc into `specs/bugs/fixed/`. Use it when the fix was made outside a `--fix` run (`--fix` already does this in Phase 6). Refuses if the fix is not confirmed.
 
 ## MCP Integration
 
@@ -265,6 +267,7 @@ The skill owns the bug's lifecycle so the `fixed/` convention is applied consist
 - **Fixed bug** (`--fix`): all of the above plus demonstrated red->green evidence, unit + E2E tests, the issue confirmed fixed in the running app, a passing suite, updated `Status`, and the file moved to `fixed/`.
 - **Bug doc review** (`--review`): gap analysis against the seven gates (missing repro, symptom-as-cause, no red->green test, missing unit/E2E coverage, no app confirmation, unbounded scope).
 - **Consolidated bug doc** (`--consolidate`): answered decisions applied, collapsed into a Decisions table, tightened.
+- **Resolved bug** (`--resolve`): `Status` set to `fixed` and the doc moved into `specs/bugs/fixed/` (evidence bar enforced).
 
 ## Examples
 
@@ -315,7 +318,7 @@ Before finalizing a bug doc, verify:
 - [ ] Any third-party behavior was verified against freshly fetched docs, not memory
 - [ ] No manufactured questions; only genuine fix-blockers appear under `## Open decisions`
 - [ ] Default-and-document choices recorded as inline Assumptions
-- [ ] On a confirmed fix: Status updated and file moved to `specs/bugs/fixed/`
+- [ ] On a confirmed fix: the doc is `git mv`d into `specs/bugs/fixed/` and `Status` set to `fixed`, in the same commit/PR as the fix
 - [ ] `mdformat` passes on the document
 
 ## Boundaries
