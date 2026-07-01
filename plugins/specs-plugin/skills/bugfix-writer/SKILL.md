@@ -104,8 +104,8 @@ Bugfix Progress:
 - [ ] 4. (--fix) Confirmed the ORIGINAL issue is gone in the running app (browser for UI)
 - [ ] 4. Wrote verification + manual demo mapped to acceptance criteria
 - [ ] 5. Triaged for blockers; emitted `## Open decisions` only if blocked
-- [ ] 6. (--fix) Did NOT commit until all seven gates hold (tests green + issue verified in app)
-- [ ] 6. Presented for review; on confirmed fix, moved to fixed/ + Status updated in the fix PR
+- [ ] 6. (--fix) Staged the verified fix + doc move; did NOT commit — handed off to the user
+- [ ] 6. Presented for review; on confirmed fix, staged the move to fixed/ + Status update for the user's fix commit
 ```
 
 ### Phase 0: Intake & Reproduce (Always)
@@ -175,7 +175,7 @@ Without `--fix`, this phase is written as a plan (red expectation + fix + verifi
 
 1. **Verify before any commit**: a fix counts as "confirmed" only when all [Seven Non-Negotiable Gates](#the-seven-non-negotiable-gates) hold — tests green AND the original issue confirmed gone in the running app. **Do not commit (or advise committing) while any gate is unmet.**
 2. **Present for review**: show the complete bug doc; await approval before any implementation (when not `--fix`).
-3. **Land the fix, then move the doc — in the same PR**: once all seven gates pass, commit the fix on the `fix/...` branch and, in that same commit/PR, `git mv` the doc from `specs/bugs/` to `specs/bugs/fixed/` and set `Status` to `fixed — PR #NNN, commit <hash> (<one-line summary>)`. The move rides in the fix PR and lands on `main` when the PR merges; `main` shows the doc under `fixed/` only after merge. Preserve the `NNN`.
+3. **Stage the verified change, then hand off**: once all seven gates pass, on the `fix/...` branch apply the fix, `git mv` the doc from `specs/bugs/` into `specs/bugs/fixed/`, set its `Status` to `fixed` (fill in the `— PR #NNN, commit <hash>` reference when you commit), and `git add` everything so the fix + doc move are **staged together**. **The skill does not commit** — you review the staged diff and make the commit / open the PR. The move rides in that fix commit and reaches `main` only when the PR merges. Preserve the `NNN`.
 4. **Quality check**: run the [Quality Checklist](#quality-checklist) and `mdformat` on the doc.
 
 ## The Seven Non-Negotiable Gates
@@ -251,9 +251,9 @@ The skill owns the bug's lifecycle so the `fixed/` convention is applied consist
 
 - **Branch** (`--fix` only): work lands on a dedicated `fix/<ticket-or-NNN>-<slug>` branch — auto-created when the current branch is protected (`main`/`master`/`develop`/`release/*`), reused when already on a feature branch, overridable with `--branch` / `--no-branch`.
 - **Status values**: `open` -> `in progress` -> `fixed — PR #NNN, commit <hash> (<one-line>)`.
-- **The move rides in the fix PR**: once all seven gates pass on the `fix/...` branch, `git mv` the doc into `specs/bugs/fixed/` and set `Status` to `fixed` **in the same commit/PR as the fix** (preserve the `NNN`). It lands on `main` atomically when the PR merges — `main` shows the doc under `fixed/` only after the fix is actually merged.
+- **The move is staged with the fix, not committed by the skill**: once all seven gates pass on the `fix/...` branch, `git mv` the doc into `specs/bugs/fixed/`, set `Status` to `fixed`, and `git add` it — leaving fix + doc move **staged together** (preserve the `NNN`). **You** make the commit / open the PR; the move rides in that fix commit and reaches `main` only after it merges.
 - **Evidence bar**: never mark a bug `fixed` or move it until all [Seven Non-Negotiable Gates](#the-seven-non-negotiable-gates) hold — a passing regression test alone is not enough.
-- **`--resolve @path`** (explicit close command): verifies the evidence bar, sets `Status` to `fixed — PR #NNN, commit <hash> (<one-line>)`, and `git mv`s the doc into `specs/bugs/fixed/`. Use it when the fix was made outside a `--fix` run (`--fix` already does this in Phase 6). Refuses if the fix is not confirmed.
+- **`--resolve @path`** (explicit close command): verifies the evidence bar, sets `Status` to `fixed`, and `git mv`s the doc into `specs/bugs/fixed/` — **staged, not committed** (you make the commit). Use it when the fix was made outside a `--fix` run (`--fix` already stages this in Phase 6). Refuses if the fix is not confirmed.
 
 ## MCP Integration
 
@@ -318,7 +318,7 @@ Before finalizing a bug doc, verify:
 - [ ] Any third-party behavior was verified against freshly fetched docs, not memory
 - [ ] No manufactured questions; only genuine fix-blockers appear under `## Open decisions`
 - [ ] Default-and-document choices recorded as inline Assumptions
-- [ ] On a confirmed fix: the doc is `git mv`d into `specs/bugs/fixed/` and `Status` set to `fixed`, in the same commit/PR as the fix
+- [ ] On a confirmed fix: the doc is `git mv`d into `specs/bugs/fixed/` and `Status` set to `fixed`, **staged (not committed)** so it rides in the fix commit the user makes
 - [ ] `mdformat` passes on the document
 
 ## Boundaries
@@ -343,6 +343,6 @@ Before finalizing a bug doc, verify:
 - Expand scope into unrelated cleanups or new features
 - Block a well-specified, ready-to-fix bug on non-essential questions
 - Mark a bug fixed without evidence (passing regression test, merged PR, or explicit confirmation)
-- Commit `--fix` changes onto a protected branch (main/master/develop/release) — it branches first
-- **Commit (or advise committing) a fix until all seven gates hold: unit + E2E tests green AND the issue confirmed resolved in the running app**
+- Make any git commit — with `--fix` it branches, applies + verifies the fix, and **stages** the change (fix + doc move); you review and commit
+- **Advise committing a fix before all seven gates hold: unit + E2E tests green AND the issue confirmed resolved in the running app**
 - Edit code unless `--fix` is passed

@@ -276,49 +276,49 @@ Verify that acceptance criteria from TDDs are actually implemented in code with 
 The bugfix skill runs a defect from report to closed. With `--fix` it will not let an unproven fix be committed — every gate must hold first.
 
 ```
-┌───────────────────────────────────────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────────────────────────┐
 │  1. INTAKE & REPRODUCE                                                      │
-│     /specs-plugin:bugfix labels --ticket OP-6979                           │
+│     /specs-plugin:bugfix labels --ticket OP-6979                            │
 │     • Pull the report (ticket / wiki / file / prompt); reproduce w/ evidence│
-│     • Triage severity; ask only genuinely fix-blocking questions           │
+│     • Triage severity; ask only genuinely fix-blocking questions            │
 │     -> writes specs/bugs/{NNN}-{slug}.md            Status: open            │
-└───────────────────────────────────────────────────────────────────────────┘
-                                     ↓
-┌───────────────────────────────────────────────────────────────────────────┐
+└─────────────────────────────────────────────────────────────────────────────┘
+                                       ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
 │  2. DIAGNOSE                                                                │
-│     • Trace symptom -> the actual defect at file:line (cause, not symptom) │
+│     • Trace symptom -> the actual defect at file:line (cause, not symptom)  │
 │     • Scope the fix (Do-NOT-change + Out-of-scope); design red->green test  │
-└───────────────────────────────────────────────────────────────────────────┘
-                                     ↓
-┌───────────────────────────────────────────────────────────────────────────┐
-│  3. FIX  (--fix)                                                           │
-│     /specs-plugin:bugfix labels --ticket OP-6979 --fix                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                       ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  3. FIX  (--fix)                                                            │
+│     /specs-plugin:bugfix labels --ticket OP-6979 --fix                      │
 │     • Auto-branch fix/<ticket-or-NNN>-<slug> if on a protected branch       │
 │     • Prove test RED -> apply fix -> prove GREEN; add unit + E2E tests      │
-│                                                     Status: in progress    │
-└───────────────────────────────────────────────────────────────────────────┘
-                                     ↓
-┌───────────────────────────────────────────────────────────────────────────┐
-│  4. VERIFY — the Seven Gates   (COMMITS FORBIDDEN until all seven hold)    │
+│                                                     Status: in progress     │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                       ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  4. VERIFY — the Seven Gates   (COMMITS FORBIDDEN until all seven hold)     │
 │     reproduction · root cause · red->green · unit+E2E · blast radius ·      │
-│     confirmed-in-app · scope discipline                                    │
-│     • Confirm the ORIGINAL issue is gone in the running app                │
-│       (drive a browser for UI bugs, e.g. claude-in-chrome)                 │
-└───────────────────────────────────────────────────────────────────────────┘
-                                     ↓
-┌───────────────────────────────────────────────────────────────────────────┐
-│  5. LAND & CLOSE   (in the fix PR)                                         │
-│     • Commit the fix on the branch; in the SAME PR: git mv the doc into     │
-│       specs/bugs/fixed/ and set Status: fixed — PR #NNN, commit <hash>      │
-│     • Lands on main when the PR merges                                      │
-└───────────────────────────────────────────────────────────────────────────┘
+│     confirmed-in-app · scope discipline                                     │
+│     • Confirm the ORIGINAL issue is gone in the running app                 │
+│       (drive a browser for UI bugs, e.g. claude-in-chrome)                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                       ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  5. STAGE & HAND OFF                                                        │
+│     • Skill stages the fix + doc move (git mv into specs/bugs/fixed/)       │
+│       and sets Status: fixed — it does NOT commit                           │
+│     • You review the staged diff, commit, and open the PR                   │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Updating status and moving a bug to `fixed/`
 
 A bug doc starts at `specs/bugs/{nnn}-{slug}.md` with `Status: open`. It moves to `specs/bugs/fixed/` **only once the fix is confirmed** — all seven gates hold (including a real-app confirmation, not just green tests). Two ways to make that transition:
 
-**Automatic** — a `--fix` run does it for you in the final step: after the gates pass it sets the `Status` line to `fixed` and `git mv`s the doc into `specs/bugs/fixed/`, all inside the fix PR.
+**Automatic** — a `--fix` run does it for you in the final step: after the gates pass it sets the `Status` line to `fixed` and `git mv`s the doc into `specs/bugs/fixed/`, then leaves it **staged alongside the fix** — the skill does not commit; you review the diff and commit them together (the move rides in that fix commit).
 
 **Explicit close** — when the fix was made outside a `--fix` run, resolve the doc in one command:
 
@@ -326,7 +326,7 @@ A bug doc starts at `specs/bugs/{nnn}-{slug}.md` with `Status: open`. It moves t
 /specs-plugin:bugfix --resolve @specs/bugs/003-online-product-count.md
 ```
 
-It verifies the fix is confirmed, then updates the metadata block and moves the file:
+It verifies the fix is confirmed, then updates the metadata block and stages the move (`git mv`) for you to commit:
 
 ```
 - **Status:** open           ->  - **Status:** fixed — PR #517, commit 9c1a4f0 (...)
