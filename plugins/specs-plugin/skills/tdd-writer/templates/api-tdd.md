@@ -174,24 +174,25 @@ ______________________________________________________________________
 
 ## Permission Matrix Test Plan
 
-> **Formula**: `N = A + S + H + R + 2·P + E` `A` = Layer 1 endpoint × role cells · `S` = scope-qualified ✅ cells (cross-scope denies) · `H` = Hidden response-field role pairs · `R` = read-only request-field role pairs · `P` = PC-xx rules (×2 each) · `E` = protected endpoints (401 boundary)
+> **Formula**: `N = A + S + F + H + R + 2·P + E` `A` = Layer 1 endpoint × role cells · `S` = scope-qualified ✅ cells (cross-scope denies) · `F` = referent (endpoint, FK-input) pairs on scope-qualified references in request payloads (referent denies) · `H` = Hidden response-field role pairs · `R` = read-only request-field role pairs · `P` = PC-xx rules (×2 each) · `E` = protected endpoints (401 boundary)
 >
-> **For this TDD**: `N = [A] + [S] + [H] + [R] + 2·[P] + [E] = [TOTAL] required policy tests`. Every Deny row MUST specify the HTTP status AND error body shape AND the state assertion. See [style-guide.md](../../../skills/tdd-writer/style-guide.md#permission-matrix-test-plan).
+> **For this TDD**: `N = [A] + [S] + [F] + [H] + [R] + 2·[P] + [E] = [TOTAL] required policy tests`. Every Deny row MUST specify the HTTP status AND error body shape AND the state assertion. See [style-guide.md](../../../skills/tdd-writer/style-guide.md#permission-matrix-test-plan).
 
-| PT-ID | Layer | Cell / Rule           | Actor   | Action / Field            | Type                | Expected signal                                      | State assertion                       |
-| ----- | ----- | --------------------- | ------- | ------------------------- | ------------------- | ---------------------------------------------------- | ------------------------------------- |
-| PT-01 | 1     | Owner × POST          | Owner   | POST /features            | Allow               | 201 Created, body returns resource                   | Row persisted with `owner_id = actor` |
-| PT-02 | 1     | Owner × DELETE        | Owner   | DELETE /features/:id      | Deny                | 403 `{code: FORBIDDEN}`                              | Row not deleted                       |
-| PT-03 | 1-S   | Owner × GET(other)    | Owner   | GET /features/:id (other) | Cross-scope deny    | 403 `{code: FORBIDDEN}`                              | Row not returned                      |
-| PT-04 | 2-H   | Hidden response field | Public  | response.[sensitive]      | Hidden              | 200 OK, key absent from JSON                         | -                                     |
-| PT-05 | 2-R   | Read-only field       | Owner   | PATCH [internal field]    | Read-only deny      | 422 `{code: UNPROCESSABLE, details: [...]}`          | Field unchanged on persisted row      |
-| PT-06 | 3     | PC-01 met             | Owner   | PATCH (status=draft)      | Condition met       | 200 OK                                               | Row updated                           |
-| PT-07 | 3     | PC-01 not met         | Owner   | PATCH (status=active)     | Condition not met   | 403 `{code: FORBIDDEN}`                              | Row unchanged                         |
-| PT-08 | E     | Missing token         | none    | GET /features             | Auth boundary       | 401 `{code: UNAUTHORIZED}` (NOT 403, NOT 404)        | -                                     |
-| PT-09 | E     | Expired token         | expired | GET /features             | Auth boundary       | 401 `{code: UNAUTHORIZED}`                           | -                                     |
-| PT-10 | 1-AD  | Cross-org GET         | Owner   | GET /features/:id         | Anti-discovery deny | 404 `{code: NOT_FOUND}` (justified: leaks existence) | No info leaked in body                |
+| PT-ID | Layer | Cell / Rule            | Actor   | Action / Field                          | Type                | Expected signal                                      | State assertion                       |
+| ----- | ----- | ---------------------- | ------- | --------------------------------------- | ------------------- | ---------------------------------------------------- | ------------------------------------- |
+| PT-01 | 1     | Owner × POST           | Owner   | POST /features                          | Allow               | 201 Created, body returns resource                   | Row persisted with `owner_id = actor` |
+| PT-02 | 1     | Owner × DELETE         | Owner   | DELETE /features/:id                    | Deny                | 403 `{code: FORBIDDEN}`                              | Row not deleted                       |
+| PT-03 | 1-S   | Owner × GET(other)     | Owner   | GET /features/:id (other)               | Cross-scope deny    | 403 `{code: FORBIDDEN}`                              | Row not returned                      |
+| PT-04 | 2-H   | Hidden response field  | Public  | response.[sensitive]                    | Hidden              | 200 OK, key absent from JSON                         | -                                     |
+| PT-05 | 2-R   | Read-only field        | Owner   | PATCH [internal field]                  | Read-only deny      | 422 `{code: UNPROCESSABLE, details: [...]}`          | Field unchanged on persisted row      |
+| PT-06 | 3     | PC-01 met              | Owner   | PATCH (status=draft)                    | Condition met       | 200 OK                                               | Row updated                           |
+| PT-07 | 3     | PC-01 not met          | Owner   | PATCH (status=active)                   | Condition not met   | 403 `{code: FORBIDDEN}`                              | Row unchanged                         |
+| PT-08 | E     | Missing token          | none    | GET /features                           | Auth boundary       | 401 `{code: UNAUTHORIZED}` (NOT 403, NOT 404)        | -                                     |
+| PT-09 | E     | Expired token          | expired | GET /features                           | Auth boundary       | 401 `{code: UNAUTHORIZED}`                           | -                                     |
+| PT-10 | 1-AD  | Cross-org GET          | Owner   | GET /features/:id                       | Anti-discovery deny | 404 `{code: NOT_FOUND}` (justified: leaks existence) | No info leaked in body                |
+| PT-11 | 1-F   | `POST body.[fk_field]` | Owner   | POST with another scope's id in payload | Referent deny       | 403 `{code: FORBIDDEN}` or 422 (no disclosure)       | No row created; no cross-scope link   |
 
-> Add one row per ❌ endpoint × role cell, per scope-qualified ✅, per Hidden / R field-role pair, per PC-xx (×2), and per protected endpoint until total equals `N`.
+> Add one row per ❌ endpoint × role cell, per scope-qualified ✅, per referent (endpoint, FK-input) pair, per Hidden / R field-role pair, per PC-xx (×2), and per protected endpoint until total equals `N`. When `F > 0`, also require the referent sweep test (see style-guide).
 
 ______________________________________________________________________
 
@@ -317,10 +318,11 @@ ______________________________________________________________________
 - [ ] Unit tests for all endpoint handlers and request validation
 - [ ] Unit tests validate error response formatting and codes
 - [ ] **API contract tests verify request/response schemas match specification**
-- [ ] **Permission Matrix Test Plan implemented in full: total policy test count ≥ `N = A + S + H + R + 2·P + E = [TOTAL]` (substitute values from the Permission Matrix Test Plan section)**
+- [ ] **Permission Matrix Test Plan implemented in full: total policy test count ≥ `N = A + S + F + H + R + 2·P + E = [TOTAL]` (substitute values from the Permission Matrix Test Plan section)**
 - [ ] **Every `PT-xx` row has a corresponding executable test, named or tagged with its `PT-xx` ID for traceability**
-- [ ] **Every Deny / Cross-scope / Read-only / Condition-not-met test asserts the exact HTTP status AND error body shape declared in its PT-xx row — NEVER passes on empty array, 200 OK, or generic 404**
-- [ ] **Every Deny / Cross-scope / Read-only / Condition-not-met test asserts the prevented side effect: no row created, no row mutated, no audit event, no webhook fired**
+- [ ] **Every Deny / Cross-scope / Referent / Read-only / Condition-not-met test asserts the exact HTTP status AND error body shape declared in its PT-xx row — NEVER passes on empty array, 200 OK, or generic 404**
+- [ ] **Every Deny / Cross-scope / Referent / Read-only / Condition-not-met test asserts the prevented side effect: no row created, no row mutated, no audit event, no webhook fired**
+- [ ] **Referent sweep test present when `F > 0`: introspects schema/resource definitions, enumerates every (endpoint, FK-input) pair, and asserts each declares an ownership/scope validation — fails for a newly added endpoint that omits the check**
 - [ ] **Every Hidden field-role pair test asserts the field key is absent from the JSON response payload**
 - [ ] **Every Auth-boundary test asserts `401 UNAUTHORIZED` (distinct from `403 FORBIDDEN`) — `401` for missing/invalid/expired token, `403` only when authenticated but unauthorized**
 - [ ] **Any `404 NOT_FOUND` deny is justified inline as `Anti-discovery deny` and present only when leaking existence is itself the threat**

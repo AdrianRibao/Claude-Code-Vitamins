@@ -84,9 +84,9 @@ Implementation-first approach: verify code and tests exist before marking criter
 5. **Extract Permission Matrix Test Plan**: Parse the `## Permission Matrix Test Plan` section if present
 
     - Locate the `## Permission Matrix Test Plan` heading
-    - Read the formula line: `N = [A] + [S] + [H] + [R] + 2·[P] + [E] = [TOTAL]`
+    - Read the formula line: `N = [A] + [S] + [F] + [H] + [R] + 2·[P] + [E] = [TOTAL]` (accept the legacy `N = [A] + [S] + [H] + [R] + 2·[P] + [E]` form for TDDs written before the `F` term existed — flag it Medium: "formula predates referent coverage")
     - Parse every `PT-xx` row from the table: ID, Layer, Cell/Rule, Actor, Action/Field, Type, Expected signal, State assertion
-    - Re-derive the expected `N` from the Authorization tables (Layer 1 cell count, scope-qualified cells, Hidden / R field-role pairs, PC-xx count, protected entry points) and cross-check against the declared `N`
+    - Re-derive the expected `N` from the Authorization tables (Layer 1 cell count, scope-qualified cells, Hidden / R field-role pairs, PC-xx count, protected entry points) and from the Interface Contract / Data Model (referent pairs: each action's accepted FK inputs that reference scope-qualified resources), then cross-check against the declared `N`
     - If the Authorization section is non-empty AND the Permission Matrix Test Plan is missing, record a **Critical** finding and block the entire TDD acceptance — no further checks can compensate for an absent plan
 
 ### Phase 2: Discover Test Files
@@ -128,21 +128,24 @@ Implementation-first approach: verify code and tests exist before marking criter
 2. **Verify Permission Matrix Test Plan (always, when present)**: This check runs unconditionally — it does NOT require `--coverage`. The permission matrix is the highest-risk surface and is checked on every invocation.
 
     - **Plan completeness**:
-        - Declared `N` is at minimum the derived `N` from the Authorization tables. If declared < derived, mark Critical: "test count under-counted".
+        - Declared `N` is at minimum the derived `N` from the Authorization tables plus the referent pairs derived from the Interface Contract / Data Model. If declared < derived, mark Critical: "test count under-counted".
         - Every `❌` cell in the Layer 1 matrix has a matching `Deny` row in the plan. Missing rows are listed by `(actor, action)`.
         - Every scope-qualified `✅ Own / Team / Dept` cell has a paired `Cross-scope deny` (`1-S`) row.
         - Every `PC-xx` rule appears exactly twice (`Condition met` + `Condition not met`). Single-row PC-xx coverage is Critical.
         - Every `Hidden` (`2-H`) and `R` read-only (`2-R`) field-role pair has a row.
         - Every protected entry point has an `E` row asserting `401`.
+        - Every (action, foreign-key input) pair whose referenced record is scope-qualified has a `Referent deny` (`1-F`) row. Derive the pairs from the Interface Contract / Data Model (accepted FK attributes and arguments, including nested/relationship writes and bulk id lists). Missing pairs are Critical — this is the IDOR class a green matrix cannot otherwise catch.
     - **Row quality (per PT-xx)**:
         - `Expected signal` cell is non-empty AND concrete (a status code, a tagged error, a framework exception). Reject "fails", "error", or empty.
-        - `Type = Deny / Cross-scope deny / Read-only deny / Condition not met` rows have a non-empty `State assertion`. A deny test without a side-effect assertion is flagged High — it can pass while the action silently mutated state.
+        - `Type = Deny / Cross-scope deny / Referent deny / Read-only deny / Condition not met` rows have a non-empty `State assertion`. A deny test without a side-effect assertion is flagged High — it can pass while the action silently mutated state.
+        - `Referent deny` rows assert nothing was written in **either** scope — a rejection that still persisted a partial write is the production bug pattern this row exists to catch.
         - `404` in `Expected signal` is only acceptable when `Type = Anti-discovery deny` AND the row contains a justification. Otherwise Critical: "generic 404 used as deny — hides authorization decision from logs".
         - `Type = Auth boundary` rows use `401` and not `403`. Mismatch is High.
     - **Test discovery**:
         - For each `PT-xx`, grep test files for the literal `PT-xx` token (in test names, `describe` blocks, tags, or comments). Missing tokens listed.
         - For each found test, confirm the test body asserts the declared expected signal (e.g. `403`, `:forbidden`, `NotAuthorizedError`) — not merely a generic `refute` or `assert_raise` of any error.
         - For deny tests, confirm an assertion exists on the state (e.g. `refute Repo.get(Record, id) |> changed?`, `assert_no_changes`, `expect(record.reload).to eq(...)`). A deny test that never reloads the target is flagged High.
+        - When the plan contains `Referent deny` rows, confirm a **referent sweep test** exists: a test that introspects schema/resource definitions and enumerates (action, FK-input) pairs (e.g. iterates `Ash.Resource.Info.actions/1`, `reflect_on_all_associations`, `_meta.get_fields()`). Absence is High: "F rows present but no code-derived sweep — a newly added action can silently skip the ownership check".
     - Findings go into a dedicated "Permission Matrix" section of the report, ranked Critical > High > Medium, and any Critical permission-matrix finding marks the overall TDD as **NOT acceptable for merge** regardless of other passing checks.
 
 3. **Verify Coverage Targets**: If `--coverage` flag set, validate test coverage
@@ -286,9 +289,9 @@ Table showing target area, required percentage, actual percentage, and pass/fail
 A dedicated section that always runs when the TDD has an Authorization section. Contents:
 
 - **Formula check**: derived `N` vs declared `N`, with the arithmetic spelled out.
-- **Coverage table**: one row per `PT-xx`, with columns: `PT-ID`, `Type` (Allow / Deny / Cross-scope / Hidden / Read-only / PC met/unmet / Auth boundary / Anti-discovery), `Test found?`, `Signal asserted?`, `State asserted?`, `Status` (✅ / ⚠️ / ❌).
-- **Missing-row table**: derived rows that should exist but don't (e.g. "Layer 1: Guest × Read is ❌ in the matrix but has no Deny row in the plan").
-- **Quality findings**: list of plan rows with vague expected signals, missing state assertions, generic `404` denies, or `Auth boundary` rows using the wrong status code.
+- **Coverage table**: one row per `PT-xx`, with columns: `PT-ID`, `Type` (Allow / Deny / Cross-scope / Referent / Hidden / Read-only / PC met/unmet / Auth boundary / Anti-discovery), `Test found?`, `Signal asserted?`, `State asserted?`, `Status` (✅ / ⚠️ / ❌).
+- **Missing-row table**: derived rows that should exist but don't (e.g. "Layer 1: Guest × Read is ❌ in the matrix but has no Deny row in the plan", "`annotate.report_id` references a scope-qualified resource but has no Referent deny row").
+- **Quality findings**: list of plan rows with vague expected signals, missing state assertions, generic `404` denies, `Auth boundary` rows using the wrong status code, or `Referent deny` rows without a companion referent sweep test.
 - **Acceptance verdict**: `ACCEPTABLE` or `BLOCKED — Critical permission matrix findings present`. Any Critical finding here blocks the overall acceptance regardless of other sections.
 
 ### Criteria Status Section

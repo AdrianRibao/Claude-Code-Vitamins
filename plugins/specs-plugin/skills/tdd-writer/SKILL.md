@@ -125,20 +125,20 @@ Requirements-first approach: every section answers "what" not "how". Use tables 
 
 ## Include in TDDs
 
-| Element                     | Purpose                                                                                                                         | Example                                              |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| Requirements                | WHAT needs to be built                                                                                                          | "Users can create incidents"                         |
-| Data Models                 | Attributes, types, constraints (tables)                                                                                         | `hours_adjustment: decimal, required`                |
-| Interface Contracts         | Function signatures, action names                                                                                               | `create_incident(params, actor:)`                    |
-| Behavior Specs              | Input → Output expectations                                                                                                     | "Creating incident sends notification"               |
-| Acceptance Criteria         | How to verify completion                                                                                                        | "[ ] Employee can create incident"                   |
-| Testing Requirements        | Test types, coverage targets                                                                                                    | "[ ] Policy tests verify all auth rules"             |
-| Constraints & Rules         | Business logic boundaries                                                                                                       | "DL-01: Hours adjustment model"                      |
-| Authorization               | Three-layer permission model (tables)                                                                                           | Action, Data, and Condition permissions              |
-| Permission Matrix Test Plan | Enumerated PT-xx rows: every cell, every Hidden/R field-role pair, every PC-xx (met + unmet), cross-scope denies, auth boundary | "PT-07: Layer 1, Owner × approve, Deny, expects 403" |
-| Related Documents           | Links to PRDs, master TDDs, siblings                                                                                            | "Parent PRD: [link], Backend: [link]"                |
-| External Dependencies       | Every third-party library/SDK/API/CLI used, with version, doc URL, fetch date, section consulted                                | "stripe-node v17.4.0, /payment-intents, 2026-05-26"  |
-| Open Questions              | Unresolved decisions needing input                                                                                              | "OQ-01: Retention policy?" - Open                    |
+| Element                     | Purpose                                                                                                                                          | Example                                              |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| Requirements                | WHAT needs to be built                                                                                                                           | "Users can create incidents"                         |
+| Data Models                 | Attributes, types, constraints (tables)                                                                                                          | `hours_adjustment: decimal, required`                |
+| Interface Contracts         | Function signatures, action names                                                                                                                | `create_incident(params, actor:)`                    |
+| Behavior Specs              | Input → Output expectations                                                                                                                      | "Creating incident sends notification"               |
+| Acceptance Criteria         | How to verify completion                                                                                                                         | "[ ] Employee can create incident"                   |
+| Testing Requirements        | Test types, coverage targets                                                                                                                     | "[ ] Policy tests verify all auth rules"             |
+| Constraints & Rules         | Business logic boundaries                                                                                                                        | "DL-01: Hours adjustment model"                      |
+| Authorization               | Three-layer permission model (tables)                                                                                                            | Action, Data, and Condition permissions              |
+| Permission Matrix Test Plan | Enumerated PT-xx rows: every cell, every Hidden/R field-role pair, every PC-xx (met + unmet), cross-scope denies, referent denies, auth boundary | "PT-07: Layer 1, Owner × approve, Deny, expects 403" |
+| Related Documents           | Links to PRDs, master TDDs, siblings                                                                                                             | "Parent PRD: [link], Backend: [link]"                |
+| External Dependencies       | Every third-party library/SDK/API/CLI used, with version, doc URL, fetch date, section consulted                                                 | "stripe-node v17.4.0, /payment-intents, 2026-05-26"  |
+| Open Questions              | Unresolved decisions needing input                                                                                                               | "OQ-01: Retention policy?" - Open                    |
 
 ### Authorization Model (Three Layers)
 
@@ -158,10 +158,11 @@ See [style-guide.md](style-guide.md) for full format reference and examples.
 
 **Minimum required test count (the formula)**:
 
-Total required policy tests `N = A + S + H + R + 2·P + E`, where:
+Total required policy tests `N = A + S + F + H + R + 2·P + E`, where:
 
 - `A` = number of cells in the Layer 1 actor × action matrix (one test per cell — `✅` cells assert the action succeeds within scope, `❌` cells assert explicit Forbidden, never silent failure or no-op).
 - `S` = number of scope-qualified `✅ Own / Team / Dept` cells in Layer 1 (one paired cross-scope deny test each: actor attempts the same action on a record **outside** their scope; expected Forbidden).
+- `F` = number of **referent inputs** — every (action, foreign-key input) pair where the action accepts an attribute or argument that references another **scope-qualified** record (one `Referent deny` test each: an **authorized** actor, acting **inside** their own scope, submits an id belonging to **another** scope; expected explicit rejection AND zero state written). `F` counts *inputs*, not actions — an action accepting three FKs contributes 3. It covers create and update payloads alike, plus nested/relationship writes, bulk id lists, and polymorphic ids. References to global, non-scoped lookup tables (e.g. a currency or country list) are exempt.
 - `H` = number of `(role, field)` pairs in Layer 2 marked `Hidden` (one test each asserting the field is absent from the response payload — and absent from the DOM for UI surfaces — for that role).
 - `R` = number of `(role, field)` pairs in Layer 2 marked `R` read-only (one test each asserting a write attempt is rejected with 422 / changeset error / Forbidden — never silently dropped).
 - `P` = number of Layer 3 `PC-xx` permission condition rules (two tests each: one with the condition **met** so the action is allowed, one with the condition **not met** so the action is denied with explicit Forbidden).
@@ -169,24 +170,38 @@ Total required policy tests `N = A + S + H + R + 2·P + E`, where:
 
 **What counts as a deny test (strict)**:
 
-| Counts                                                                                   | Does NOT count                                                                                                     |
-| ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Asserts explicit `403 Forbidden` / `{:error, :forbidden}` / `Pundit::NotAuthorizedError` | Asserts only that result list is empty (could be empty for many reasons unrelated to authorization)                |
-| Asserts the unauthorized action did **not** mutate state (row unchanged, no audit event) | Asserts only the HTTP status without checking the side effect didn't happen                                        |
-| Asserts the response payload omits the Hidden field                                      | Asserts only that the response was 200 (a 200 with the field still leaked is the exact bug we're guarding against) |
-| `404 Not Found` only when explicitly labeled `anti-discovery` in the test plan           | `404` used as a generic deny — it hides the real authorization decision and breaks audit/forensic analysis         |
-| Test fixture uses a real authenticated actor in the **denied** role                      | Test that disables auth, stubs the policy, or runs as a superuser to "simplify setup"                              |
+| Counts                                                                                                                                     | Does NOT count                                                                                                                                                       |
+| ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Asserts explicit `403 Forbidden` / `{:error, :forbidden}` / `Pundit::NotAuthorizedError`                                                   | Asserts only that result list is empty (could be empty for many reasons unrelated to authorization)                                                                  |
+| Asserts the unauthorized action did **not** mutate state (row unchanged, no audit event)                                                   | Asserts only the HTTP status without checking the side effect didn't happen                                                                                          |
+| Asserts the response payload omits the Hidden field                                                                                        | Asserts only that the response was 200 (a 200 with the field still leaked is the exact bug we're guarding against)                                                   |
+| `404 Not Found` only when explicitly labeled `anti-discovery` in the test plan                                                             | `404` used as a generic deny — it hides the real authorization decision and breaks audit/forensic analysis                                                           |
+| Test fixture uses a real authenticated actor in the **denied** role                                                                        | Test that disables auth, stubs the policy, or runs as a superuser to "simplify setup"                                                                                |
+| Referent deny: authorized actor's payload names another scope's record; asserts explicit rejection AND no row/link written in either scope | Trusting that "the FK exists and the policy passed" — both pass in the IDOR case, because the actor and tenant are legitimate; only the referenced record is foreign |
+
+**Why `F` exists (the IDOR / confused-deputy gap)**: the Layer 1 matrix varies *who* acts (subject) and *whose record* is acted on (object), but says nothing about *which other records the payload points at* (referent). A fully green matrix without `F` rows still ships the classic IDOR: an authorized actor, inside their own scope, submits another scope's id as an argument and the write persists a cross-scope link. Every `F` row holds the actor and the object legitimate and varies only the referenced id.
+
+**Referent sweep test (required alongside the `F` rows)**: `F` rows are enumerated by hand — by the same author who may have forgotten the validation. Any TDD introducing actions that accept references to other scope-qualified records MUST also require a **referent sweep test**: a single test that introspects the application's schema/resource definitions, enumerates every (action, foreign-key input) pair, and asserts each one declares an ownership/scope validation. It must fail for a *newly added* action that omits the check, without anyone editing the test. The sweep proves nothing is **forgotten**; the `F` rows prove the check actually **rejects**. Neither is sufficient alone. Enumeration sources per stack (non-exhaustive):
+
+| Stack            | Enumerate (action, FK-input) pairs from                                     |
+| ---------------- | --------------------------------------------------------------------------- |
+| Ash / Elixir     | `Ash.Resource.Info.actions/1` + each action's accepted attributes/arguments |
+| Rails            | `reflect_on_all_associations` + strong-params permit lists                  |
+| Django           | model `_meta.get_fields()` + serializer/form field sets                     |
+| Prisma / TypeORM | schema metadata + DTO validation decorators                                 |
 
 **Permission Matrix Test Plan (required artifact)**: every TDD must include this section, generated mechanically from the three layer tables. See [style-guide.md](style-guide.md#permission-matrix-test-plan) for the exact format.
 
 **Acceptance gate**: a TDD is NOT acceptable for implementation until:
 
 1. The Permission Matrix Test Plan section exists and has `≥ formula` rows.
-2. Every row has a unique `PT-xx` ID, an explicit `Allow` / `Deny` / `Cross-scope deny` / `Anti-discovery deny` type label, and an explicit expected response.
+2. Every row has a unique `PT-xx` ID, an explicit `Allow` / `Deny` / `Cross-scope deny` / `Referent deny` / `Anti-discovery deny` type label, and an explicit expected response.
 3. Every `❌` cell in Layer 1 is present as a `Deny` row in the plan.
 4. Every `PC-xx` rule appears twice in the plan (one met, one unmet).
 5. Every `Hidden` and `R` field-role pair appears in the plan.
-6. The Acceptance Criteria > Testing subsection contains the measurable count assertion (e.g., "Policy test count ≥ N, where N = Layer 1 cells (`A`) + 2 × non-RW field-role pairs (`F`) + 2 × PC rules (`R`)").
+6. Every (action, foreign-key input) pair whose referenced record is scope-qualified appears as a `Referent deny` row.
+7. When `F > 0`, the Acceptance Criteria > Testing subsection requires the referent sweep test (code-derived enumeration asserting every such pair declares an ownership/scope validation).
+8. The Acceptance Criteria > Testing subsection contains the measurable count assertion (e.g., "Policy test count ≥ N = A + S + F + H + R + 2·P + E" with the arithmetic spelled out).
 
 ### UI Test Coverage Requirements (non-negotiable)
 
@@ -273,7 +288,7 @@ Generate all TDD sections EXCEPT Open Questions. For combined TDDs (default), in
 2. Data Model (tables)
 3. Interface Contract (signatures only)
 4. Authorization (Action Permissions, Data Permissions, Permission Conditions)
-5. **Permission Matrix Test Plan** — mechanically enumerate one `PT-xx` row for every cell, cross-scope deny, Hidden/R field-role pair, PC-xx (met + unmet), and auth boundary. The row count MUST satisfy the `N = A + S + H + R + 2·P + E` formula
+5. **Permission Matrix Test Plan** — mechanically enumerate one `PT-xx` row for every cell, cross-scope deny, referent (action, FK-input) pair, Hidden/R field-role pair, PC-xx (met + unmet), and auth boundary. The row count MUST satisfy the `N = A + S + F + H + R + 2·P + E` formula
 6. UI: Routes, Screens, Components (if feature has UI)
 7. Behavior Specifications (Given/When/Then)
 8. Acceptance Criteria (checkboxes with authorization testing — including the measurable test-count assertion referencing the Permission Matrix Test Plan)
@@ -567,9 +582,11 @@ Before finalizing a TDD, verify:
 - [ ] Data permissions specify field visibility per role (when roles see different data)
 - [ ] Permission conditions have rule IDs traceable to acceptance criteria
 - [ ] **Permission Matrix Test Plan section is present whenever the Authorization section is non-empty**
-- [ ] **Test plan row count ≥ `N = A + S + H + R + 2·P + E`** (Layer 1 cells `A`, cross-scope `S`, Hidden pairs `H`, read-only pairs `R`, PC-xx rules `P` counted twice, auth-boundary entry points `E`) — count is asserted in the TDD itself, not left to the reader
+- [ ] **Test plan row count ≥ `N = A + S + F + H + R + 2·P + E`** (Layer 1 cells `A`, cross-scope `S`, referent-input pairs `F`, Hidden pairs `H`, read-only pairs `R`, PC-xx rules `P` counted twice, auth-boundary entry points `E`) — count is asserted in the TDD itself, not left to the reader
 - [ ] **Every `❌` cell in the Layer 1 matrix appears as a `Deny` row in the Permission Matrix Test Plan**
 - [ ] **Every scope-qualified `✅ Own / Team / Dept` cell has a paired `Cross-scope deny` row**
+- [ ] **Every (action, foreign-key input) pair whose referenced record is scope-qualified has a `Referent deny` row — an authorized actor inside their own scope submitting another scope's id is explicitly rejected with zero state written**
+- [ ] **When actions accept references to other scope-qualified records, the Testing subsection requires a referent sweep test — a code-derived test that enumerates every (action, FK-input) pair from the schema/resource definitions and asserts each declares an ownership/scope validation**
 - [ ] **Every `PC-xx` rule appears in the test plan twice: once with the condition met (Allow), once with the condition not met (Deny)**
 - [ ] **Every `Hidden` field-role pair has a row asserting the field is absent from the response payload (and DOM for UI)**
 - [ ] **Every `R` read-only field-role pair has a row asserting write attempts are rejected (not silently dropped)**

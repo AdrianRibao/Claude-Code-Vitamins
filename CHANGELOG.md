@@ -8,7 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- **tdd-writer**: Permission Matrix formula extended with the `F` (referent) term — `N = A + S + F + H + R + 2·P + E` — closing the IDOR / confused-deputy gap: one `Referent deny` row per (action, foreign-key input) pair whose referenced record is scope-qualified (authorized actor inside their own scope submits another scope's id → explicit rejection, zero state written)
+
+    - New `Referent deny` type in the closed Test Plan `Type` enum, with worked example rows in the style guide and the combined/backend/api templates
+    - New **referent sweep test** requirement when `F > 0`: a code-derived test that introspects schema/resource definitions, enumerates every (action, FK-input) pair, and asserts each declares an ownership/scope validation (framework pointers for Ash, Rails, Django, Prisma/TypeORM)
+    - Global, non-scoped lookup tables (currencies, countries) are exempt from `F`
+
+- **ac-checker**: Derives referent pairs from the Interface Contract / Data Model, requires a `Referent deny` row per pair (Critical when missing), verifies the referent sweep test exists, and accepts the legacy formula on pre-`F` TDDs with a Medium finding
+
 - **ac-checker skill**: New skill to verify acceptance criteria implementation status
+
     - Searches test files for matching test cases for each criterion
     - Searches source files for implementation code
     - Validates test coverage meets TDD targets (≥80%, ≥90%, ≥95%)
@@ -18,12 +27,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
     - Optional `--coverage` flag to run coverage analysis
     - Optional `--branch` flag to compare against specific branch
     - Command: `/specs-plugin:ac-checker [tdd-path] [--flags]`
+
 - mdformat compatibility guide in CLAUDE.md documenting common issues and solutions
+
 - Comprehensive README.md documentation for ac-checker skill
+
 - Updated workflow diagram to include verification step
 
 ### Changed
 
+- Bumped specs-plugin to version 1.10.0
 - Updated specs-plugin to version 1.1.0
 - Enhanced CLAUDE.md with mdformat validation patterns
 - Improved project workflow to include implementation verification phase
