@@ -9,6 +9,7 @@ claude-code-vitamins is a Claude Code plugin marketplace containing reusable ski
 - `/prd` - Generate Product Requirements Documents
 - `/tdd` - Generate Technical Design Documents
 - `/bugfix` - Generate bugfix specifications (symptom, root cause, red->green regression test) and optionally drive the fix
+- `/task` - Capture backlog tasks (Small/Medium work that is neither a bug nor a PRD-sized feature) on a one-screen board and optionally drive them to shipped
 - `ac-checker` skill - Verify acceptance criteria are implemented in code (automatically invoked)
 
 ## Repository Structure
@@ -25,6 +26,7 @@ plugins/
       prd.md                # /prd command wrapper
       tdd.md                # /tdd command wrapper
       bugfix.md             # /bugfix command wrapper
+      task.md               # /task command wrapper
     skills/
       prd-writer/
         SKILL.md            # PRD skill definition
@@ -43,6 +45,11 @@ plugins/
         style-guide.md      # Bugfix writing conventions
         templates/          # Bugfix document template
         examples/           # Reference bug docs (UI fix, backend fix)
+      task-writer/
+        SKILL.md            # Task skill definition
+        style-guide.md      # Task writing conventions, board and archive-index rules
+        templates/          # Task file, BACKLOG.md board, archived/README.md index
+        examples/           # Reference task files (operational, code)
       ac-checker/
         SKILL.md            # Acceptance criteria checker skill
         README.md           # AC checker documentation
@@ -156,11 +163,11 @@ Structured templates for generated documents with placeholder sections and consi
 Both skills use a two-phase approach:
 
 1. Generate core document sections
-2. Invoke Sequential MCP with `--ultrathink` to generate Open Questions via deep analysis
+2. Invoke Sequential MCP with `--ultrathink` for decision triage: decide by default and record decisions in `✅ Decisions (Resolved)`; only questions a human must settle become Open Questions
 
 ### Output Conventions
 
-PRDs: `specs/prds/{product}/{nn}-{product}-{type}.md` TDDs: `specs/tdds/{feature}/{nn}-{feature}-{type}.md` Bug docs: `specs/bugs/{nnn}-{slug}.md` (moved to `specs/bugs/fixed/` once resolved)
+PRDs: `specs/prds/{product}/{nn}-{product}-{type}.md` TDDs: `specs/tdds/{feature}/{nn}-{feature}-{type}.md` Bug docs: `specs/bugs/{nnn}-{slug}.md` (moved to `specs/bugs/fixed/` once resolved) Tasks: `specs/backlog/tasks/{nnn}-{slug}.md` indexed in `specs/backlog/BACKLOG.md` (moved to `specs/backlog/archived/` once shipped)
 
 Numbering:
 
@@ -222,3 +229,12 @@ PRDs split when: >8 workflows, >30 requirements, >4 personas, >1000 lines TDDs s
 - Bound the fix: explicit Do NOT change + Out of scope
 - Proceed by default; only block on genuinely fix-blocking questions
 - Acceptance criteria are a table + a mirrored `- [ ]` checklist (ac-checker compatible)
+
+### Task Style
+
+- A task is a unit of work with a known next step; bugs go to `/bugfix`, PRD-sized work gets a stub only
+- The task file is the truth, the board is a one-screen index; ids are permanent and never reused
+- Every claim in Why is dated and cites `file:line` or command output
+- Scope is bounded with explicit Do NOT change + Out of scope; Done when is a table + mirrored `- [ ]` checklist
+- Decide by default: settled questions are struck through with a date; only genuine forks become open decisions
+- Shipped means archived with a "what it settled" row, never deleted; the skill stages and never commits

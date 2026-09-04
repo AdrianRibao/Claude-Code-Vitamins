@@ -32,13 +32,14 @@ allowed-tools:
 ## Usage
 
 ```
-/tdd [feature-name] [--prd @path] [--no-questions] [--review] [--consolidate @path] [--type backend|ui|api|integration]
+/tdd [feature-name] [--prd @path] [--no-questions] [--ask] [--review] [--consolidate @path] [--type backend|ui|api|integration]
 ```
 
 | Flag                  | Purpose                                             |
 | --------------------- | --------------------------------------------------- |
 | `--prd @path`         | Reference PRD for requirements                      |
 | `--no-questions`      | Skip upfront questions (use with comprehensive PRD) |
+| `--ask`               | Surface decide-and-record items as Open Questions   |
 | `--review`            | Analyze existing TDD for bloat                      |
 | `--consolidate @path` | Apply OQ answers, tighten document                  |
 | `--type`              | Optional. Split TDD by type when complexity demands |
@@ -107,14 +108,14 @@ Requirements-first approach: every section answers "what" not "how". Use tables 
 5. **Structure**: Organize into logical sections following lean TDD template
 6. **Specify**: Write requirements, data models, contracts, acceptance criteria in tables — cite fetched docs for every third-party value (method names, endpoints, payload fields, headers, scopes, error codes, quotas)
 7. **Link Documents**: Add "Related Documents" section with all relevant PRDs and TDDs
-8. **Write TDD**: Save to file with placeholder Open Questions section and a populated `External Dependencies` table
+8. **Write TDD**: Save to file with placeholder `✅ Decisions (Resolved)` and Open Questions sections and a populated `External Dependencies` table
 
-### Phase 2: Open Questions Deep Analysis
+### Phase 2: Decision Triage (decide by default)
 
-1. **Invoke Sequential MCP**: Use `--ultrathink` for maximum depth analysis
-2. **Analyze Gaps**: Identify ambiguities, missing decisions, edge cases, scope boundaries
-3. **Generate Questions**: Create structured OQ entries with IDs, rationale, and possible answers
-4. **Append to TDD**: Update the Open Questions section with generated content
+1. **Invoke Sequential MCP**: Use `--ultrathink` to scan the complete TDD for ambiguities, missing decisions, edge cases, authorization gaps, and scope gaps
+2. **Classify each finding** (see [Question Policy](#question-policy)): decide-and-record, ask, or non-issue
+3. **Decide-and-record**: Pick the answer you are confident in, fold it into the relevant section (data model, contract, authorization, behavior spec, AC), and log it under `## ✅ Decisions (Resolved)` with a one-line rationale
+4. **Ask sparingly**: Only findings a human must settle become `OQ-NN` entries under `## Open Questions`. If none survive, write the no-open-questions line
 
 ### Phase 3: Finalization
 
@@ -125,20 +126,21 @@ Requirements-first approach: every section answers "what" not "how". Use tables 
 
 ## Include in TDDs
 
-| Element                     | Purpose                                                                                                                                          | Example                                              |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
-| Requirements                | WHAT needs to be built                                                                                                                           | "Users can create incidents"                         |
-| Data Models                 | Attributes, types, constraints (tables)                                                                                                          | `hours_adjustment: decimal, required`                |
-| Interface Contracts         | Function signatures, action names                                                                                                                | `create_incident(params, actor:)`                    |
-| Behavior Specs              | Input → Output expectations                                                                                                                      | "Creating incident sends notification"               |
-| Acceptance Criteria         | How to verify completion                                                                                                                         | "[ ] Employee can create incident"                   |
-| Testing Requirements        | Test types, coverage targets                                                                                                                     | "[ ] Policy tests verify all auth rules"             |
-| Constraints & Rules         | Business logic boundaries                                                                                                                        | "DL-01: Hours adjustment model"                      |
-| Authorization               | Three-layer permission model (tables)                                                                                                            | Action, Data, and Condition permissions              |
-| Permission Matrix Test Plan | Enumerated PT-xx rows: every cell, every Hidden/R field-role pair, every PC-xx (met + unmet), cross-scope denies, referent denies, auth boundary | "PT-07: Layer 1, Owner × approve, Deny, expects 403" |
-| Related Documents           | Links to PRDs, master TDDs, siblings                                                                                                             | "Parent PRD: [link], Backend: [link]"                |
-| External Dependencies       | Every third-party library/SDK/API/CLI used, with version, doc URL, fetch date, section consulted                                                 | "stripe-node v17.4.0, /payment-intents, 2026-05-26"  |
-| Open Questions              | Unresolved decisions needing input                                                                                                               | "OQ-01: Retention policy?" - Open                    |
+| Element                     | Purpose                                                                                                                                          | Example                                                      |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------ |
+| Requirements                | WHAT needs to be built                                                                                                                           | "Users can create incidents"                                 |
+| Data Models                 | Attributes, types, constraints (tables)                                                                                                          | `hours_adjustment: decimal, required`                        |
+| Interface Contracts         | Function signatures, action names                                                                                                                | `create_incident(params, actor:)`                            |
+| Behavior Specs              | Input → Output expectations                                                                                                                      | "Creating incident sends notification"                       |
+| Acceptance Criteria         | How to verify completion                                                                                                                         | "[ ] Employee can create incident"                           |
+| Testing Requirements        | Test types, coverage targets                                                                                                                     | "[ ] Policy tests verify all auth rules"                     |
+| Constraints & Rules         | Business logic boundaries                                                                                                                        | "DL-01: Hours adjustment model"                              |
+| Authorization               | Three-layer permission model (tables)                                                                                                            | Action, Data, and Condition permissions                      |
+| Permission Matrix Test Plan | Enumerated PT-xx rows: every cell, every Hidden/R field-role pair, every PC-xx (met + unmet), cross-scope denies, referent denies, auth boundary | "PT-07: Layer 1, Owner × approve, Deny, expects 403"         |
+| Related Documents           | Links to PRDs, master TDDs, siblings                                                                                                             | "Parent PRD: [link], Backend: [link]"                        |
+| External Dependencies       | Every third-party library/SDK/API/CLI used, with version, doc URL, fetch date, section consulted                                                 | "stripe-node v17.4.0, /payment-intents, 2026-05-26"          |
+| Decisions                   | Judgment calls you made, with rationale                                                                                                          | "D-01: Soft-delete via `deleted_at`, 30-day purge"           |
+| Open Questions              | Only what a human must decide (often empty)                                                                                                      | "OQ-01: Is 1-year audit retention a compliance requirement?" |
 
 ### Authorization Model (Three Layers)
 
@@ -276,13 +278,13 @@ Total required policy tests `N = A + S + F + H + R + 2·P + E`, where:
 - **Context7 MCP**: Framework patterns for data models, authorization patterns
 - **Serena MCP**: Project memory for cross-TDD consistency and domain understanding
 
-## Open Questions Generation Workflow
+## Decision Triage Workflow
 
-TDD creation follows a **two-step process** where Open Questions are generated separately using deep analysis:
+TDD creation follows a **two-step process**: the core document is written first, then a deep-analysis pass hunts for gaps. The pass **decides by default** and only escalates what a human genuinely has to settle.
 
 ### Step 1: Create TDD Core
 
-Generate all TDD sections EXCEPT Open Questions. For combined TDDs (default), include both backend and UI sections:
+Generate all TDD sections EXCEPT Decisions and Open Questions. For combined TDDs (default), include both backend and UI sections:
 
 1. Overview and Scope
 2. Data Model (tables)
@@ -294,74 +296,118 @@ Generate all TDD sections EXCEPT Open Questions. For combined TDDs (default), in
 8. Acceptance Criteria (checkboxes with authorization testing — including the measurable test-count assertion referencing the Permission Matrix Test Plan)
 9. Related Documents
 
-Write the TDD to file with an empty Open Questions section:
+Write the TDD to file with placeholder sections:
 
 ```markdown
+## ✅ Decisions (Resolved)
+
+*Generating via deep analysis...*
+
 ## Open Questions
 
 *Generating via deep analysis...*
 ```
 
-### Step 2: Deep Analysis for Open Questions (ultrathink)
+### Question Policy
 
-After the TDD core is written, invoke Sequential MCP with `--ultrathink` depth to analyze the complete TDD and generate meaningful Open Questions.
+**Default: decide.** The deep-analysis pass exists to find gaps, not to produce a list of questions. Once a gap is found, close it yourself whenever you can do so with confidence — a reviewer's attention is the scarcest resource in this process, and a TDD that arrives with five questions the author could have answered is worse than one that arrives with five recorded decisions. Classify every finding into one of three tiers:
+
+| Tier                  | When                                                                                                                                                                                                                   | Action                                                                                                                  |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **Decide-and-record** | A defensible answer follows from the PRD, the codebase's existing patterns, fetched third-party docs, or established engineering practice (architecture, naming, validation limits, indexes, error handling, defaults) | Choose it, fold it into the relevant section, add a row to `## ✅ Decisions (Resolved)` (Decision / Choice / Rationale) |
+| **Ask**               | Only a human can settle it: business policy the PRD leaves open, legal/compliance-driven values, infrastructure budget, external contracts or SLAs, a user-facing behavior fork the product owner must call            | Write an `OQ-NN` entry under `## Open Questions` with a recommended option                                              |
+| **Non-issue**         | Already specified, or the answer would not change the implementation                                                                                                                                                   | Say nothing; do not manufacture questions                                                                               |
+
+**Ask-tier test** — an Open Question is legitimate only when *all three* hold:
+
+- Answering it changes the implementation, not just the wording of the document
+- You could not reach a confident answer from the PRD, the codebase, or fetched docs
+- The reviewer has information or authority you do not
+
+**Authorization gaps are always decide-and-record**: fill any missing action permission, data visibility rule, or untested Permission Condition with the least-privilege answer, add the corresponding `PT-xx` rows, and log the decision. Never leave an authorization hole as a question.
+
+**Irreversible-decision guardrail**: when a decision touches money, legal exposure, data retention or privacy, destructive migrations, or a public API contract, ask even if you have a preference — and state that preference as the recommended option.
+
+If no finding survives the Ask-tier test, `## Open Questions` contains exactly this line and nothing else:
+
+```markdown
+*No open questions — every design decision is recorded in ✅ Decisions (Resolved).*
+```
+
+Never pad the section. Three decisions and zero questions is a better outcome than two manufactured questions.
+
+`--ask` overrides the default and surfaces decide-and-record items as Open Questions as well (each still carrying your recommended answer), for the rare TDD where the user wants to review every judgment call before implementation.
+
+### Step 2: Deep Analysis and Triage (ultrathink)
+
+After the TDD core is written, invoke Sequential MCP with `--ultrathink` depth to analyze the complete TDD, resolve what can be resolved, and escalate only what cannot.
 
 **Analysis Focus Areas**:
 
-| Area                     | Question Types                                                           |
-| ------------------------ | ------------------------------------------------------------------------ |
-| Requirements Ambiguity   | Unclear acceptance criteria, missing edge cases                          |
-| Stakeholder Input Needed | Business decisions, policy clarifications                                |
-| Technical Decisions      | Architecture choices, integration approaches                             |
-| Scope Boundaries         | What's explicitly out of scope, future considerations                    |
-| Data Constraints         | Validation rules, retention policies, limits                             |
-| Authorization Gaps       | Missing action permissions, unclear data visibility, untested conditions |
+| Area                     | What to look for                                                         | Usual tier                                              |
+| ------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------- |
+| Requirements Ambiguity   | Unclear acceptance criteria, missing edge cases                          | Decide-and-record                                       |
+| Stakeholder Input Needed | Business decisions, policy clarifications                                | Ask                                                     |
+| Technical Decisions      | Architecture choices, integration approaches                             | Decide-and-record                                       |
+| Scope Boundaries         | What's explicitly out of scope, future considerations                    | Decide-and-record                                       |
+| Data Constraints         | Validation rules, retention policies, limits                             | Decide-and-record (retention driven by compliance: Ask) |
+| Authorization Gaps       | Missing action permissions, unclear data visibility, untested conditions | Always decide-and-record                                |
 
-**Self-contained question rule (non-negotiable)**:
+**Self-contained rule (non-negotiable, applies to both decisions and questions)**:
 
-Every Open Question must be answerable **without re-reading the TDD**. The reviewer should be able to open the OQ section cold and decide. Concretely:
+Every Decision row and every Open Question must be understandable **without re-reading the TDD**. The reviewer should be able to open the section cold and either accept the decision or answer the question. Concretely:
 
-- **No bare acronyms.** Spell them out on first use in the question, even if defined earlier in the TDD (e.g. write "Permission Condition PC-03 (only owners can edit after approval)" not "PC-03").
+- **No bare acronyms.** Spell them out on first use, even if defined earlier in the TDD (e.g. write "Permission Condition PC-03 (only owners can edit after approval)" not "PC-03").
 - **Inline 1-line context for every reference.** Any mention of a PRD ID, Constraint Rule (CR-xx), Permission Condition (PC-xx), Data Rule (DL-xx), Acceptance Criterion, attribute, or sibling TDD must carry a parenthetical summary of what that thing is.
-- **Concrete trade-offs.** Possible answers must describe the real consequence of each choice (cost, latency, UX impact, compliance risk) — not just the value. "90 days — meets SOC2 retention but adds ~40GB/month storage" beats "90 days (standard practice)".
+- **Concrete trade-offs.** Rationales and possible answers must describe the real consequence of each choice (cost, latency, UX impact, compliance risk) — not just the value. "90 days — meets SOC2 retention but adds ~40GB/month storage" beats "90 days (standard practice)".
 - **State the default the TDD currently implies**, so the reviewer knows what happens if they do nothing.
 
 **Sequential MCP Prompt Template**:
 
 ```
-Analyze this TDD for unresolved decisions and ambiguities that require
-stakeholder input before implementation can begin.
+Analyze this TDD for ambiguities, missing decisions, edge cases,
+authorization gaps and scope gaps that would affect implementation.
 
-Each question MUST be self-contained — a reviewer should answer it
-without re-reading the TDD. Therefore:
-- Spell out every acronym on first use (PC-xx, CR-xx, DL-xx, PRD IDs).
-- Add a 1-line parenthetical summary whenever referencing another
-  rule, attribute, PRD section, or sibling TDD.
-- Describe trade-offs concretely (cost, latency, UX, compliance),
-  not with labels like "standard practice".
-- State the implicit default the TDD currently assumes.
+For EACH finding, first try to resolve it yourself:
 
-For each question:
-1. Assign a unique ID (OQ-01, OQ-02, etc.)
-2. State the question as a self-contained sentence
-3. Give the 1-line context the reviewer needs to decide
-4. Explain why this needs resolution
-5. List possible answers with concrete trade-offs
-6. Note the current implicit default
-7. Mark status as "Open" or "Deferred to v2"
+- If a defensible answer follows from the PRD, the codebase's existing
+  patterns, fetched third-party docs, or established engineering
+  practice, DECIDE. Output it as a decision: id (D-01, D-02, ...), the
+  choice, a one-line rationale with concrete trade-offs, and the TDD
+  section to update. Authorization gaps are ALWAYS decided, using the
+  least-privilege answer.
+- Only if a human must settle it (business policy the PRD leaves open,
+  legal or compliance values, infrastructure budget, external contracts,
+  or a user-facing behavior fork the product owner must call) output it
+  as an open question: id (OQ-01, ...), a self-contained question,
+  1-line context, why it matters, possible answers with concrete
+  trade-offs, the current implicit default, and the recommended option.
+- Drop everything else.
 
-Focus on questions that would BLOCK implementation if left unresolved.
+Each decision and question MUST be self-contained — spell out every
+acronym on first use, add a 1-line parenthetical for every referenced
+rule, attribute, PRD section or sibling TDD, and describe trade-offs
+concretely (cost, latency, UX, compliance).
+
+Expect zero or very few open questions. Do not manufacture questions
+to fill the section.
 ```
 
 **Output Format**:
 
 ```markdown
+## ✅ Decisions (Resolved)
+
+| Decision                        | Choice                                        | Rationale                                                                                                           |
+| ------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Incident deletion (D-01)        | Soft-delete via `deleted_at`, purge after 30d | Constraint CR-04 (all writes are audited) needs the row for the audit trail; hard delete would orphan audit events |
+| Viewer access to notes (D-02)   | Viewers cannot read `private_notes`           | Least privilege; the PRD grants viewers read-only *summary* access, and PT-14/PT-15 now assert the deny            |
+
 ## Open Questions
 
-| ID    | Question                                              | Status         |
-| ----- | ----------------------------------------------------- | -------------- |
-| OQ-01 | How long should audit logs be retained before purge?  | Open           |
-| OQ-02 | Should admins see other users' private notes?         | Deferred to v2 |
+| ID    | Question                                              | Status |
+| ----- | ----------------------------------------------------- | ------ |
+| OQ-01 | Is 1-year audit log retention a compliance requirement? | Open   |
 
 ### OQ-01: Audit log retention window
 
@@ -369,18 +415,25 @@ Focus on questions that would BLOCK implementation if left unresolved.
 
 **Context**: The data model defines `audit_events` with no retention rule, and Constraint CR-04 ("all write actions are logged") produces ~1 row per user action. At current usage (~20k actions/day) the table grows ~7M rows/year.
 
-**Why it matters**: Drives storage cost, query performance on the audit UI, and compliance posture. Too short risks losing evidence for post-incident review; too long drives up DB cost and makes the audit query slow.
+**Why it matters**: Drives storage cost, query performance on the audit UI, and compliance posture. This is a compliance value the PRD does not state, so it cannot be decided from the codebase.
 
 **Possible answers**:
 
-- [ ] 30 days — minimal storage (~600k rows), satisfies no external compliance regime, loses quarterly review window
-- [ ] 90 days — ~1.8M rows, ~12GB/year, meets SOC2 Type II retention expectation, covers a full billing cycle
+- [ ] 90 days — ~1.8M rows, ~12GB/year, meets SOC2 Type II retention expectation, covers a full billing cycle **(recommended unless HIPAA is on the roadmap)**
 - [ ] 1 year — ~7M rows, ~45GB/year, required if we pursue HIPAA; needs partitioning to keep queries <500ms
 - [ ] Indefinite — unbounded growth; only viable if we ship archival to cold storage (not in current scope)
 
 **Current implicit default**: The TDD does not specify retention, so logs would grow indefinitely — equivalent to the last option without the archival safeguard.
 
 **Status**: Open — needs legal/compliance input
+```
+
+When nothing survives the Ask-tier test:
+
+```markdown
+## Open Questions
+
+*No open questions — every design decision is recorded in ✅ Decisions (Resolved).*
 ```
 
 ### Automatic Execution
@@ -392,8 +445,8 @@ Both steps run automatically with a single `/tdd` command:
 
 Execution:
   Step 1: Generate TDD core sections → Write to file
-  Step 2: Invoke Sequential MCP + ultrathink → Analyze TDD → Append Open Questions
-  Result: Complete TDD with deep-analysis-generated questions
+  Step 2: Invoke Sequential MCP + ultrathink → Triage → Record decisions, append only real Open Questions
+  Result: Complete TDD with decisions recorded and zero-or-few questions for the reviewer
 ```
 
 ## Outputs
@@ -446,7 +499,7 @@ After creating a TDD:
 
 1. **Present for review**: Show the complete TDD to the user
 2. **Await approval**: Do NOT start implementation until user approves
-3. **Resolve Open Questions**: All OQ items should be addressed before implementation
+3. **Review decisions, resolve questions**: Skim `✅ Decisions (Resolved)` and override any you disagree with; answer every remaining OQ item before implementation
 4. **Update if needed**: Incorporate user feedback into the TDD
 
 **CRITICAL**: Creating a TDD is a specification phase, NOT an implementation trigger. Always read and present the TDD for review before any implementation work begins.
@@ -469,9 +522,9 @@ After Open Questions are answered in discussion, use `--consolidate` to apply an
     - Add missing Behavior Specs for resolved edge cases
     - Adjust Acceptance Criteria based on scope decisions
 3. **Collapse resolved questions into a Decisions table** (do NOT leave answered questions in the verbose `### OQ-NN` Question / Why it matters / Possible answers / Status format):
-    - Move every **resolved** question into a `## ✅ Decisions (Resolved)` table with columns **Decision | Choice | Rationale**. Keep the `OQ-NN` / `FQ-NN` id inline in the Decision cell (e.g. `Retention policy (OQ-01)`) so cross-references elsewhere in the doc still resolve.
+    - Move every **resolved** question into the `## ✅ Decisions (Resolved)` table (extend the existing one from creation time; create it if absent) with columns **Decision | Choice | Rationale**. Keep the `OQ-NN` / `FQ-NN` id inline in the Decision cell (e.g. `Retention policy (OQ-01)`) so cross-references elsewhere in the doc still resolve.
     - **Delete** the verbose detail blocks of resolved questions (the table is now the record).
-    - Keep only genuinely **open** questions under `## Open Questions`, retaining their detail blocks. If none remain, write `*All questions resolved and integrated — see ✅ Decisions (Resolved).*`
+    - Keep only genuinely **open** questions under `## Open Questions`, retaining their detail blocks. If none remain, write `*No open questions — every design decision is recorded in ✅ Decisions (Resolved).*`
     - Update any footer/summary line to reference "✅ Decisions (Resolved)" instead of listing resolved OQ ids.
 4. **Tighten Document**:
     - Remove redundant prose
@@ -518,7 +571,7 @@ After Open Questions are answered in discussion, use `--consolidate` to apply an
 
 ## Open Questions
 
-*All questions resolved and integrated — see ✅ Decisions (Resolved).*
+*No open questions — every design decision is recorded in ✅ Decisions (Resolved).*
 ```
 
 ### When to Consolidate
@@ -596,9 +649,11 @@ Before finalizing a TDD, verify:
 - [ ] **Any use of `404` as a deny signal is explicitly labeled `Anti-discovery deny` in the row's type column with a justification**
 - [ ] **Acceptance Criteria > Testing contains the measurable test-count assertion (`Policy test count ≥ N = …`) referencing the Permission Matrix Test Plan**
 - [ ] Behavior specs use Given/When/Then
-- [ ] Open Questions generated via Sequential MCP + ultrathink (Phase 2 complete)
-- [ ] Each OQ has ID, rationale, possible answers, and status
-- [ ] **Each OQ is self-contained: acronyms spelled out, every rule/PRD/attribute reference carries a 1-line inline context, trade-offs are concrete (cost/latency/UX/compliance, not labels like "standard practice"), and the current implicit default is stated — reviewer can answer without re-reading the TDD**
+- [ ] Decision triage run via Sequential MCP + ultrathink (Phase 2 complete)
+- [ ] Every decide-and-record finding is folded into its section and logged in `✅ Decisions (Resolved)` with a rationale; every authorization gap was decided (least privilege), never asked
+- [ ] Every OQ passes the Ask-tier test (changes the implementation, not answerable with confidence, reviewer holds the authority) and carries a recommended option
+- [ ] Open Questions is either genuine questions or exactly the no-open-questions line — never padded
+- [ ] **Each Decision and OQ is self-contained: acronyms spelled out, every rule/PRD/attribute reference carries a 1-line inline context, trade-offs are concrete (cost/latency/UX/compliance, not labels like "standard practice"), and the current implicit default is stated — reviewer can answer without re-reading the TDD**
 - [ ] TDD presented for user review before implementation
 - [ ] Large TDDs split with master document pattern
 

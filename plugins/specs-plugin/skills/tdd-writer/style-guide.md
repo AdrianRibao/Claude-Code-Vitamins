@@ -368,8 +368,9 @@ Document edge cases with the same structure:
 4. Authorization (Action Permissions, Data Permissions, Permission Conditions, Policy Rules)
 5. Behavior Specifications
 6. Acceptance Criteria
-7. Open Questions
-8. Related Documents
+7. ✅ Decisions (Resolved) — judgment calls made during generation, with rationale
+8. Open Questions — only what a human must decide; a single "no open questions" line when empty
+9. Related Documents
 
 ## Testing Requirements Format
 

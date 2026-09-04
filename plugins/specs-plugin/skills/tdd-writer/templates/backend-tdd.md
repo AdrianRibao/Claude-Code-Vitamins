@@ -233,10 +233,24 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
+## ✅ Decisions (Resolved)
+
+<!-- Judgment calls made while writing this TDD (architecture, naming, limits, least-privilege authorization fills). Fold each into its section; log it here. -->
+
+| Decision               | Choice   | Rationale                          |
+| ---------------------- | -------- | ---------------------------------- |
+| [Decision name] (D-01) | [Choice] | [Why, with the concrete trade-off] |
+
+______________________________________________________________________
+
 ## Open Questions
 
-- **OQ-01**: [Question about requirement] - Status: Open
-- **OQ-02**: [Clarification needed] - Status: Resolved
+<!-- Only questions a human must settle (business policy, compliance values, budget, external contracts, product-owner forks).
+     Each must be self-contained (acronyms spelled out, 1-line context, concrete trade-offs, current implicit default, recommended option).
+     If there are none, this section contains exactly:
+     *No open questions — every design decision is recorded in ✅ Decisions (Resolved).* -->
+
+- **OQ-01**: [Self-contained question] - Recommended: [option] - Status: Open
 
 ______________________________________________________________________
 

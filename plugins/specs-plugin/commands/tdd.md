@@ -5,7 +5,7 @@ Invoke the tdd-writer skill to generate Technical Design Documents.
 ## Usage
 
 ```
-/tdd [feature-name] [--type backend|ui|api|integration] [--prd @path] [--iterative] [--review] [--consolidate @path]
+/tdd [feature-name] [--type backend|ui|api|integration] [--prd @path] [--iterative] [--ask] [--review] [--consolidate @path]
 ```
 
 ## Arguments

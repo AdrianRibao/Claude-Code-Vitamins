@@ -5,7 +5,7 @@ Invoke the prd-writer skill to generate Product Requirements Documents.
 ## Usage
 
 ```
-/prd [feature-name] [--type master|feature|api|integration] [--no-questions] [--review] [--consolidate @path]
+/prd [feature-name] [--type master|feature|api|integration] [--no-questions] [--ask] [--review] [--consolidate @path]
 ```
 
 ## Arguments

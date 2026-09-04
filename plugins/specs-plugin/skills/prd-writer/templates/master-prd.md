@@ -198,24 +198,37 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
+## ✅ Decisions (Resolved)
+
+<!-- Judgment calls made while writing this PRD. Fold each into its section; log it here with a one-line rationale. -->
+
+| Decision               | Choice   | Rationale                          |
+| ---------------------- | -------- | ---------------------------------- |
+| [Decision name] (D-01) | [Choice] | [Why, with the concrete trade-off] |
+
+______________________________________________________________________
+
 ## Open Questions
 
-| ID    | Question                      | Status         |
-| ----- | ----------------------------- | -------------- |
-| OQ-01 | [Question needing resolution] | Open           |
-| OQ-02 | [Question needing resolution] | Deferred to v2 |
+<!-- Only questions a human must settle (strategy, pricing, legal, budget, stakeholder priority, facts you cannot obtain).
+     If there are none, replace the table and detail blocks with exactly:
+     *No open questions — every design decision is recorded in ✅ Decisions (Resolved).* -->
+
+| ID    | Question                      | Status |
+| ----- | ----------------------------- | ------ |
+| OQ-01 | [Question needing resolution] | Open   |
 
 ### OQ-01: [Question Title]
 
-**Question**: [Full question]
+**Question**: [Full, self-contained question]
 
 **Why it matters**: [Impact on project]
 
 **Possible answers**:
 
-- [ ] [Option 1]
-- [ ] [Option 2]
-- [ ] [Option 3]
+- [ ] [Option 1] — [consequence] **(recommended)**
+- [ ] [Option 2] — [consequence]
+- [ ] [Option 3] — [consequence]
 
 **Status**: Open - needs [stakeholder] input
 

@@ -30,13 +30,14 @@ allowed-tools:
 ## Usage
 
 ```
-/prd [feature-name] [--type master|feature|api|integration] [--no-questions] [--review] [--consolidate @path]
+/prd [feature-name] [--type master|feature|api|integration] [--no-questions] [--ask] [--review] [--consolidate @path]
 ```
 
 | Flag                  | Purpose                                               |
 | --------------------- | ----------------------------------------------------- |
 | `--type`              | PRD type: master, feature, api, integration           |
 | `--no-questions`      | Skip upfront questions (use with comprehensive brief) |
+| `--ask`               | Surface decide-and-record items as Open Questions too |
 | `--review`            | Analyze existing PRD for scope creep or gaps          |
 | `--consolidate @path` | Apply OQ answers, tighten document                    |
 
@@ -100,14 +101,14 @@ Requirements-first approach: every section answers "what" and "why", never "how"
 4. **Structure**: Organize into logical sections following lean PRD template
 5. **Specify**: Write problem statement, goals, user workflows, requirements, success metrics
 6. **Link Documents**: Add "Related Documents" section with all relevant PRDs and TDDs
-7. **Write PRD**: Save to file with placeholder Open Questions section
+7. **Write PRD**: Save to file with placeholder `✅ Decisions (Resolved)` and Open Questions sections
 
-### Phase 2: Open Questions Deep Analysis
+### Phase 2: Decision Triage (decide by default)
 
-1. **Invoke Sequential MCP**: Use `--ultrathink` for maximum depth analysis
-2. **Analyze Gaps**: Identify ambiguities, missing decisions, edge cases, scope boundaries
-3. **Generate Questions**: Create structured OQ entries with IDs, rationale, and possible answers
-4. **Append to PRD**: Update the Open Questions section with generated content
+1. **Invoke Sequential MCP**: Use `--ultrathink` to scan the complete PRD for ambiguities, missing decisions, edge cases, and scope gaps
+2. **Classify each finding** (see [Question Policy](#question-policy)): decide-and-record, ask, or non-issue
+3. **Decide-and-record**: Pick the answer you are confident in, fold it into the relevant section, and log it under `## ✅ Decisions (Resolved)` with a one-line rationale
+4. **Ask sparingly**: Only findings a human must settle become `OQ-NN` entries under `## Open Questions`. If none survive, write the no-open-questions line
 
 ### Phase 3: Finalization
 
@@ -118,18 +119,19 @@ Requirements-first approach: every section answers "what" and "why", never "how"
 
 ## Include in PRDs
 
-| Element           | Purpose                    | Example                                        |
-| ----------------- | -------------------------- | ---------------------------------------------- |
-| Problem Statement | WHY this exists            | "Users struggle to track their hours worked"   |
-| Goals             | SUCCESS looks like         | "Reduce time-tracking errors by 50%"           |
-| Non-Goals         | What we're NOT doing       | "Not replacing payroll system"                 |
-| Target Users      | WHO we're building for     | "Household employees and employers"            |
-| User Workflows    | HOW users accomplish tasks | Step-by-step scenarios with time estimates     |
-| Requirements      | Functional needs           | "System must calculate overtime automatically" |
-| Success Metrics   | HOW we measure             | "90% user adoption within 3 months"            |
-| Scope Boundaries  | IN/OUT of scope            | "In: Time tracking. Out: Payroll processing"   |
-| Constraints       | LIMITATIONS we accept      | "Must work offline on mobile"                  |
-| Open Questions    | Unresolved decisions       | "OQ-01: Should we support multiple employers?" |
+| Element           | Purpose                                     | Example                                                    |
+| ----------------- | ------------------------------------------- | ---------------------------------------------------------- |
+| Problem Statement | WHY this exists                             | "Users struggle to track their hours worked"               |
+| Goals             | SUCCESS looks like                          | "Reduce time-tracking errors by 50%"                       |
+| Non-Goals         | What we're NOT doing                        | "Not replacing payroll system"                             |
+| Target Users      | WHO we're building for                      | "Household employees and employers"                        |
+| User Workflows    | HOW users accomplish tasks                  | Step-by-step scenarios with time estimates                 |
+| Requirements      | Functional needs                            | "System must calculate overtime automatically"             |
+| Success Metrics   | HOW we measure                              | "90% user adoption within 3 months"                        |
+| Scope Boundaries  | IN/OUT of scope                             | "In: Time tracking. Out: Payroll processing"               |
+| Constraints       | LIMITATIONS we accept                       | "Must work offline on mobile"                              |
+| Decisions         | Judgment calls you made                     | "D-01: Single employer per employee in v1"                 |
+| Open Questions    | Only what a human must decide (often empty) | "OQ-01: Is the 14-day trial a firm commercial commitment?" |
 
 ## Exclude from PRDs
 
@@ -148,13 +150,13 @@ Requirements-first approach: every section answers "what" and "why", never "how"
 - **Context7 MCP**: Industry patterns, competitive analysis, best practices
 - **Serena MCP**: Project memory for cross-PRD consistency and domain understanding
 
-## Open Questions Generation Workflow
+## Decision Triage Workflow
 
-PRD creation follows a **two-step process** where Open Questions are generated separately using deep analysis:
+PRD creation follows a **two-step process**: the core document is written first, then a deep-analysis pass hunts for gaps. The pass **decides by default** and only escalates what a human genuinely has to settle.
 
 ### Step 1: Create PRD Core
 
-Generate all PRD sections EXCEPT Open Questions:
+Generate all PRD sections EXCEPT Decisions and Open Questions:
 
 1. Problem Statement & Background
 2. Goals and Non-Goals
@@ -166,69 +168,121 @@ Generate all PRD sections EXCEPT Open Questions:
 8. Constraints & Dependencies
 9. Related Documents
 
-Write the PRD to file with an empty Open Questions section:
+Write the PRD to file with placeholder sections:
 
 ```markdown
+## ✅ Decisions (Resolved)
+
+*Generating via deep analysis...*
+
 ## Open Questions
 
 *Generating via deep analysis...*
 ```
 
-### Step 2: Deep Analysis for Open Questions (ultrathink)
+### Question Policy
 
-After the PRD core is written, invoke Sequential MCP with `--ultrathink` depth to analyze the complete PRD and generate meaningful Open Questions.
+**Default: decide.** The deep-analysis pass exists to find gaps, not to produce a list of questions. Once a gap is found, close it yourself whenever you can do so with confidence — a reviewer's attention is the scarcest resource in this process, and a PRD that arrives with five questions the author could have answered is worse than one that arrives with five recorded decisions. Classify every finding into one of three tiers:
+
+| Tier                  | When                                                                                                                                                                                                         | Action                                                                                                                  |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| **Decide-and-record** | A defensible answer follows from the problem statement, the codebase, sibling PRDs, or common product practice                                                                                               | Choose it, fold it into the relevant section, add a row to `## ✅ Decisions (Resolved)` (Decision / Choice / Rationale) |
+| **Ask**               | Only a human can settle it: business strategy, pricing, legal/compliance, budget, priority between competing stakeholders, brand or UX preference, or facts you cannot obtain (contracts, customer promises) | Write an `OQ-NN` entry under `## Open Questions` with a recommended option                                              |
+| **Non-issue**         | Already specified, or the answer would not change what gets built                                                                                                                                            | Say nothing; do not manufacture questions                                                                               |
+
+**Ask-tier test** — an Open Question is legitimate only when *all three* hold:
+
+- Answering it changes what gets built, not just how the document reads
+- You could not reach a confident answer from the available context
+- The reviewer has information or authority you do not
+
+**Irreversible-decision guardrail**: when a decision touches money, legal exposure, data retention or privacy, or a public commitment, ask even if you have a preference — and state that preference as the recommended option.
+
+If no finding survives the Ask-tier test, `## Open Questions` contains exactly this line and nothing else:
+
+```markdown
+*No open questions — every design decision is recorded in ✅ Decisions (Resolved).*
+```
+
+Never pad the section. Three decisions and zero questions is a better outcome than two manufactured questions.
+
+`--ask` overrides the default and surfaces decide-and-record items as Open Questions as well (each still carrying your recommended answer), for the rare PRD where the user wants to review every judgment call before TDD creation.
+
+### Step 2: Deep Analysis and Triage (ultrathink)
+
+After the PRD core is written, invoke Sequential MCP with `--ultrathink` depth to analyze the complete PRD, resolve what can be resolved, and escalate only what cannot.
 
 **Analysis Focus Areas**:
 
-| Area                | Question Types                                                 |
-| ------------------- | -------------------------------------------------------------- |
-| Problem Clarity     | Is the problem well-defined? Are we solving the right problem? |
-| User Understanding  | Do we understand all user segments? Edge cases?                |
-| Scope Boundaries    | What should explicitly be out of scope? Future phases?         |
-| Success Measurement | Are metrics measurable? Do we have baselines?                  |
-| Stakeholder Input   | Business decisions, policy clarifications needed?              |
-| Dependencies        | External dependencies? Integration requirements?               |
-| Risk Factors        | What could prevent success? Mitigation strategies?             |
+| Area                | What to look for                                               | Usual tier        |
+| ------------------- | -------------------------------------------------------------- | ----------------- |
+| Problem Clarity     | Is the problem well-defined? Are we solving the right problem? | Decide-and-record |
+| User Understanding  | Do we understand all user segments? Edge cases?                | Decide-and-record |
+| Scope Boundaries    | What should explicitly be out of scope? Future phases?         | Decide-and-record |
+| Success Measurement | Are metrics measurable? Do we have baselines?                  | Decide-and-record |
+| Stakeholder Input   | Business decisions, policy clarifications needed?              | Ask               |
+| Dependencies        | External dependencies? Integration requirements?               | Decide-and-record |
+| Risk Factors        | What could prevent success? Mitigation strategies?             | Decide-and-record |
 
 **Sequential MCP Prompt Template**:
 
 ```
-Analyze this PRD for unresolved decisions and ambiguities that require
-stakeholder input before TDD creation can begin.
+Analyze this PRD for ambiguities, missing decisions, edge cases and scope
+gaps that would affect TDD creation.
 
-For each question:
-1. Assign a unique ID (OQ-01, OQ-02, etc.)
-2. State the question clearly
-3. Explain why this needs resolution
-4. Suggest possible answers if applicable
-5. Mark status as "Open" or "Deferred to v2"
+For EACH finding, first try to resolve it yourself:
 
-Focus on questions that would BLOCK TDD creation if left unresolved.
+- If a defensible answer follows from the problem statement, the
+  codebase, sibling PRDs, or common product practice, DECIDE. Output it
+  as a decision: id (D-01, D-02, ...), the choice, a one-line rationale,
+  and the PRD section to update.
+- Only if a human must settle it (business strategy, pricing, legal or
+  compliance, budget, stakeholder priority, brand preference, or facts
+  you cannot obtain) output it as an open question: id (OQ-01, ...),
+  the question, why it matters, possible answers with trade-offs, and
+  the recommended option.
+- Drop everything else.
+
+Expect zero or very few open questions. Do not manufacture questions
+to fill the section.
 ```
 
 **Output Format**:
 
 ```markdown
+## ✅ Decisions (Resolved)
+
+| Decision                        | Choice                              | Rationale                                                                                   |
+| ------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------- |
+| Employer model (D-01)           | Single employer per employee in v1  | Every persona in Target Users has one employer; multi-employer adds a join and split reports |
+| Offline behavior (D-02)         | Read-only cache, writes queue       | Constraint "must work offline" + Workflow 3 only needs viewing; queued writes match FR-07   |
+
 ## Open Questions
 
-| ID | Question | Status |
-|----|----------|--------|
-| OQ-01 | Should we support multiple employers per employee? | Open |
-| OQ-02 | What's the retention period for time records? | Deferred to v2 |
+| ID    | Question                                                | Status |
+| ----- | ------------------------------------------------------- | ------ |
+| OQ-01 | Is the 14-day free trial a firm commercial commitment?  | Open   |
 
-### OQ-01: Multiple Employers Support
+### OQ-01: Trial length commitment
 
-**Question**: Should an employee be able to work for multiple employers simultaneously?
+**Question**: Sales has quoted a 14-day free trial in two enterprise proposals. Is that a firm commitment the PRD must honor, or can the trial length be tuned during beta?
 
-**Why it matters**: Affects data model, UI complexity, and reporting requirements.
+**Why it matters**: A fixed trial length becomes a Constraint and rules out the conversion experiments in Success Metrics.
 
 **Possible answers**:
 
-- [ ] Single employer only (simpler, v1 scope)
-- [ ] Multiple employers (more complex, broader market)
-- [ ] Multiple employers with primary designation
+- [ ] Firm 14 days — honors quotes; conversion experiments limited to in-trial messaging **(recommended if the proposals were signed)**
+- [ ] Flexible 7–30 days — enables experiments; Sales must re-confirm with both prospects
 
-**Status**: Open - needs product decision
+**Status**: Open — needs commercial decision
+```
+
+When nothing survives the Ask-tier test:
+
+```markdown
+## Open Questions
+
+*No open questions — every design decision is recorded in ✅ Decisions (Resolved).*
 ```
 
 ### Automatic Execution
@@ -240,8 +294,8 @@ Both steps run automatically with a single `/prd` command:
 
 Execution:
   Step 1: Generate PRD core sections → Write to file
-  Step 2: Invoke Sequential MCP + ultrathink → Analyze PRD → Append Open Questions
-  Result: Complete PRD with deep-analysis-generated questions
+  Step 2: Invoke Sequential MCP + ultrathink → Triage → Record decisions, append only real Open Questions
+  Result: Complete PRD with decisions recorded and zero-or-few questions for the reviewer
 ```
 
 ## Outputs
@@ -293,7 +347,7 @@ After creating a PRD:
 
 1. **Present for review**: Show the complete PRD to the user
 2. **Await approval**: Do NOT start TDD creation until user approves
-3. **Resolve Open Questions**: All OQ items should be addressed before TDD creation
+3. **Review decisions, resolve questions**: Skim `✅ Decisions (Resolved)` and override any you disagree with; answer every remaining OQ item before TDD creation
 4. **Update if needed**: Incorporate user feedback into the PRD
 
 **CRITICAL**: Creating a PRD is a specification phase, NOT a TDD trigger. Always read and present the PRD for review before any TDD creation begins.
@@ -317,9 +371,9 @@ After Open Questions are answered in discussion, use `--consolidate` to apply an
     - Adjust Requirements based on scope decisions
     - Update Success Metrics with agreed baselines
 3. **Collapse resolved questions into a Decisions table** (do NOT leave answered questions in the verbose `### OQ-NN` Question / Why it matters / Possible answers / Status format):
-    - Move every **resolved** question into a `## ✅ Decisions (Resolved)` table with columns **Decision | Choice | Rationale**. Keep the `OQ-NN` / `FQ-NN` id inline in the Decision cell (e.g. `Reveal timing (OQ-01)`) so cross-references elsewhere in the doc still resolve.
+    - Move every **resolved** question into the `## ✅ Decisions (Resolved)` table (extend the existing one from creation time; create it if absent) with columns **Decision | Choice | Rationale**. Keep the `OQ-NN` / `FQ-NN` id inline in the Decision cell (e.g. `Reveal timing (OQ-01)`) so cross-references elsewhere in the doc still resolve.
     - **Delete** the verbose detail blocks of resolved questions (the table is now the record).
-    - Keep only genuinely **open** questions under `## Open Questions`, retaining their detail blocks. If none remain, write `*All questions resolved and integrated — see ✅ Decisions (Resolved).*`
+    - Keep only genuinely **open** questions under `## Open Questions`, retaining their detail blocks. If none remain, write `*No open questions — every design decision is recorded in ✅ Decisions (Resolved).*`
     - Leave partner/business question sets (e.g. an `AT-*` "Questions for [partner]" section) in their own section.
     - Update any footer/summary line to reference "✅ Decisions (Resolved)" instead of listing resolved OQ ids.
 4. **Tighten Document**:
@@ -366,7 +420,7 @@ After Open Questions are answered in discussion, use `--consolidate` to apply an
 
 ## Open Questions
 
-*All questions resolved and integrated — see ✅ Decisions (Resolved).*
+*No open questions — every design decision is recorded in ✅ Decisions (Resolved).*
 ```
 
 ### When to Consolidate
@@ -417,8 +471,10 @@ Before finalizing a PRD, verify:
 - [ ] Scope boundaries are crystal clear
 - [ ] No implementation details or code
 - [ ] No technical architecture decisions
-- [ ] Open Questions generated via Sequential MCP + ultrathink (Phase 2 complete)
-- [ ] Each OQ has ID, rationale, possible answers, and status
+- [ ] Decision triage run via Sequential MCP + ultrathink (Phase 2 complete)
+- [ ] Every decide-and-record finding is folded into its section and logged in `✅ Decisions (Resolved)` with a rationale
+- [ ] Every OQ passes the Ask-tier test (changes what gets built, not answerable with confidence, reviewer holds the authority) and carries a recommended option
+- [ ] Open Questions is either genuine questions or exactly the no-open-questions line — never padded
 - [ ] PRD presented for user review before TDD creation
 - [ ] Large PRDs split with master document pattern
 

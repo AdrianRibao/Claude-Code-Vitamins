@@ -169,7 +169,7 @@ Without `--fix`, this phase is written as a plan (red expectation + fix + verifi
 
 1. **Invoke Sequential MCP** with `--ultrathink` to scan for genuine fix-blockers and unconsidered edge cases.
 2. **Classify** each finding (see [Question Policy](#question-policy)): blocking, default-and-document, or non-issue.
-3. **Emit sparingly**: only blocking items become an `## Open decisions` section. Default-and-document items become inline **Assumptions**. If nothing blocks, write no open-decisions section.
+3. **Emit sparingly**: only blocking items become an `## Open decisions` section. Default-and-document items become inline **Assumptions**. If nothing blocks, write no open-decisions section — a confident, well-documented fix with zero questions is the expected outcome, not a shortcut.
 
 ### Phase 6: Finalize & Lifecycle
 
@@ -196,7 +196,7 @@ These are the bugfix analog of the TDD permission-matrix gate. A bug doc is **no
 
 ## Question Policy
 
-**Default: proceed.** Asking a teammate to review and answer a question introduces real latency, and most bugs don't need it. Classify every potential question into one of three tiers:
+**Default: proceed.** Asking a teammate to review and answer a question introduces real latency, and most bugs don't need it. If you can reach a correct answer from the code, the report, the tests, or fetched docs, that is a decision, not a question — make it, record it as an **Assumption**, and keep moving. Classify every potential question into one of three tiers:
 
 | Tier                     | When                                                                                                                               | Action                                                                                               |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
