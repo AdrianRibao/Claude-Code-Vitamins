@@ -58,8 +58,17 @@ updated: [YYYY-MM-DD]
 
 [Omit when nothing is decided and nothing is open.]
 
-- ~~[question you resolved]~~ **Decided YYYY-MM-DD: [answer].** [rationale]
-- **OD-01 (open):** [genuine fork] — A) [choice: consequence]; B) [choice: consequence]. **Recommended: [A|B]** — [why]
+### D-01 — [question you resolved]
+
+**Decided YYYY-MM-DD.** [answer]
+
+**Why.** [rationale]
+
+### OD-01 — [genuine fork] (open)
+
+**Choices.** A) [choice: consequence]; B) [choice: consequence].
+
+**Recommended.** [A|B] — [why]
 
 ## Related
 

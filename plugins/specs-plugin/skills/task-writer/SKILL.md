@@ -53,7 +53,7 @@ allowed-tools:
 | `--review @path`          | Gap analysis of an existing task file against the convention and the ship gates; reports, does not edit                     |
 | `--reformat @path\|--all` | Rewrite an existing task file (or every file under `tasks/` and `archived/`) into the convention, preserving id and content |
 | `--board`                 | Rebuild the board rows from the task files' frontmatter and run the consistency checks                                      |
-| `--consolidate @path`     | Apply answered decisions, fold them into the file as dated decisions, tighten                                               |
+| `--consolidate @path`     | Apply answered decisions, fold them into `## Decisions` as dated `### D-NN` entries, tighten                                |
 | `--ship NNN\|@path`       | Archive a task finished outside `--do`: verifies the ship gates, sets `status: shipped`, moves it, indexes it — staged only |
 
 ## Output Location
@@ -157,8 +157,8 @@ Task Progress:
 
 1. **Invoke Sequential MCP** with `--ultrathink` to scan the task for ambiguities, edge cases, and forks the scope glosses over.
 2. **Classify** each finding (see [Question Policy](#question-policy)): decide-and-record, ask, or non-issue.
-3. **Record decisions inline** under `## Decisions` as `~~question~~ **Decided YYYY-MM-DD: answer.** rationale`. The strike-through keeps the question visible so nobody re-asks it.
-4. **List only real forks** as `OD-NN` entries in the same section, each with choices, consequences, and a recommended option. If there is nothing to decide, omit the section.
+3. **Record decisions** under `## Decisions` as one `### D-NN — question` heading each, with a `**Decided YYYY-MM-DD.** answer` line and a `**Why.** rationale` line. The question stays in the heading so nobody re-asks it, and each idea sits on its own line even under a `wrap = "no"` formatter.
+4. **List only real forks** as `### OD-NN — question (open)` headings in the same section, each with a `**Choices.**` line (consequences per choice) and a `**Recommended.**` line. If there is nothing to decide, omit the section.
 
 ### Phase 4: Board & Consistency
 
@@ -195,7 +195,7 @@ Without `--do`, Phases 5–6 are written as a plan; the implementer follows them
 ### Reformatting an existing backlog (`--reformat`, `--board`)
 
 1. **Read the whole existing corpus first**: every task file, the board, the archive index, and any `How this works` text. Extract the conventions already in force.
-2. **Per file, preserve**: the id, the title's meaning, every dated fact, every decision (struck-through or not), every link, and the archive status. Nothing is deleted; content that fits no section goes under `## Notes` rather than being dropped.
+2. **Per file, preserve**: the id, the title's meaning, every dated fact, every decision (decided or open; reformat legacy `~~struck~~` entries into `### D-NN` headings without changing their text or dates), every link, and the archive status. Nothing is deleted; content that fits no section goes under `## Notes` rather than being dropped.
 3. **Per file, add what is missing** by investigating, not inventing: a lead paragraph, `Do NOT change` / `Out of scope`, `Done when` with a checklist, `Verification`, `Next step`. Where the evidence to write a section does not exist, write `[to be established]` and list it in the report.
 4. **Route misfiled items**: a bug living in the backlog is reported to the user with the recommendation to recreate it via `/bugfix` and remove the task; the skill does not silently delete it.
 5. **Rebuild the board** from frontmatter (`--board`), run the checks, `mdformat` everything, and present a report: files touched, sections added, items routed elsewhere, findings that need the user.
@@ -218,11 +218,11 @@ A task is **not shipped**, and a `--do` change **must not be committed**, until 
 
 **Default: decide.** Writing a task is an investigation, and investigations produce answers. If the code, the project's rules, the existing tasks, or fetched docs support a defensible answer, that is a decision — make it, record it under `## Decisions` with the date, keep moving. Classify every candidate question into one of three tiers:
 
-| Tier                  | When                                                                                                                                                                    | Action                                                                                                         |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| **Decide-and-record** | A defensible answer follows from the code, the project's own rules, sibling tasks, or engineering practice (naming, an edge case, a default, an ordering)               | Decide; write `~~question~~ **Decided YYYY-MM-DD: answer.** rationale` under `## Decisions`                    |
-| **Ask**               | A fork changes which code you touch and only the owner can pick (product behavior the specs leave open), or a value only they hold (money, policy, external commitment) | `AskUserQuestion` in Phase 0 when it blocks writing the task; otherwise an `OD-NN` entry with a recommendation |
-| **Non-issue**         | Already specified, or the answer changes nothing                                                                                                                        | Say nothing; do not manufacture questions                                                                      |
+| Tier                  | When                                                                                                                                                                    | Action                                                                                                                                |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| **Decide-and-record** | A defensible answer follows from the code, the project's own rules, sibling tasks, or engineering practice (naming, an edge case, a default, an ordering)               | Decide; add a `### D-NN — question` heading under `## Decisions` with `**Decided YYYY-MM-DD.** answer` and `**Why.** rationale` lines |
+| **Ask**               | A fork changes which code you touch and only the owner can pick (product behavior the specs leave open), or a value only they hold (money, policy, external commitment) | `AskUserQuestion` in Phase 0 when it blocks writing the task; otherwise an `OD-NN` entry with a recommendation                        |
+| **Non-issue**         | Already specified, or the answer changes nothing                                                                                                                        | Say nothing; do not manufacture questions                                                                                             |
 
 **Irreversible-work guardrail**: when the task touches data migration, data loss, money, security, or an external party's configuration that is hard to undo (a provider account, a DNS record, a published number), the ask bar drops — confirm the approach before executing, even if the file looks complete.
 
@@ -230,21 +230,21 @@ A task is **not shipped**, and a `--do` change **must not be committed**, until 
 
 ## Include in Task Files
 
-| Element            | Purpose                                                            | Example                                                                                   |
-| ------------------ | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
-| Frontmatter        | The structured truth the board copies from                         | `id: 008` … `size: Small` … `updated: 2026-09-03`                                         |
-| Lead paragraph     | Where the task stands and the shape of the work                    | "The work is provider-side; the code already handles a number change"                     |
-| Why                | Dated evidence of the gap                                          | "`grep -c history ai/generation/signatures.py` returned 0 (2026-09-03)"                   |
-| Scope              | Numbered WHAT-changes + **Do NOT change** + **Out of scope**       | "1. Add `CLOSING` to `IntentType` … Do NOT touch the booking slot collection"             |
-| Constraints        | Project rules that bound the approach                              | "`CLAUDE.md`: never keyword-match intents — must be signature-level"                      |
-| Sequencing         | Depends on / blocks / why now                                      | "After 002 — decide Loki vs MLflow first"                                                 |
-| Done when          | AC table + mirrored `- [ ]` checklist                              | "AC-1 … / `- [ ] AC-1: …`"                                                                |
-| Verification       | Tests to add/run + how to confirm live                             | "Corpus rows for `gracias` across intents; confirm `reason: customer_request` in Grafana" |
-| Decisions          | Decided items struck through and dated; open forks as `OD-NN`      | "~~Close mid-booking?~~ **Decided 2026-09-03: no.** Context decides, never the word"      |
-| Related            | PRD/TDD, bugs filed, runbooks, sibling tasks                       | "Bug 014 (found while investigating); runbook `whatsapp-app-setup.md`"                    |
-| Next step          | The single action that starts the work                             | "Write the PRD. Study the reference panel first."                                         |
-| Shipped (archived) | What landed, commits, dated verification, actual vs estimated size | "Verified in production 2026-09-03: … Size was Medium, as estimated"                      |
-| Follow-ups         | New work discovered, each filed as its own task                    | "Distributed tracing across both stacks -> task 015"                                      |
+| Element            | Purpose                                                                                                               | Example                                                                                                  |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Frontmatter        | The structured truth the board copies from                                                                            | `id: 008` … `size: Small` … `updated: 2026-09-03`                                                        |
+| Lead paragraph     | Where the task stands and the shape of the work                                                                       | "The work is provider-side; the code already handles a number change"                                    |
+| Why                | Dated evidence of the gap                                                                                             | "`grep -c history ai/generation/signatures.py` returned 0 (2026-09-03)"                                  |
+| Scope              | Numbered WHAT-changes + **Do NOT change** + **Out of scope**                                                          | "1. Add `CLOSING` to `IntentType` … Do NOT touch the booking slot collection"                            |
+| Constraints        | Project rules that bound the approach                                                                                 | "`CLAUDE.md`: never keyword-match intents — must be signature-level"                                     |
+| Sequencing         | Depends on / blocks / why now                                                                                         | "After 002 — decide Loki vs MLflow first"                                                                |
+| Done when          | AC table + mirrored `- [ ]` checklist                                                                                 | "AC-1 … / `- [ ] AC-1: …`"                                                                               |
+| Verification       | Tests to add/run + how to confirm live                                                                                | "Corpus rows for `gracias` across intents; confirm `reason: customer_request` in Grafana"                |
+| Decisions          | One `### D-NN — question` heading per decided item (Decided + Why lines); open forks as `### OD-NN — question (open)` | "### D-01 — Close mid-booking? / **Decided 2026-09-03.** No. / **Why.** Context decides, never the word" |
+| Related            | PRD/TDD, bugs filed, runbooks, sibling tasks                                                                          | "Bug 014 (found while investigating); runbook `whatsapp-app-setup.md`"                                   |
+| Next step          | The single action that starts the work                                                                                | "Write the PRD. Study the reference panel first."                                                        |
+| Shipped (archived) | What landed, commits, dated verification, actual vs estimated size                                                    | "Verified in production 2026-09-03: … Size was Medium, as estimated"                                     |
+| Follow-ups         | New work discovered, each filed as its own task                                                                       | "Distributed tracing across both stacks -> task 015"                                                     |
 
 ## Exclude from Task Files
 
@@ -262,7 +262,7 @@ A task is **not shipped**, and a `--do` change **must not be committed**, until 
 
 - **States**: `todo` -> `doing` -> `shipped`, with `blocked` as a side state. On the board, state is the section (Doing or Next); a `blocked` task stays under Next with a hook beginning `Blocked —` and the blocker named in `Sequencing` or `Decisions`.
 - **Branch** (`--do` only): `task/<NNN>-<slug>`, auto-created when on a protected branch, reused when already on a feature branch, overridable with `--branch` / `--no-branch`.
-- **Living document**: a task file is updated as understanding improves — partial progress goes in the lead paragraph, settled questions get struck through, `updated` is bumped every time. It is not frozen at creation the way a bug doc is.
+- **Living document**: a task file is updated as understanding improves — partial progress goes in the lead paragraph, a settled question becomes a dated `### D-NN` entry under `## Decisions`, `updated` is bumped every time. It is not frozen at creation the way a bug doc is.
 - **The move is staged, never committed by the skill**: on ship, `git mv` into `archived/`, edit the board and the index, `git add` all of it, and hand off.
 - **`--ship`** is the explicit close for work done outside `--do`: it verifies the five gates, writes the shipping record from the evidence you give it, archives, and stages. It refuses when a gate is unmet.
 - **Nothing is deleted.** A reversed decision gets its own task; the archived file stays.
@@ -334,7 +334,7 @@ Before finalizing a task file, verify:
 - [ ] Sequencing names dependencies when any exist
 - [ ] **Done when has an AC table AND a mirrored `- [ ] AC-N:` checklist (ac-checker compatible)**
 - [ ] Verification names the tests to add/run and how to confirm in the running system
-- [ ] Decisions: decided items struck through with a date and rationale; only genuine forks as `OD-NN`, each with a recommendation; section omitted when empty
+- [ ] Decisions: one `### D-NN — question` heading per decided item with dated `**Decided.**` and `**Why.**` lines; only genuine forks as `### OD-NN — question (open)` with Choices and Recommended lines; section omitted when empty
 - [ ] Next step is a single concrete action
 - [ ] Any third-party step was verified against freshly fetched docs, not memory
 - [ ] Board row present under the right section; priority and size match frontmatter; hook is one line

@@ -237,9 +237,13 @@ ______________________________________________________________________
 
 <!-- Judgment calls made while writing this TDD (architecture, naming, limits, least-privilege authorization fills). Fold each into its section; log it here. -->
 
-| Decision               | Choice   | Rationale                          |
-| ---------------------- | -------- | ---------------------------------- |
-| [Decision name] (D-01) | [Choice] | [Why, with the concrete trade-off] |
+One heading per decision. IDs are referenced from the sections above.
+
+### D-01 — [Decision name]
+
+**Choice.** [Choice]
+
+**Why.** [Why, with the concrete trade-off]
 
 ______________________________________________________________________
 

@@ -82,8 +82,17 @@ So a closing turn is neither a task nor a pivot, and falls through to "answer it
 
 ## Decisions
 
-- ~~Should a closing mid-booking end the session?~~ **Decided 2026-09-03: no.** `CLOSING` is reachable only from `INFO`, `GREETING` and `FALLBACK` — the same shape as `GUEST_ALLOWED_INTENTS`. A user saying "gracias" halfway through slot collection means "thanks for that answer". Context decides, never the word.
-- ~~Does ending differ from lapsing?~~ **Decided 2026-09-03: yes, and it is the whole point.** Both leave the user without a session; only the recorded reason differs. Today a happy ending and an abandonment are filed identically (`idle_timeout` / `abandoned`), so the completion-rate panel cannot tell them apart.
+### D-01 — Should a closing mid-booking end the session?
+
+**Decided 2026-09-03.** No.
+
+**Why.** `CLOSING` is reachable only from `INFO`, `GREETING` and `FALLBACK` — the same shape as `GUEST_ALLOWED_INTENTS`. A user saying "gracias" halfway through slot collection means "thanks for that answer". Context decides, never the word.
+
+### D-02 — Does ending differ from lapsing?
+
+**Decided 2026-09-03.** Yes, and it is the whole point.
+
+**Why.** Both leave the user without a session; only the recorded reason differs. Today a happy ending and an abandonment are filed identically (`idle_timeout` / `abandoned`), so the completion-rate panel cannot tell them apart.
 
 ## Related
 

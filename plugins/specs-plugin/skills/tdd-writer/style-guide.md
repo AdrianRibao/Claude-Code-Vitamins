@@ -368,7 +368,7 @@ Document edge cases with the same structure:
 4. Authorization (Action Permissions, Data Permissions, Permission Conditions, Policy Rules)
 5. Behavior Specifications
 6. Acceptance Criteria
-7. ✅ Decisions (Resolved) — judgment calls made during generation, with rationale
+7. ✅ Decisions (Resolved) — judgment calls made during generation, one `### D-NN — title` heading each with `**Choice.**` and `**Why.**` lines (not a table: it stops being readable once rationales carry real trade-offs)
 8. Open Questions — only what a human must decide; a single "no open questions" line when empty
 9. Related Documents
 

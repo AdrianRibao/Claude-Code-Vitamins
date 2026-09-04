@@ -46,7 +46,7 @@ allowed-tools:
 | `--no-branch`         | Apply the fix on the current branch; do not create or switch branches                                                                   |
 | `--ask`               | Force surfacing of non-blocking decisions for review (default: proceed silently)                                                        |
 | `--review @path`      | Analyze an existing bug doc for gaps (no root cause, no repro, no red->green test)                                                      |
-| `--consolidate @path` | Apply answered decisions, collapse to a Decisions table, tighten the doc                                                                |
+| `--consolidate @path` | Apply answered decisions, collapse them into Decisions entries, tighten the doc                                                         |
 | `--resolve @path`     | Mark a confirmed bug fixed: set `Status` to `fixed` and `git mv` the doc into `specs/bugs/fixed/` (refuses unless the fix is confirmed) |
 
 ## Output Location
@@ -266,7 +266,7 @@ The skill owns the bug's lifecycle so the `fixed/` convention is applied consist
 - **Bug doc** (default): symptom, reproduction, root cause, scoped fix plan, regression-test design, verification plan, acceptance criteria.
 - **Fixed bug** (`--fix`): all of the above plus demonstrated red->green evidence, unit + E2E tests, the issue confirmed fixed in the running app, a passing suite, updated `Status`, and the file moved to `fixed/`.
 - **Bug doc review** (`--review`): gap analysis against the seven gates (missing repro, symptom-as-cause, no red->green test, missing unit/E2E coverage, no app confirmation, unbounded scope).
-- **Consolidated bug doc** (`--consolidate`): answered decisions applied, collapsed into a Decisions table, tightened.
+- **Consolidated bug doc** (`--consolidate`): answered `OD-NN` items applied to their sections and recorded under `## ✅ Decisions (Resolved)` as one `### OD-NN — question` heading each with `**Choice.**` and `**Why.**` lines; `## Open decisions` removed once empty; doc tightened.
 - **Resolved bug** (`--resolve`): `Status` set to `fixed` and the doc moved into `specs/bugs/fixed/` (evidence bar enforced).
 
 ## Examples

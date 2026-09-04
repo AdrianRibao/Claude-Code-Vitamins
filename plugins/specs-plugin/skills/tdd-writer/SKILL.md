@@ -114,7 +114,7 @@ Requirements-first approach: every section answers "what" not "how". Use tables 
 
 1. **Invoke Sequential MCP**: Use `--ultrathink` to scan the complete TDD for ambiguities, missing decisions, edge cases, authorization gaps, and scope gaps
 2. **Classify each finding** (see [Question Policy](#question-policy)): decide-and-record, ask, or non-issue
-3. **Decide-and-record**: Pick the answer you are confident in, fold it into the relevant section (data model, contract, authorization, behavior spec, AC), and log it under `## ✅ Decisions (Resolved)` with a one-line rationale
+3. **Decide-and-record**: Pick the answer you are confident in, fold it into the relevant section (data model, contract, authorization, behavior spec, AC), and log it under `## ✅ Decisions (Resolved)` as one `### D-NN — title` heading per decision with a `**Choice.**` line and a `**Why.**` line — never a table (rationales with real trade-offs make it wider than a terminal) and never a single paragraph (a `wrap = "no"` formatter joins it into one line)
 4. **Ask sparingly**: Only findings a human must settle become `OQ-NN` entries under `## Open Questions`. If none survive, write the no-open-questions line
 
 ### Phase 3: Finalization
@@ -312,11 +312,11 @@ Write the TDD to file with placeholder sections:
 
 **Default: decide.** The deep-analysis pass exists to find gaps, not to produce a list of questions. Once a gap is found, close it yourself whenever you can do so with confidence — a reviewer's attention is the scarcest resource in this process, and a TDD that arrives with five questions the author could have answered is worse than one that arrives with five recorded decisions. Classify every finding into one of three tiers:
 
-| Tier                  | When                                                                                                                                                                                                                   | Action                                                                                                                  |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| **Decide-and-record** | A defensible answer follows from the PRD, the codebase's existing patterns, fetched third-party docs, or established engineering practice (architecture, naming, validation limits, indexes, error handling, defaults) | Choose it, fold it into the relevant section, add a row to `## ✅ Decisions (Resolved)` (Decision / Choice / Rationale) |
-| **Ask**               | Only a human can settle it: business policy the PRD leaves open, legal/compliance-driven values, infrastructure budget, external contracts or SLAs, a user-facing behavior fork the product owner must call            | Write an `OQ-NN` entry under `## Open Questions` with a recommended option                                              |
-| **Non-issue**         | Already specified, or the answer would not change the implementation                                                                                                                                                   | Say nothing; do not manufacture questions                                                                               |
+| Tier                  | When                                                                                                                                                                                                                   | Action                                                                                                                                               |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Decide-and-record** | A defensible answer follows from the PRD, the codebase's existing patterns, fetched third-party docs, or established engineering practice (architecture, naming, validation limits, indexes, error handling, defaults) | Choose it, fold it into the relevant section, add a `### D-NN — title` entry to `## ✅ Decisions (Resolved)` with `**Choice.**` and `**Why.**` lines |
+| **Ask**               | Only a human can settle it: business policy the PRD leaves open, legal/compliance-driven values, infrastructure budget, external contracts or SLAs, a user-facing behavior fork the product owner must call            | Write an `OQ-NN` entry under `## Open Questions` with a recommended option                                                                           |
+| **Non-issue**         | Already specified, or the answer would not change the implementation                                                                                                                                                   | Say nothing; do not manufacture questions                                                                                                            |
 
 **Ask-tier test** — an Open Question is legitimate only when *all three* hold:
 
@@ -398,10 +398,19 @@ to fill the section.
 ```markdown
 ## ✅ Decisions (Resolved)
 
-| Decision                        | Choice                                        | Rationale                                                                                                           |
-| ------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Incident deletion (D-01)        | Soft-delete via `deleted_at`, purge after 30d | Constraint CR-04 (all writes are audited) needs the row for the audit trail; hard delete would orphan audit events |
-| Viewer access to notes (D-02)   | Viewers cannot read `private_notes`           | Least privilege; the PRD grants viewers read-only *summary* access, and PT-14/PT-15 now assert the deny            |
+One heading per decision. IDs are referenced from the sections above.
+
+### D-01 — Incident deletion
+
+**Choice.** Soft-delete via `deleted_at`, purge after 30 days.
+
+**Why.** Constraint CR-04 (all writes are audited) needs the row for the audit trail; a hard delete would orphan audit events.
+
+### D-02 — Viewer access to notes
+
+**Choice.** Viewers cannot read `private_notes`.
+
+**Why.** Least privilege; the PRD grants viewers read-only *summary* access, and PT-14/PT-15 now assert the deny.
 
 ## Open Questions
 
@@ -521,9 +530,9 @@ After Open Questions are answered in discussion, use `--consolidate` to apply an
     - Update Data Model with clarified constraints
     - Add missing Behavior Specs for resolved edge cases
     - Adjust Acceptance Criteria based on scope decisions
-3. **Collapse resolved questions into a Decisions table** (do NOT leave answered questions in the verbose `### OQ-NN` Question / Why it matters / Possible answers / Status format):
-    - Move every **resolved** question into the `## ✅ Decisions (Resolved)` table (extend the existing one from creation time; create it if absent) with columns **Decision | Choice | Rationale**. Keep the `OQ-NN` / `FQ-NN` id inline in the Decision cell (e.g. `Retention policy (OQ-01)`) so cross-references elsewhere in the doc still resolve.
-    - **Delete** the verbose detail blocks of resolved questions (the table is now the record).
+3. **Collapse resolved questions into Decisions entries** (do NOT leave answered questions in the verbose `### OQ-NN` Question / Why it matters / Possible answers / Status format):
+    - Move every **resolved** question into `## ✅ Decisions (Resolved)` (extend the existing section from creation time; create it if absent) as one `### OQ-NN — title` heading each with `**Choice.**` and `**Why.**` lines. Keeping the `OQ-NN` / `FQ-NN` id in the heading means cross-references elsewhere in the doc still resolve.
+    - **Delete** the verbose detail blocks of resolved questions (the Decisions entry is now the record).
     - Keep only genuinely **open** questions under `## Open Questions`, retaining their detail blocks. If none remain, write `*No open questions — every design decision is recorded in ✅ Decisions (Resolved).*`
     - Update any footer/summary line to reference "✅ Decisions (Resolved)" instead of listing resolved OQ ids.
 4. **Tighten Document**:
@@ -564,10 +573,17 @@ After Open Questions are answered in discussion, use `--consolidate` to apply an
 
 ## ✅ Decisions (Resolved)
 
-| Decision | Choice | Rationale |
-| --- | --- | --- |
-| Audit-log retention (OQ-01) | 90 days | Compliance window; bounds storage growth |
-| Max file upload size (OQ-02) | 10MB | Covers expected documents; caps abuse |
+### OQ-01 — Audit-log retention
+
+**Choice.** 90 days.
+
+**Why.** Compliance window; bounds storage growth.
+
+### OQ-02 — Max file upload size
+
+**Choice.** 10MB.
+
+**Why.** Covers expected documents; caps abuse.
 
 ## Open Questions
 
@@ -650,7 +666,7 @@ Before finalizing a TDD, verify:
 - [ ] **Acceptance Criteria > Testing contains the measurable test-count assertion (`Policy test count ≥ N = …`) referencing the Permission Matrix Test Plan**
 - [ ] Behavior specs use Given/When/Then
 - [ ] Decision triage run via Sequential MCP + ultrathink (Phase 2 complete)
-- [ ] Every decide-and-record finding is folded into its section and logged in `✅ Decisions (Resolved)` with a rationale; every authorization gap was decided (least privilege), never asked
+- [ ] Every decide-and-record finding is folded into its section and logged in `✅ Decisions (Resolved)` as a `### D-NN — title` entry with `**Choice.**` and `**Why.**` lines (no table); every authorization gap was decided (least privilege), never asked
 - [ ] Every OQ passes the Ask-tier test (changes the implementation, not answerable with confidence, reviewer holds the authority) and carries a recommended option
 - [ ] Open Questions is either genuine questions or exactly the no-open-questions line — never padded
 - [ ] **Each Decision and OQ is self-contained: acronyms spelled out, every rule/PRD/attribute reference carries a 1-line inline context, trade-offs are concrete (cost/latency/UX/compliance, not labels like "standard practice"), and the current implicit default is stated — reviewer can answer without re-reading the TDD**

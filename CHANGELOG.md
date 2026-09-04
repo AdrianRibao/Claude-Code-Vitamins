@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- **tdd-writer, prd-writer**: `✅ Decisions (Resolved)` is now one `### D-NN — title` heading per decision with a `**Choice.**` line and a `**Why.**` line, instead of a Decision / Choice / Rationale table. Rationales with real trade-offs made the table wider than a terminal and unreadable in review, and a paragraph form gets joined into one line by `wrap = "no"` formatters; headings keep each idea on its own line and stay jumpable. Applied to the Phase 2 output format, the consolidation workflow and examples, the templates (combined/backend TDD, feature/master PRD), the style guides and the quality checklists. **task-writer**: the struck-through bullet form (`~~question~~ **Decided …**`) is replaced by the same headings (`### D-NN — question` with `**Decided YYYY-MM-DD.**` and `**Why.**` lines; open forks as `### OD-NN — question (open)` with `**Choices.**` and `**Recommended.**`), in the skill, style guide, template and both examples; reformatting legacy entries is preserved-text-only. **bugfix-writer**: `--consolidate` records answered `OD-NN` items under `## ✅ Decisions (Resolved)` in the same heading shape (style guide, template, outputs). Bump 1.12.1.
+
 ### Added
 
 - **tdd-writer**: Permission Matrix formula extended with the `F` (referent) term — `N = A + S + F + H + R + 2·P + E` — closing the IDOR / confused-deputy gap: one `Referent deny` row per (action, foreign-key input) pair whose referenced record is scope-qualified (authorized actor inside their own scope submits another scope's id → explicit rejection, zero state written)

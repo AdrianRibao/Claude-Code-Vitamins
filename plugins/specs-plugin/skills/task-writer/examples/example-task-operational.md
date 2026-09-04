@@ -71,8 +71,17 @@ Step 1 before step 2: with two apps subscribed the logs are ambiguous, and the v
 
 ## Decisions
 
-- ~~Add the `signature_mismatch` alert now?~~ **Decided 2026-09-04: no — after step 1 is confirmed.** It fires today for a benign reason, so a `> 0` rule would page immediately and permanently, and an alert that is wrong on day one teaches people to ignore the channel.
-- ~~Change the vault first, then the partner row?~~ **Decided 2026-09-04: same change, same deploy.** The two must match or inbound fails closed; a split deploy guarantees a window where it does.
+### D-01 — Add the `signature_mismatch` alert now?
+
+**Decided 2026-09-04.** No — after step 1 is confirmed.
+
+**Why.** It fires today for a benign reason, so a `> 0` rule would page immediately and permanently, and an alert that is wrong on day one teaches people to ignore the channel.
+
+### D-02 — Change the vault first, then the partner row?
+
+**Decided 2026-09-04.** Same change, same deploy.
+
+**Why.** The two must match or inbound fails closed; a split deploy guarantees a window where it does.
 
 ## Related
 

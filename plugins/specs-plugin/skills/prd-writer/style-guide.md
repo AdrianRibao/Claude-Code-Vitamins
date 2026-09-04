@@ -389,7 +389,7 @@ are error-prone and lack employer visibility.
 6. Success Metrics
 7. Scope (In/Out)
 8. Constraints & Dependencies
-9. ✅ Decisions (Resolved) — judgment calls made during generation, with rationale
+9. ✅ Decisions (Resolved) — judgment calls made during generation, one `### D-NN — title` heading each with `**Choice.**` and `**Why.**` lines (not a table)
 10. Open Questions — only what a human must decide; a single "no open questions" line when empty
 11. Related Documents
 

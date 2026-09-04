@@ -165,16 +165,24 @@ Three parts, each present when applicable:
 
 One `## Decisions` section, two kinds of entry:
 
-- **Decided** (decide-and-record): the question struck through, then the answer in bold with its date, then the rationale.
+- **Decided** (decide-and-record): one `### D-NN — question` heading, then a dated `**Decided.**` line with the answer, then a `**Why.**` line with the rationale. Not a table (rationales make it wider than a terminal) and not a struck-through bullet (the whole entry becomes one long line under `wrap = "no"`).
 
     ```markdown
-    - ~~Should a closing mid-booking end the session?~~ **Decided 2026-09-03: no.** `CLOSING` is reachable only from `INFO`, `GREETING` and `FALLBACK`. A user saying "gracias" halfway through slot collection means "thanks for that answer". Context decides, never the word.
+    ### D-01 — Should a closing mid-booking end the session?
+
+    **Decided 2026-09-03.** No.
+
+    **Why.** `CLOSING` is reachable only from `INFO`, `GREETING` and `FALLBACK`. A user saying "gracias" halfway through slot collection means "thanks for that answer". Context decides, never the word.
     ```
 
-- **Open** (ask-tier only): an `OD-NN` id, the fork, the choices with consequences, and a recommendation.
+- **Open** (ask-tier only): a `### OD-NN — question (open)` heading, then a `**Choices.**` line with the consequence of each option, then a `**Recommended.**` line.
 
     ```markdown
-    - **OD-01 (open):** Should the validation reject a zero-stage service outright? — A) reject on create/update: dead data becomes impossible, existing rows need a migration check; B) allow and render `0`: no migration, the booking handler must keep guarding. **Recommended: A** — the handler already cannot book it.
+    ### OD-01 — Should the validation reject a zero-stage service outright? (open)
+
+    **Choices.** A) reject on create/update: dead data becomes impossible, existing rows need a migration check; B) allow and render `0`: no migration, the booking handler must keep guarding.
+
+    **Recommended.** A** — the handler already cannot book it.
     ```
 
 Omit the section when there is nothing decided and nothing open. Never pad it.

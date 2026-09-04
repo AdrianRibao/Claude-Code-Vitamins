@@ -191,6 +191,7 @@ The final regression-test checkbox is **mandatory** in every bug doc.
 
 - **Assumption** (default-and-document): a minor uncertainty you resolved with a sensible default. Record it inline where it applies: *"Assumed Option letters re-number on delete (creation-order) — flag if stability is required."* Does not block the fix.
 - **Open decision** (blocking): a genuine fork where a *correct* fix is impossible without an answer. Goes under `## Open decisions` with an `OD-NN` id, the choices, and their consequences. Omit the section entirely when there are none — do not manufacture questions.
+- **Resolved decision** (after `--consolidate`): an answered `OD-NN` moves to `## ✅ Decisions (Resolved)` as one `### OD-NN — question` heading with a `**Choice.**` line and a `**Why.**` line — the same shape PRDs, TDDs and tasks use, never a table. Remove `## Open decisions` once it is empty.
 
 ## Branch and Commit
 

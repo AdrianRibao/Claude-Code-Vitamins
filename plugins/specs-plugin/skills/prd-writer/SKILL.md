@@ -107,7 +107,7 @@ Requirements-first approach: every section answers "what" and "why", never "how"
 
 1. **Invoke Sequential MCP**: Use `--ultrathink` to scan the complete PRD for ambiguities, missing decisions, edge cases, and scope gaps
 2. **Classify each finding** (see [Question Policy](#question-policy)): decide-and-record, ask, or non-issue
-3. **Decide-and-record**: Pick the answer you are confident in, fold it into the relevant section, and log it under `## ✅ Decisions (Resolved)` with a one-line rationale
+3. **Decide-and-record**: Pick the answer you are confident in, fold it into the relevant section, and log it under `## ✅ Decisions (Resolved)` as one `### D-NN — title` heading per decision with a `**Choice.**` line and a `**Why.**` line — never a table (rationales with real trade-offs make it wider than a terminal) and never a single paragraph (a `wrap = "no"` formatter joins it into one line)
 4. **Ask sparingly**: Only findings a human must settle become `OQ-NN` entries under `## Open Questions`. If none survive, write the no-open-questions line
 
 ### Phase 3: Finalization
@@ -184,11 +184,11 @@ Write the PRD to file with placeholder sections:
 
 **Default: decide.** The deep-analysis pass exists to find gaps, not to produce a list of questions. Once a gap is found, close it yourself whenever you can do so with confidence — a reviewer's attention is the scarcest resource in this process, and a PRD that arrives with five questions the author could have answered is worse than one that arrives with five recorded decisions. Classify every finding into one of three tiers:
 
-| Tier                  | When                                                                                                                                                                                                         | Action                                                                                                                  |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| **Decide-and-record** | A defensible answer follows from the problem statement, the codebase, sibling PRDs, or common product practice                                                                                               | Choose it, fold it into the relevant section, add a row to `## ✅ Decisions (Resolved)` (Decision / Choice / Rationale) |
-| **Ask**               | Only a human can settle it: business strategy, pricing, legal/compliance, budget, priority between competing stakeholders, brand or UX preference, or facts you cannot obtain (contracts, customer promises) | Write an `OQ-NN` entry under `## Open Questions` with a recommended option                                              |
-| **Non-issue**         | Already specified, or the answer would not change what gets built                                                                                                                                            | Say nothing; do not manufacture questions                                                                               |
+| Tier                  | When                                                                                                                                                                                                         | Action                                                                                                                                               |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Decide-and-record** | A defensible answer follows from the problem statement, the codebase, sibling PRDs, or common product practice                                                                                               | Choose it, fold it into the relevant section, add a `### D-NN — title` entry to `## ✅ Decisions (Resolved)` with `**Choice.**` and `**Why.**` lines |
+| **Ask**               | Only a human can settle it: business strategy, pricing, legal/compliance, budget, priority between competing stakeholders, brand or UX preference, or facts you cannot obtain (contracts, customer promises) | Write an `OQ-NN` entry under `## Open Questions` with a recommended option                                                                           |
+| **Non-issue**         | Already specified, or the answer would not change what gets built                                                                                                                                            | Say nothing; do not manufacture questions                                                                                                            |
 
 **Ask-tier test** — an Open Question is legitimate only when *all three* hold:
 
@@ -252,10 +252,19 @@ to fill the section.
 ```markdown
 ## ✅ Decisions (Resolved)
 
-| Decision                        | Choice                              | Rationale                                                                                   |
-| ------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------- |
-| Employer model (D-01)           | Single employer per employee in v1  | Every persona in Target Users has one employer; multi-employer adds a join and split reports |
-| Offline behavior (D-02)         | Read-only cache, writes queue       | Constraint "must work offline" + Workflow 3 only needs viewing; queued writes match FR-07   |
+One heading per decision. IDs are referenced from the sections above.
+
+### D-01 — Employer model
+
+**Choice.** Single employer per employee in v1.
+
+**Why.** Every persona in Target Users has one employer; multi-employer adds a join and split reports.
+
+### D-02 — Offline behavior
+
+**Choice.** Read-only cache, writes queue.
+
+**Why.** Constraint "must work offline" + Workflow 3 only needs viewing; queued writes match FR-07.
 
 ## Open Questions
 
@@ -370,9 +379,9 @@ After Open Questions are answered in discussion, use `--consolidate` to apply an
     - Add missing User Workflows for resolved edge cases
     - Adjust Requirements based on scope decisions
     - Update Success Metrics with agreed baselines
-3. **Collapse resolved questions into a Decisions table** (do NOT leave answered questions in the verbose `### OQ-NN` Question / Why it matters / Possible answers / Status format):
-    - Move every **resolved** question into the `## ✅ Decisions (Resolved)` table (extend the existing one from creation time; create it if absent) with columns **Decision | Choice | Rationale**. Keep the `OQ-NN` / `FQ-NN` id inline in the Decision cell (e.g. `Reveal timing (OQ-01)`) so cross-references elsewhere in the doc still resolve.
-    - **Delete** the verbose detail blocks of resolved questions (the table is now the record).
+3. **Collapse resolved questions into Decisions entries** (do NOT leave answered questions in the verbose `### OQ-NN` Question / Why it matters / Possible answers / Status format):
+    - Move every **resolved** question into `## ✅ Decisions (Resolved)` (extend the existing section from creation time; create it if absent) as one `### OQ-NN — title` heading each with `**Choice.**` and `**Why.**` lines. Keeping the `OQ-NN` / `FQ-NN` id in the heading means cross-references elsewhere in the doc still resolve.
+    - **Delete** the verbose detail blocks of resolved questions (the Decisions entry is now the record).
     - Keep only genuinely **open** questions under `## Open Questions`, retaining their detail blocks. If none remain, write `*No open questions — every design decision is recorded in ✅ Decisions (Resolved).*`
     - Leave partner/business question sets (e.g. an `AT-*` "Questions for [partner]" section) in their own section.
     - Update any footer/summary line to reference "✅ Decisions (Resolved)" instead of listing resolved OQ ids.
@@ -413,10 +422,17 @@ After Open Questions are answered in discussion, use `--consolidate` to apply an
 
 ## ✅ Decisions (Resolved)
 
-| Decision | Choice | Rationale |
-| --- | --- | --- |
-| Employer multiplicity (OQ-01) | Single employer per employee (v1) | Simpler data model + UI; multi-employer deferred to v2 |
-| Weekly hours cap (OQ-02) | 60-hour weekly maximum | Legal compliance + payroll correctness |
+### OQ-01 — Employer multiplicity
+
+**Choice.** Single employer per employee (v1).
+
+**Why.** Simpler data model + UI; multi-employer deferred to v2.
+
+### OQ-02 — Weekly hours cap
+
+**Choice.** 60-hour weekly maximum.
+
+**Why.** Legal compliance + payroll correctness.
 
 ## Open Questions
 
@@ -472,7 +488,7 @@ Before finalizing a PRD, verify:
 - [ ] No implementation details or code
 - [ ] No technical architecture decisions
 - [ ] Decision triage run via Sequential MCP + ultrathink (Phase 2 complete)
-- [ ] Every decide-and-record finding is folded into its section and logged in `✅ Decisions (Resolved)` with a rationale
+- [ ] Every decide-and-record finding is folded into its section and logged in `✅ Decisions (Resolved)` as a `### D-NN — title` entry with `**Choice.**` and `**Why.**` lines (no table)
 - [ ] Every OQ passes the Ask-tier test (changes what gets built, not answerable with confidence, reviewer holds the authority) and carries a recommended option
 - [ ] Open Questions is either genuine questions or exactly the no-open-questions line — never padded
 - [ ] PRD presented for user review before TDD creation

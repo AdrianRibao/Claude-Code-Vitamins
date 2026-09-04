@@ -99,6 +99,16 @@ Expected: [one line].
 
 - **OD-01:** [question] — choices: [A] vs [B]; consequence: [...]
 
+## ✅ Decisions (Resolved)
+
+\[Only after an open decision is answered (`--consolidate`). Omit otherwise. One heading per decision.\]
+
+### OD-01 — [question]
+
+**Choice.** [answer]
+
+**Why.** [rationale, with the concrete trade-off]
+
 ## Deploy & rollback
 
 [Only when deploy is non-trivial. Otherwise omit.]
