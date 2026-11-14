@@ -101,7 +101,11 @@ Code standards, documentation, and maintainability requirements.
 - [ ] All new modules have type annotations and documentation
 - [ ] No compiler/linter warnings
 - [ ] Code formatted per project standards
+- [ ] **The `code-review` skill ran on the final implementation diff after the suite went green and before commit**
+- [ ] **Every code-review finding is fixed (tests re-run), filed as a bug or task, or dismissed with a one-line reason**
 ```
+
+The two code-review criteria are **process criteria**: no test or source file can prove them. Report them as `Manual` (never as missing implementation), preserve their marks, and leave them unticked on `--update`. A TDD whose Code Quality subsection lacks them gets a Medium finding.
 
 ## Format Requirements
 

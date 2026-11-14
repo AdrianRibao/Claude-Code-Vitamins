@@ -10,6 +10,7 @@ allowed-tools:
   - AskUserQuestion
   - TodoWrite
   - Task
+  - Skill
   - Bash
   - WebFetch
   - WebSearch
@@ -26,7 +27,7 @@ allowed-tools:
 - A reported defect needs a written, reproducible specification before anyone fixes it
 - Planning a fix: capturing symptom, reproduction, root cause, and a scoped change
 - Reproducing a defect and proving it with a failing (red) regression test
-- Driving a fix end to end (`--fix`): red test -> fix -> green -> no regressions
+- Driving a fix end to end (`--fix`): red test -> fix -> green -> no regressions -> code review
 - Reviewing an existing bug doc for missing root cause, reproduction, or regression test
 - Consolidating a bug doc after open decisions are answered
 
@@ -101,6 +102,7 @@ Bugfix Progress:
 - [ ] 3. (--fix) Applied the smallest fix; proved it GREEN
 - [ ] 3. (--fix) Ran unchanged-behavior tests + suite; no regressions
 - [ ] 4. Created unit + E2E tests at the levels the fix warrants; all green
+- [ ] 4. (--fix) Ran the `code-review` skill on the final diff; every finding fixed, filed, or dismissed
 - [ ] 4. (--fix) Confirmed the ORIGINAL issue is gone in the running app (browser for UI)
 - [ ] 4. Wrote verification + manual demo mapped to acceptance criteria
 - [ ] 5. Triaged for blockers; emitted `## Open decisions` only if blocked
@@ -152,18 +154,24 @@ Bugfix Progress:
 5. **Prove no regressions**: run the unchanged-behavior tests and the surrounding suite. If anything breaks, fix and re-run from step 3 — repeat until the regression test is green AND the suite passes.
 6. **Record evidence**: capture red output, green output, and suite result in the doc.
 
-Without `--fix`, this phase is written as a plan (red expectation + fix + verification), executed later by the implementer.
+Without `--fix`, this phase is written as a plan (red expectation + fix + verification + code review), executed later by the implementer.
 
-### Phase 4: Verification & Demo
+### Phase 4: Verification, Code Review & Demo
 
 1. **Automated tests at the right levels** (create them if missing — do not stop at the single regression test):
     - **Unit tests** for the changed logic, branch, or validation.
     - **E2E tests** for the user-facing flow where the bug was visible (UI journey, API contract) when the fix warrants it.
     - **Unchanged-behavior tests** for each blast-radius item.
     - Run them all; every test must pass.
-2. **Confirm the issue in the running app**: reproduce the ORIGINAL steps and confirm the symptom is actually gone — passing tests alone are not proof. For UI bugs, drive a real browser (e.g. the `claude-in-chrome` browser skill); for APIs, hit the live endpoint. Capture evidence (screenshot / response).
-3. **Manual / How to demo**: step-by-step reproduction-then-confirmation, with ✅ expected and ❌ failure signals, mapped to acceptance criteria (P11 demo style).
-4. **Trace**: every acceptance criterion maps to a symptom and to a test.
+2. **Code review** — once the suite is green, before the app confirmation and before anything is staged:
+    - Invoke the `code-review` skill on the uncommitted change (fix + tests). Mark new files intent-to-add first (`git add -N <paths>`) so they are part of the diff.
+    - Use the default level; use `high` when the fix touches data loss, data migration, money, or security.
+    - Triage every finding instead of applying them wholesale: a real defect in this change -> fix it and re-run the regression test and suite; outside the scope -> file it with `/bugfix` or `/task` and link it; wrong -> dismiss it with a one-line reason.
+    - Record the date, the level, and each finding's disposition under `Verification > Code review`.
+    - If the `code-review` skill is unavailable, say so and run an independent review through a `Task` subagent given only the diff and the doc. Never skip the gate silently.
+3. **Confirm the issue in the running app**: reproduce the ORIGINAL steps on the reviewed code and confirm the symptom is actually gone — passing tests alone are not proof. For UI bugs, drive a real browser (e.g. the `claude-in-chrome` browser skill); for APIs, hit the live endpoint. Capture evidence (screenshot / response).
+4. **Manual / How to demo**: step-by-step reproduction-then-confirmation, with ✅ expected and ❌ failure signals, mapped to acceptance criteria (P11 demo style).
+5. **Trace**: every acceptance criterion maps to a symptom and to a test.
 
 ### Phase 5: Blocking-Question Triage (replaces heavyweight Open Questions)
 
@@ -173,26 +181,27 @@ Without `--fix`, this phase is written as a plan (red expectation + fix + verifi
 
 ### Phase 6: Finalize & Lifecycle
 
-1. **Verify before any commit**: a fix counts as "confirmed" only when all [Seven Non-Negotiable Gates](#the-seven-non-negotiable-gates) hold — tests green AND the original issue confirmed gone in the running app. **Do not commit (or advise committing) while any gate is unmet.**
+1. **Verify before any commit**: a fix counts as "confirmed" only when all [Eight Non-Negotiable Gates](#the-eight-non-negotiable-gates) hold — tests green, the diff code-reviewed with every finding resolved, AND the original issue confirmed gone in the running app. **Do not commit (or advise committing) while any gate is unmet.**
 2. **Present for review**: show the complete bug doc; await approval before any implementation (when not `--fix`).
-3. **Stage the verified change, then hand off**: once all seven gates pass, on the `fix/...` branch apply the fix, `git mv` the doc from `specs/bugs/` into `specs/bugs/fixed/`, set its `Status` to `fixed` (fill in the `— PR #NNN, commit <hash>` reference when you commit), and `git add` everything so the fix + doc move are **staged together**. **The skill does not commit** — you review the staged diff and make the commit / open the PR. The move rides in that fix commit and reaches `main` only when the PR merges. Preserve the `NNN`.
+3. **Stage the verified change, then hand off**: once all eight gates pass, on the `fix/...` branch apply the fix, `git mv` the doc from `specs/bugs/` into `specs/bugs/fixed/`, set its `Status` to `fixed` (fill in the `— PR #NNN, commit <hash>` reference when you commit), and `git add` everything so the fix + doc move are **staged together**. **The skill does not commit** — you review the staged diff and make the commit / open the PR. The move rides in that fix commit and reaches `main` only when the PR merges. Preserve the `NNN`.
 4. **Quality check**: run the [Quality Checklist](#quality-checklist) and `mdformat` on the doc.
 
-## The Seven Non-Negotiable Gates
+## The Eight Non-Negotiable Gates
 
-These are the bugfix analog of the TDD permission-matrix gate. A bug doc is **not acceptable**, and a `--fix` change **must not be committed**, until all seven hold (or are explicitly, justifiably waived in the doc):
+These are the bugfix analog of the TDD permission-matrix gate. A bug doc is **not acceptable**, and a `--fix` change **must not be committed**, until all eight hold (or are explicitly, justifiably waived in the doc):
 
-| Gate                             | Requirement                                                                                                                    |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| **Reproduction**                 | The bug is reproduced with concrete evidence, OR the doc records "not reproducible — hypothesis: …"                            |
-| **Root cause, not symptom**      | The root cause names the actual defect with `file:line` and provenance — not a restatement of the symptom                      |
-| **Red->green regression test**   | Exactly the test that fails on the buggy code and passes on the fix; with `--fix`, the RED state is demonstrated, not assumed  |
-| **Tests at the right levels**    | Unit tests cover the changed logic and E2E tests cover the user-facing flow, created where the fix warrants them — all green   |
-| **Blast radius / Do-NOT-change** | Adjacent behavior that could break is enumerated and covered by unchanged-behavior tests                                       |
-| **Confirmed fixed in the app**   | The original issue is reproduced and confirmed gone in the running app (drive a browser for UI bugs) — not inferred from tests |
-| **Scope discipline**             | Explicit In/Out of scope; the fix is the smallest change that addresses the root cause                                         |
+| Gate                             | Requirement                                                                                                                                                                                   |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Reproduction**                 | The bug is reproduced with concrete evidence, OR the doc records "not reproducible — hypothesis: …"                                                                                           |
+| **Root cause, not symptom**      | The root cause names the actual defect with `file:line` and provenance — not a restatement of the symptom                                                                                     |
+| **Red->green regression test**   | Exactly the test that fails on the buggy code and passes on the fix; with `--fix`, the RED state is demonstrated, not assumed                                                                 |
+| **Tests at the right levels**    | Unit tests cover the changed logic and E2E tests cover the user-facing flow, created where the fix warrants them — all green                                                                  |
+| **Blast radius / Do-NOT-change** | Adjacent behavior that could break is enumerated and covered by unchanged-behavior tests                                                                                                      |
+| **Code reviewed**                | The `code-review` skill ran on the final diff (fix + tests) after the suite went green; every finding is fixed, filed (`/bugfix` / `/task`), or dismissed with a reason — recorded in the doc |
+| **Confirmed fixed in the app**   | The original issue is reproduced and confirmed gone in the running app (drive a browser for UI bugs) — not inferred from tests                                                                |
+| **Scope discipline**             | Explicit In/Out of scope; the fix is the smallest change that addresses the root cause                                                                                                        |
 
-> A green regression test that was never shown to fail on the buggy code proves nothing — it may pass for reasons unrelated to the fix. And passing tests are necessary but not sufficient: a bug is "fixed" only once the original issue is reproduced and confirmed gone in the running app. **The skill never commits while any gate is unmet** — with `--fix` it stops at a verified, staged change and hands off.
+> A green regression test that was never shown to fail on the buggy code proves nothing — it may pass for reasons unrelated to the fix. And passing tests are necessary but not sufficient: a bug is "fixed" only once the original issue is reproduced and confirmed gone in the running app. The review runs after green and before the app check, so any code it changes is covered by the same tests and the same confirmation. **The skill never commits while any gate is unmet** — with `--fix` it stops at a verified, staged change and hands off.
 
 ## Question Policy
 
@@ -210,21 +219,21 @@ These are the bugfix analog of the TDD permission-matrix gate. A bug doc is **no
 
 ## Include in Bug Docs
 
-| Element             | Purpose                                                                | Example                                                                                             |
-| ------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Metadata block      | Status, Severity, Reported, Area, Repo, Related (bold-key bullets)     | `**Status:** open` … `**Severity:** Major — customer-facing`                                        |
-| Summary             | What's broken, who's hit, + a one-line scope statement                 | "UI-only fix to the dropdown label string; no data changes"                                         |
-| Symptom             | Concrete, reproducible observed behavior                               | Real IDs/URLs, expected-vs-actual, before/after blocks                                              |
-| Reproduction        | Deterministic steps, seed/restore scripts, environment                 | Shell seed script + step-by-step navigation                                                         |
-| Root cause          | The actual defect with `file:line` + provenance                        | "`labels.js:42` falls back to positional index on date collision (verified on staging, 2026-06-23)" |
-| Expected behavior   | The correct behavior, as numbered rules when needed                    | "Rule 1: shared date+time -> append (HH:mm Option X)"                                               |
-| The fix             | WHAT changes + **Do NOT change** + **Out of scope**                    | "Replace index fallback with group-based label; do NOT touch dedup logic"                           |
-| Blast radius        | Adjacent behavior at risk; what must stay unchanged                    | "Stock/places-left labels must render identically"                                                  |
-| Verification        | Regression test (red->green) + unchanged-behavior tests + manual demo  | "Test fails on `(1)(2)(3)`, passes on `Option A/B/C`"                                               |
-| Acceptance criteria | Table (`# / Context / Action / Expected`) + mirrored `- [ ]` checklist | "AC-1 … / `- [ ] AC-1: …`"                                                                          |
-| Open decisions      | Only genuine blockers (else omit)                                      | "OD-01: should Option letters be stable across edits?"                                              |
-| Deploy & rollback   | When deploy is non-trivial                                             | "CircleCI -> staging_deploy_hold; rollback = revert PR"                                             |
-| When fixed (footer) | Update Status, move to `fixed/`                                        | "Set Status to fixed and `git mv` into `specs/bugs/fixed/`"                                         |
+| Element             | Purpose                                                                             | Example                                                                                             |
+| ------------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Metadata block      | Status, Severity, Reported, Area, Repo, Related (bold-key bullets)                  | `**Status:** open` … `**Severity:** Major — customer-facing`                                        |
+| Summary             | What's broken, who's hit, + a one-line scope statement                              | "UI-only fix to the dropdown label string; no data changes"                                         |
+| Symptom             | Concrete, reproducible observed behavior                                            | Real IDs/URLs, expected-vs-actual, before/after blocks                                              |
+| Reproduction        | Deterministic steps, seed/restore scripts, environment                              | Shell seed script + step-by-step navigation                                                         |
+| Root cause          | The actual defect with `file:line` + provenance                                     | "`labels.js:42` falls back to positional index on date collision (verified on staging, 2026-06-23)" |
+| Expected behavior   | The correct behavior, as numbered rules when needed                                 | "Rule 1: shared date+time -> append (HH:mm Option X)"                                               |
+| The fix             | WHAT changes + **Do NOT change** + **Out of scope**                                 | "Replace index fallback with group-based label; do NOT touch dedup logic"                           |
+| Blast radius        | Adjacent behavior at risk; what must stay unchanged                                 | "Stock/places-left labels must render identically"                                                  |
+| Verification        | Regression test (red->green) + unchanged-behavior tests + code review + manual demo | "Test fails on `(1)(2)(3)`, passes on `Option A/B/C`"                                               |
+| Acceptance criteria | Table (`# / Context / Action / Expected`) + mirrored `- [ ]` checklist              | "AC-1 … / `- [ ] AC-1: …`"                                                                          |
+| Open decisions      | Only genuine blockers (else omit)                                                   | "OD-01: should Option letters be stable across edits?"                                              |
+| Deploy & rollback   | When deploy is non-trivial                                                          | "CircleCI -> staging_deploy_hold; rollback = revert PR"                                             |
+| When fixed (footer) | Update Status, move to `fixed/`                                                     | "Set Status to fixed and `git mv` into `specs/bugs/fixed/`"                                         |
 
 ## Exclude from Bug Docs
 
@@ -243,7 +252,7 @@ Bug docs use **both** a readable table and an `ac-checker`-parseable checklist, 
 1. **Table** for humans/QA: columns `# | Context | Action | Expected result`, IDs `AC-1`, `AC-2`, … Each row traces to a symptom.
 2. **Mirrored checklist** so `ac-checker` can parse and auto-mark: one `- [ ] AC-N: <one-line>` per table row, plus the regression-test criterion.
 
-The regression-test criterion is mandatory: `- [ ] Regression test fails on the buggy code and passes on the fix`.
+Two criteria are mandatory: `- [ ] Regression test fails on the buggy code and passes on the fix` and `- [ ] Code review run on the final diff; every finding fixed, filed, or dismissed`.
 
 ## Lifecycle Management
 
@@ -251,9 +260,9 @@ The skill owns the bug's lifecycle so the `fixed/` convention is applied consist
 
 - **Branch** (`--fix` only): work lands on a dedicated `fix/<ticket-or-NNN>-<slug>` branch — auto-created when the current branch is protected (`main`/`master`/`develop`/`release/*`), reused when already on a feature branch, overridable with `--branch` / `--no-branch`.
 - **Status values**: `open` -> `in progress` -> `fixed — PR #NNN, commit <hash> (<one-line>)`.
-- **The move is staged with the fix, not committed by the skill**: once all seven gates pass on the `fix/...` branch, `git mv` the doc into `specs/bugs/fixed/`, set `Status` to `fixed`, and `git add` it — leaving fix + doc move **staged together** (preserve the `NNN`). **You** make the commit / open the PR; the move rides in that fix commit and reaches `main` only after it merges.
-- **Evidence bar**: never mark a bug `fixed` or move it until all [Seven Non-Negotiable Gates](#the-seven-non-negotiable-gates) hold — a passing regression test alone is not enough.
-- **`--resolve @path`** (explicit close command): verifies the evidence bar, sets `Status` to `fixed`, and `git mv`s the doc into `specs/bugs/fixed/` — **staged, not committed** (you make the commit). Use it when the fix was made outside a `--fix` run (`--fix` already stages this in Phase 6). Refuses if the fix is not confirmed.
+- **The move is staged with the fix, not committed by the skill**: once all eight gates pass on the `fix/...` branch, `git mv` the doc into `specs/bugs/fixed/`, set `Status` to `fixed`, and `git add` it — leaving fix + doc move **staged together** (preserve the `NNN`). **You** make the commit / open the PR; the move rides in that fix commit and reaches `main` only after it merges.
+- **Evidence bar**: never mark a bug `fixed` or move it until all [Eight Non-Negotiable Gates](#the-eight-non-negotiable-gates) hold — a passing regression test alone is not enough.
+- **`--resolve @path`** (explicit close command): verifies the evidence bar, sets `Status` to `fixed`, and `git mv`s the doc into `specs/bugs/fixed/` — **staged, not committed** (you make the commit). Use it when the fix was made outside a `--fix` run (`--fix` already stages this in Phase 6). When the doc records no code review, it runs the `code-review` skill on the fix first (the uncommitted diff, or its branch / PR when already committed). Refuses if the fix is not confirmed.
 
 ## MCP Integration
 
@@ -264,8 +273,8 @@ The skill owns the bug's lifecycle so the `fixed/` convention is applied consist
 ## Outputs
 
 - **Bug doc** (default): symptom, reproduction, root cause, scoped fix plan, regression-test design, verification plan, acceptance criteria.
-- **Fixed bug** (`--fix`): all of the above plus demonstrated red->green evidence, unit + E2E tests, the issue confirmed fixed in the running app, a passing suite, updated `Status`, and the file moved to `fixed/`.
-- **Bug doc review** (`--review`): gap analysis against the seven gates (missing repro, symptom-as-cause, no red->green test, missing unit/E2E coverage, no app confirmation, unbounded scope).
+- **Fixed bug** (`--fix`): all of the above plus demonstrated red->green evidence, unit + E2E tests, a code review with every finding resolved, the issue confirmed fixed in the running app, a passing suite, updated `Status`, and the file moved to `fixed/`.
+- **Bug doc review** (`--review`): gap analysis against the eight gates (missing repro, symptom-as-cause, no red->green test, missing unit/E2E coverage, no code review, no app confirmation, unbounded scope).
 - **Consolidated bug doc** (`--consolidate`): answered `OD-NN` items applied to their sections and recorded under `## ✅ Decisions (Resolved)` as one `### OD-NN — question` heading each with `**Choice.**` and `**Why.**` lines; `## Open decisions` removed once empty; doc tightened.
 - **Resolved bug** (`--resolve`): `Status` set to `fixed` and the doc moved into `specs/bugs/fixed/` (evidence bar enforced).
 
@@ -286,7 +295,8 @@ The skill owns the bug's lifecycle so the `fixed/` convention is applied consist
 /bugfix online-product-count --from @notes/bug.md --fix
 
 # Reproduces, writes a red regression test, applies the fix, proves green,
-# runs the suite, sets Status=fixed, moves the file to specs/bugs/fixed/
+# runs the suite, runs /code-review on the diff, confirms in the app,
+# sets Status=fixed, stages the move to specs/bugs/fixed/
 ```
 
 ### Review an existing bug doc for gaps
@@ -311,10 +321,11 @@ Before finalizing a bug doc, verify:
 - [ ] **A regression test is specified that fails on the buggy code and passes on the fix**
 - [ ] **With `--fix`: the RED state was demonstrated (failure output recorded), then GREEN, then the suite passed**
 - [ ] **Unit tests and E2E tests created at the levels the fix warrants — all green**
+- [ ] **With `--fix`: the `code-review` skill ran on the final diff after the suite went green; every finding is fixed, filed, or dismissed with a reason under `Verification > Code review`**
 - [ ] **With `--fix`: the original issue was reproduced and confirmed GONE in the running app (browser for UI bugs) — not inferred from tests**
-- [ ] **No commit was made (or advised) until all seven gates hold**
+- [ ] **No commit was made (or advised) until all eight gates hold**
 - [ ] Acceptance criteria present as BOTH a table and a mirrored `- [ ]` checklist (ac-checker compatible)
-- [ ] **The regression-test acceptance criterion is present in the checklist**
+- [ ] **The regression-test and code-review acceptance criteria are present in the checklist**
 - [ ] Any third-party behavior was verified against freshly fetched docs, not memory
 - [ ] No manufactured questions; only genuine fix-blockers appear under `## Open decisions`
 - [ ] Default-and-document choices recorded as inline Assumptions
@@ -333,6 +344,7 @@ Before finalizing a bug doc, verify:
 - Proceed by default, asking only genuine fix-blocking questions
 - In `--fix`, work on a dedicated `fix/...` branch — auto-created when on a protected branch
 - Add unit and E2E tests at the levels the fix warrants
+- Run the `code-review` skill on the final diff before staging, and resolve every finding (fix, file, or dismiss with a reason)
 - Confirm the original issue is gone in the running app (browser for UI) before declaring it fixed
 - Manage the bug lifecycle (Status + move to `fixed/`)
 
@@ -344,5 +356,5 @@ Before finalizing a bug doc, verify:
 - Block a well-specified, ready-to-fix bug on non-essential questions
 - Mark a bug fixed without evidence (passing regression test, merged PR, or explicit confirmation)
 - Make any git commit — with `--fix` it branches, applies + verifies the fix, and **stages** the change (fix + doc move); you review and commit
-- **Advise committing a fix before all seven gates hold: unit + E2E tests green AND the issue confirmed resolved in the running app**
+- **Advise committing a fix before all eight gates hold: unit + E2E tests green, the diff code-reviewed, AND the issue confirmed resolved in the running app**
 - Edit code unless `--fix` is passed

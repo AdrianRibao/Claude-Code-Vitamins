@@ -220,12 +220,14 @@ PRDs split when: >8 workflows, >30 requirements, >4 personas, >1000 lines TDDs s
 - Maximum 5 lines per code block
 - Given/When/Then for behavior specs
 - Testable checkboxes for acceptance criteria
+- Code Quality criteria require the `code-review` skill on the implementation diff before commit
 
 ### Bugfix Style
 
 - Diagnose the root cause, never the symptom (name the defect at `file:line`)
 - Reproduce before fixing; record concrete evidence
 - Every fix is anchored by a red->green regression test (must fail on the buggy code first)
+- Run the `code-review` skill on the final diff after green and before commit; fix, file, or dismiss every finding
 - Bound the fix: explicit Do NOT change + Out of scope
 - Proceed by default; only block on genuinely fix-blocking questions
 - Acceptance criteria are a table + a mirrored `- [ ]` checklist (ac-checker compatible)
@@ -237,4 +239,5 @@ PRDs split when: >8 workflows, >30 requirements, >4 personas, >1000 lines TDDs s
 - Every claim in Why is dated and cites `file:line` or command output
 - Scope is bounded with explicit Do NOT change + Out of scope; Done when is a table + mirrored `- [ ]` checklist
 - Decide by default: settled questions are struck through with a date; only genuine forks become open decisions
+- Where code changed, run the `code-review` skill on the final diff after green and before staging
 - Shipped means archived with a "what it settled" row, never deleted; the skill stages and never commits

@@ -486,6 +486,17 @@ test "owner can update draft" do
 end
 ```
 
+### Code Review Before Commit
+
+Every TDD's **Code Quality** subsection ends with the two code-review criteria. The TDD writer does not implement or review code; writing the review into the acceptance criteria is what makes it binding on whoever implements the TDD:
+
+```markdown
+- [ ] **The `code-review` skill ran on the final implementation diff after the suite went green and before commit**
+- [ ] **Every code-review finding is fixed (tests re-run), filed as a bug or task, or dismissed with a one-line reason**
+```
+
+The order is fixed: tests green -> `ac-checker` -> `code-review` on the final diff -> resolve every finding -> commit. A review after the commit turns its findings into fix-up commits, or into nothing.
+
 ## Anti-Patterns to Avoid
 
 ### Code Bloat

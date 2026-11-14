@@ -103,6 +103,10 @@ RED expectation:  assert 1 == online_product_count  →  AssertionError: 2 != 1
 - A product with two overlapping current windows is counted **once** (`.distinct()`).
 - Search/listing endpoints return the same set as before the change.
 
+### Code review
+
+Planned: run `/code-review` on the final diff once the suite is green — default level, since the change is a read-only count with no data or money paths. Record each finding here as fixed, filed, or dismissed.
+
 ### How to demo
 
 1. Hit `GET /api/categories/?school=1` on the fixed build.
@@ -122,6 +126,7 @@ RED expectation:  assert 1 == online_product_count  →  AssertionError: 2 != 1
 - [ ] AC-2: Online product with no current period is excluded
 - [ ] AC-3: Multi-window product counted once (`.distinct()`)
 - [ ] Regression test fails on the buggy code and passes on the fix
+- [ ] Code review run on the final diff; every finding fixed, filed, or dismissed
 
 ## Deploy & rollback
 

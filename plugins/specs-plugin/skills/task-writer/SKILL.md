@@ -10,6 +10,7 @@ allowed-tools:
   - AskUserQuestion
   - TodoWrite
   - Task
+  - Skill
   - Bash
   - WebFetch
   - WebSearch
@@ -46,7 +47,7 @@ allowed-tools:
 | `--ticket ID`             | Ingest the task from a tracker issue (Jira/Linear/GitHub) via MCP                                                           |
 | `--page URL`              | Ingest the task from a wiki page (Confluence/Notion) via MCP or WebFetch                                                    |
 | `--from @path`            | Ingest the task from a local file or pasted notes                                                                           |
-| `--do NNN\|@path`         | Pick up a task: move it to Doing, branch, implement, verify the ship gates, archive, stage — never commit                   |
+| `--do NNN\|@path`         | Pick up a task: move it to Doing, branch, implement, code-review, verify the ship gates, archive, stage — never commit      |
 | `--branch NAME`           | Use/create this branch for `--do`; default auto-creates `task/<NNN>-<slug>` when on a protected branch                      |
 | `--no-branch`             | Work on the current branch; do not create or switch branches                                                                |
 | `--ask`                   | Surface decide-and-record items as open decisions for review (default: decide and record silently)                          |
@@ -111,6 +112,7 @@ Task Progress:
 - [ ] 4. Added the board row; ran the consistency checks (project checker if present)
 - [ ] 5. (--do) On a task/<NNN>-<slug> branch; status: doing; row under Doing
 - [ ] 5. (--do) Implemented the Scope and nothing else; tests at the right levels green
+- [ ] 5. (--do) Ran the `code-review` skill on the final diff; every finding fixed, filed, or dismissed
 - [ ] 5. (--do) Confirmed the outcome in the running system; evidence recorded, dated
 - [ ] 6. (--do / --ship) Ship gates verified; Shipped + Follow-ups written; follow-ups filed as new tasks
 - [ ] 6. (--do / --ship) status: shipped; git mv to archived/; index row says what it settled; board row removed
@@ -176,14 +178,21 @@ Task Progress:
 2. **Move to Doing**: set `status: doing`, bump `updated`, move the board row from Next to Doing.
 3. **Implement the Scope and nothing else.** When the Scope turns out to be wrong, update the task file first, then the code. When the work reveals a defect, file it with `/bugfix` and link it; do not fix it inside the task.
 4. **Tests at the right levels**: unit tests for changed logic, E2E for a user-facing flow, unchanged-behavior tests for each Do-NOT-change item. All green.
-5. **Confirm in the running system**: run the command, drive the browser (`claude-in-chrome` for UI), hit the endpoint, or check the deployed host. Passing tests are necessary, not sufficient. Record the evidence, dated.
-6. **Tick the checklist** in Done when as each criterion is met, with a one-line pointer to the evidence.
+5. **Code review** — when code changed, once the tests are green and before the live confirmation and before anything is staged:
+    - Invoke the `code-review` skill on the uncommitted change (code + tests). Mark new files intent-to-add first (`git add -N <paths>`) so they are part of the diff.
+    - Use the default level; use `high` when the work falls under the [irreversible-work guardrail](#question-policy).
+    - Triage every finding instead of applying them wholesale: a real defect in this change -> fix it and re-run the tests; a defect elsewhere -> file it with `/bugfix`; out-of-scope improvement -> file it as a new task; wrong -> dismiss it with a one-line reason.
+    - Record the date, the level, and each finding's disposition under `Verification`.
+    - If the `code-review` skill is unavailable, say so and run an independent review through a `Task` subagent given only the diff and the task file. Never skip the gate silently.
+    - No code changed (purely operational work) -> record `Code review: n/a — no code changed`.
+6. **Confirm in the running system**: run the command, drive the browser (`claude-in-chrome` for UI), hit the endpoint, or check the deployed host — on the reviewed code. Passing tests are necessary, not sufficient. Record the evidence, dated.
+7. **Tick the checklist** in Done when as each criterion is met, with a one-line pointer to the evidence.
 
 Without `--do`, Phases 5–6 are written as a plan; the implementer follows them later.
 
 ### Phase 6: Ship & Hand Off (`--do` and `--ship`)
 
-1. **Verify the ship gates**: all five [Ship Gates](#the-five-ship-gates) must hold. **Do not archive, and do not advise committing, while any gate is unmet.**
+1. **Verify the ship gates**: all six [Ship Gates](#the-six-ship-gates) must hold. **Do not archive, and do not advise committing, while any gate is unmet.**
 2. **Write the shipping record** at the top of the file, after the lead paragraph:
     - `## Shipped` — what landed, the commits or PR, the verification evidence with dates, and the size as it turned out versus the estimate.
     - `## Decisions worth not re-litigating` — only when a decision deliberately departs from the obvious way; say why.
@@ -200,19 +209,20 @@ Without `--do`, Phases 5–6 are written as a plan; the implementer follows them
 4. **Route misfiled items**: a bug living in the backlog is reported to the user with the recommendation to recreate it via `/bugfix` and remove the task; the skill does not silently delete it.
 5. **Rebuild the board** from frontmatter (`--board`), run the checks, `mdformat` everything, and present a report: files touched, sections added, items routed elsewhere, findings that need the user.
 
-## The Five Ship Gates
+## The Six Ship Gates
 
-A task is **not shipped**, and a `--do` change **must not be committed**, until all five hold (or are explicitly, justifiably waived in the file):
+A task is **not shipped**, and a `--do` change **must not be committed**, until all six hold (or are explicitly, justifiably waived in the file):
 
-| Gate                               | Requirement                                                                                                                                                     |
-| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Evidence-backed Why**            | The gap is shown with dated evidence (`file:line`, command output, or an observation in the running system) — not asserted                                      |
-| **Bounded scope**                  | `Do NOT change` and `Out of scope` are explicit; the change is what Scope says and nothing else; defects found on the way were filed with `/bugfix`, not fixed  |
-| **Done criteria met**              | Every `- [ ] AC-N` in Done when is checked, each with a pointer to its evidence                                                                                 |
-| **Verified in the running system** | Tests at the right levels are green where code changed, AND the outcome is confirmed live (browser for UI, endpoint for APIs, host for operational work), dated |
-| **Settled and handed off**         | The archive row says what was settled; follow-ups are filed as tasks; status is `shipped`; the board row is gone; everything is staged, nothing committed       |
+| Gate                               | Requirement                                                                                                                                                                                                  |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Evidence-backed Why**            | The gap is shown with dated evidence (`file:line`, command output, or an observation in the running system) — not asserted                                                                                   |
+| **Bounded scope**                  | `Do NOT change` and `Out of scope` are explicit; the change is what Scope says and nothing else; defects found on the way were filed with `/bugfix`, not fixed                                               |
+| **Done criteria met**              | Every `- [ ] AC-N` in Done when is checked, each with a pointer to its evidence                                                                                                                              |
+| **Code reviewed**                  | Where code changed, the `code-review` skill ran on the final diff after the tests went green; every finding is fixed, filed (`/bugfix` or a new task), or dismissed with a reason — recorded in Verification |
+| **Verified in the running system** | Tests at the right levels are green where code changed, AND the outcome is confirmed live (browser for UI, endpoint for APIs, host for operational work), dated                                              |
+| **Settled and handed off**         | The archive row says what was settled; follow-ups are filed as tasks; status is `shipped`; the board row is gone; everything is staged, nothing committed                                                    |
 
-> "Confirmed in the running system" is the gate people skip. A deploy that reported success while building a stale commit, a config change that never reached the host, a flag that was set on the wrong environment — each of these passes every test. Look at the real thing.
+> "Confirmed in the running system" is the gate people skip. A deploy that reported success while building a stale commit, a config change that never reached the host, a flag that was set on the wrong environment — each of these passes every test. Look at the real thing. The code review runs before that check, so whatever it changes is covered by the same tests and the same live confirmation.
 
 ## Question Policy
 
@@ -239,7 +249,7 @@ A task is **not shipped**, and a `--do` change **must not be committed**, until 
 | Constraints        | Project rules that bound the approach                                                                                 | "`CLAUDE.md`: never keyword-match intents — must be signature-level"                                     |
 | Sequencing         | Depends on / blocks / why now                                                                                         | "After 002 — decide Loki vs MLflow first"                                                                |
 | Done when          | AC table + mirrored `- [ ]` checklist                                                                                 | "AC-1 … / `- [ ] AC-1: …`"                                                                               |
-| Verification       | Tests to add/run + how to confirm live                                                                                | "Corpus rows for `gracias` across intents; confirm `reason: customer_request` in Grafana"                |
+| Verification       | Tests to add/run + code review of the diff + how to confirm live                                                      | "Corpus rows for `gracias` across intents; confirm `reason: customer_request` in Grafana"                |
 | Decisions          | One `### D-NN — question` heading per decided item (Decided + Why lines); open forks as `### OD-NN — question (open)` | "### D-01 — Close mid-booking? / **Decided 2026-09-03.** No. / **Why.** Context decides, never the word" |
 | Related            | PRD/TDD, bugs filed, runbooks, sibling tasks                                                                          | "Bug 014 (found while investigating); runbook `whatsapp-app-setup.md`"                                   |
 | Next step          | The single action that starts the work                                                                                | "Write the PRD. Study the reference panel first."                                                        |
@@ -264,7 +274,7 @@ A task is **not shipped**, and a `--do` change **must not be committed**, until 
 - **Branch** (`--do` only): `task/<NNN>-<slug>`, auto-created when on a protected branch, reused when already on a feature branch, overridable with `--branch` / `--no-branch`.
 - **Living document**: a task file is updated as understanding improves — partial progress goes in the lead paragraph, a settled question becomes a dated `### D-NN` entry under `## Decisions`, `updated` is bumped every time. It is not frozen at creation the way a bug doc is.
 - **The move is staged, never committed by the skill**: on ship, `git mv` into `archived/`, edit the board and the index, `git add` all of it, and hand off.
-- **`--ship`** is the explicit close for work done outside `--do`: it verifies the five gates, writes the shipping record from the evidence you give it, archives, and stages. It refuses when a gate is unmet.
+- **`--ship`** is the explicit close for work done outside `--do`: it verifies the six gates, writes the shipping record from the evidence you give it, archives, and stages. When code changed and no review is recorded, it runs the `code-review` skill on the change first (the uncommitted diff, or its branch / PR when already committed). It refuses when a gate is unmet.
 - **Nothing is deleted.** A reversed decision gets its own task; the archived file stays.
 
 ## MCP Integration
@@ -277,8 +287,8 @@ A task is **not shipped**, and a `--do` change **must not be committed**, until 
 
 - **Task file** (default): frontmatter, lead, Why, Scope with guardrails, Done when, Verification, Decisions, Next step — plus its board row, checks passing.
 - **PRD stub** (Large intake): a task file with Why and `Next step: write the PRD`, `note: needs a PRD first`, and its board row.
-- **Shipped task** (`--do` / `--ship`): the file with Shipped and Follow-ups, `status: shipped`, moved to `archived/`, indexed with what it settled, follow-ups filed, everything staged.
-- **Review** (`--review`): findings against the convention and the five gates, no edits.
+- **Shipped task** (`--do` / `--ship`): code reviewed with every finding resolved; the file with Shipped and Follow-ups, `status: shipped`, moved to `archived/`, indexed with what it settled, follow-ups filed, everything staged.
+- **Review** (`--review`): findings against the convention and the six gates, no edits.
 - **Reformatted backlog** (`--reformat`, `--board`): every file in the convention, ids and content preserved, board rebuilt, checks passing, a report of what was added and what needs the user.
 
 ## Examples
@@ -299,7 +309,8 @@ A task is **not shipped**, and a `--do` change **must not be committed**, until 
 /task --do 008
 
 # Branches task/008-whatsapp-production-number, moves the row to Doing,
-# performs the scope, confirms on the host, writes Shipped + Follow-ups,
+# performs the scope, runs /code-review on the diff, confirms on the host,
+# writes Shipped + Follow-ups,
 # archives with "what it settled", stages everything — you commit
 ```
 
@@ -333,13 +344,14 @@ Before finalizing a task file, verify:
 - [ ] **`Do NOT change` and `Out of scope` are explicit**
 - [ ] Sequencing names dependencies when any exist
 - [ ] **Done when has an AC table AND a mirrored `- [ ] AC-N:` checklist (ac-checker compatible)**
-- [ ] Verification names the tests to add/run and how to confirm in the running system
+- [ ] Verification names the tests to add/run, the code review (or `n/a — no code changed`), and how to confirm in the running system
 - [ ] Decisions: one `### D-NN — question` heading per decided item with dated `**Decided.**` and `**Why.**` lines; only genuine forks as `### OD-NN — question (open)` with Choices and Recommended lines; section omitted when empty
 - [ ] Next step is a single concrete action
 - [ ] Any third-party step was verified against freshly fetched docs, not memory
 - [ ] Board row present under the right section; priority and size match frontmatter; hook is one line
 - [ ] Consistency checks pass (project checker if present)
-- [ ] With `--do` / `--ship`: all five ship gates hold; Shipped + Follow-ups written; follow-ups filed as tasks; archive row says what was settled
+- [ ] **With `--do` / `--ship`: where code changed, the `code-review` skill ran on the final diff after the tests went green; every finding is fixed, filed, or dismissed with a reason**
+- [ ] With `--do` / `--ship`: all six ship gates hold; Shipped + Follow-ups written; follow-ups filed as tasks; archive row says what was settled
 - [ ] **No commit was made or advised; the move, the board, the index and the code are staged together**
 - [ ] `mdformat` passes on every touched file
 
@@ -353,7 +365,7 @@ Before finalizing a task file, verify:
 - Write testable done-criteria and a verification plan
 - Decide by default and record decisions inline; ask only real forks
 - Maintain the board and the archive index, and keep them consistent with the files
-- In `--do`, branch, implement exactly the Scope, verify live, archive, and stage
+- In `--do`, branch, implement exactly the Scope, run the `code-review` skill on the diff and resolve every finding, verify live, archive, and stage
 - Reformat an existing backlog into the convention without losing content or ids
 
 **Will Not:**
@@ -361,6 +373,6 @@ Before finalizing a task file, verify:
 - Create a task for a defect (routes to `/bugfix`) or for a feature that needs a PRD (creates a stub only)
 - Renumber or reuse ids, or delete an archived file
 - Fix bugs discovered during `--do` inside the task (files them instead)
-- Archive a task, or advise committing, while any of the five ship gates is unmet
+- Archive a task, or advise committing, while any of the six ship gates is unmet — including a diff nobody code-reviewed
 - Make any git commit — it stages and hands off
 - Edit code unless `--do` is passed

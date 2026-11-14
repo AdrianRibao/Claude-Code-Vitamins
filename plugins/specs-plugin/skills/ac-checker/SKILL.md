@@ -334,12 +334,13 @@ Actionable checklist of tasks to complete implementation.
 
 ## Exclude from Verification
 
-| Element             | Why Exclude             | Rationale                             |
-| ------------------- | ----------------------- | ------------------------------------- |
-| Open Questions      | Not criteria            | Separate section for unresolved items |
-| Code comments       | Not verification target | Comments don't prove implementation   |
-| Manual test steps   | Not automated           | Focus on automated test verification  |
-| Future requirements | Not current scope       | Only check current iteration criteria |
+| Element              | Why Exclude             | Rationale                                                |
+| -------------------- | ----------------------- | -------------------------------------------------------- |
+| Open Questions       | Not criteria            | Separate section for unresolved items                    |
+| Code comments        | Not verification target | Comments don't prove implementation                      |
+| Manual test steps    | Not automated           | Focus on automated test verification                     |
+| Code-review criteria | Process, not code       | Reported as `Manual`; marks preserved, never auto-ticked |
+| Future requirements  | Not current scope       | Only check current iteration criteria                    |
 
 ## Outputs
 

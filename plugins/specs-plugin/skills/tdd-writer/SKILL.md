@@ -513,6 +513,8 @@ After creating a TDD:
 
 **CRITICAL**: Creating a TDD is a specification phase, NOT an implementation trigger. Always read and present the TDD for review before any implementation work begins.
 
+**Implementing an approved TDD** (whoever does it, in a later session): tests green -> `ac-checker` -> the `code-review` skill on the final diff -> every finding fixed, filed as a bug or task, or dismissed with a reason -> commit. Every TDD carries this as the last two criteria of `Acceptance Criteria > Code Quality`, so the implementer meets it in the document, not just here. Never commit a TDD's implementation before that review.
+
 ## Consolidation Workflow
 
 After Open Questions are answered in discussion, use `--consolidate` to apply answers and tighten the document.
@@ -670,6 +672,7 @@ Before finalizing a TDD, verify:
 - [ ] Every OQ passes the Ask-tier test (changes the implementation, not answerable with confidence, reviewer holds the authority) and carries a recommended option
 - [ ] Open Questions is either genuine questions or exactly the no-open-questions line — never padded
 - [ ] **Each Decision and OQ is self-contained: acronyms spelled out, every rule/PRD/attribute reference carries a 1-line inline context, trade-offs are concrete (cost/latency/UX/compliance, not labels like "standard practice"), and the current implicit default is stated — reviewer can answer without re-reading the TDD**
+- [ ] **Acceptance Criteria > Code Quality ends with the two code-review criteria (the `code-review` skill on the final implementation diff before commit; every finding fixed, filed, or dismissed)**
 - [ ] TDD presented for user review before implementation
 - [ ] Large TDDs split with master document pattern
 
@@ -681,6 +684,7 @@ Before finalizing a TDD, verify:
 - Generate lean TDDs focused on requirements and contracts
 - Use tables and structured formats over prose
 - Create testable acceptance criteria
+- Make a code review of the implementation diff, before commit, an acceptance criterion of every TDD
 - Reference existing patterns in the codebase
 - Identify and suggest removal of code bloat in reviews
 - Consolidate TDDs by applying OQ answers and tightening documents

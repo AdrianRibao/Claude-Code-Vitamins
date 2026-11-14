@@ -75,6 +75,10 @@ Expected: [one line].
 
 - [one per blast-radius item]
 
+### Code review
+
+\[Run the `code-review` skill on the final diff (fix + tests) once the suite is green, before the app confirmation and before commit. Record the date and level, then each finding as fixed (tests re-run) / filed (`/bugfix` or `/task`, linked) / dismissed (one-line reason).\]
+
 ### How to demo
 
 1. [reproduce]
@@ -92,6 +96,7 @@ Expected: [one line].
 - [ ] AC-1: [one-line]
 - [ ] AC-2: [one-line]
 - [ ] Regression test fails on the buggy code and passes on the fix
+- [ ] Code review run on the final diff; every finding fixed, filed, or dismissed
 
 ## Open decisions
 
@@ -115,4 +120,4 @@ Expected: [one line].
 
 ## When fixed
 
-Set **Status** to `fixed — PR #NNN, commit <hash> (one-line)` and move this file to `specs/bugs/fixed/`.
+Once tests are green, the diff is code-reviewed, and the issue is confirmed gone in the running app: set **Status** to `fixed — PR #NNN, commit <hash> (one-line)` and move this file to `specs/bugs/fixed/`.

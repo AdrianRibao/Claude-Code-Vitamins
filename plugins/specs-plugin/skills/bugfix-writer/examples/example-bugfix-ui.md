@@ -101,6 +101,13 @@ GREEN: 8 passing (eCommerce + POS label cases)
 - Stock / "places left" string still appended verbatim after the label.
 - Dropdown sort order identical to pre-fix snapshot.
 
+### Code review
+
+`/code-review` on the final diff, 2026-06-24, default level — 2 findings:
+
+- Fixed: `letter()` overflowed past `Z` for a 27th parallel variant -> wraps to `AA`; unit case added, suite re-run green.
+- Dismissed: "group key ignores `date_end`" — it does not; the key is `(date_start, date_end, start_time)`.
+
 ### How to demo
 
 1. Open the seeded product in the eCommerce widget; open the dropdown.
@@ -125,6 +132,7 @@ GREEN: 8 passing (eCommerce + POS label cases)
 - [x] AC-5: POS dropdown matches eCommerce label format
 - [x] AC-6: Null `start_time` renders safely and is logged
 - [x] Regression test fails on the buggy code and passes on the fix
+- [x] Code review run on the final diff; every finding fixed, filed, or dismissed
 
 ## When fixed
 

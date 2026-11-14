@@ -154,11 +154,12 @@ Enumerate what the change could break and what must remain unchanged. Each item 
 
 ## Verification and the red->green Regression Test
 
-Three parts, always:
+Four parts, always:
 
 1. **Regression test** — the one test that *captures this bug*. State what it asserts and **why it fails on the current (buggy) code**. With `--fix`, paste the RED failure output, then the GREEN pass output.
 2. **Unchanged-behavior tests** — one per blast-radius item, asserting the "Do NOT change" behavior still holds.
-3. **Manual / how to demo** — numbered steps that reproduce then confirm, with ✅ expected and ❌ failure signals, mapped to acceptance criteria.
+3. **Code review** — the `code-review` skill run on the final diff (fix + tests) after the suite is green and before the app confirmation. Record the date and level, then one line per finding: fixed, filed (`/bugfix` / `/task`, linked), or dismissed with the reason. Spec-only docs state the plan in one line.
+4. **Manual / how to demo** — numbered steps that reproduce then confirm, with ✅ expected and ❌ failure signals, mapped to acceptance criteria.
 
 > A green regression test that was never shown to fail on the buggy code proves nothing. Demonstrating RED first is the load-bearing step.
 
@@ -183,9 +184,10 @@ And a mirrored checklist that `ac-checker` can parse and auto-mark:
 - [ ] AC-1: Parallel variants show `(HH:mm Option A/B/C)` in creation order
 - [ ] AC-2: Same-range different-time variants show `(HH:mm)`, no Option label
 - [ ] Regression test fails on the buggy code and passes on the fix
+- [ ] Code review run on the final diff; every finding fixed, filed, or dismissed
 ```
 
-The final regression-test checkbox is **mandatory** in every bug doc.
+The final two checkboxes — regression test and code review — are **mandatory** in every bug doc.
 
 ## Assumptions vs Open Decisions
 
@@ -202,7 +204,7 @@ For `--fix` runs, work lands on a dedicated branch so a fix never commits straig
 - **Record** the branch in the metadata `Related` line and in `Deploy & rollback`, so the doc, the branch, and the eventual PR all cross-reference.
 - **Spec-only** runs do not create a branch — they only propose the name; there is no code to isolate.
 
-**Pre-commit gate**: a `--fix` change is not committable until unit tests cover the changed logic and E2E tests cover the user-facing flow (created where the fix warrants them) and pass, the regression test is green and the suite passes, AND the original issue has been reproduced and confirmed gone in the running app (drive a browser for UI bugs). Passing tests alone are not enough — confirm the real symptom is gone before any commit.
+**Pre-commit gate**: a `--fix` change is not committable until unit tests cover the changed logic and E2E tests cover the user-facing flow (created where the fix warrants them) and pass, the regression test is green and the suite passes, the `code-review` skill has run on the final diff with every finding fixed, filed, or dismissed, AND the original issue has been reproduced and confirmed gone in the running app (drive a browser for UI bugs). Passing tests alone are not enough — confirm the real symptom is gone before any commit.
 
 ## Anti-Patterns
 

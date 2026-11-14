@@ -52,6 +52,7 @@ updated: [YYYY-MM-DD]
 ## Verification
 
 - **Tests**: [unit for changed logic; E2E for a user-facing flow; one unchanged-behavior test per Do-NOT-change item — name files/corpora]
+- **Code review**: \[run the `code-review` skill on the final diff once tests are green, before the live check and before commit; on ship, the date, level, and each finding as fixed / filed / dismissed with a reason. `n/a — no code changed` for purely operational work\]
 - **Confirm live**: [the command / URL / dashboard / host check that proves the outcome in the running system]
 
 ## Decisions

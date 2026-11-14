@@ -308,6 +308,15 @@ Verify that acceptance criteria from TDDs are actually implemented in code with 
 │     • Check coverage targets are met                                         │
 │     • Update TDD checkboxes, generate report                                 │
 └──────────────────────────────────────────────────────────────────────────────┘
+                                      ↓
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  5. REVIEW, THEN COMMIT                                                      │
+│     /code-review                                                             │
+│                                                                              │
+│     • Review the final diff once tests and ac-checker are green              │
+│     • Fix, file (bug / task), or dismiss every finding with a reason         │
+│     • Commit only then — the TDD's Code Quality criteria require it          │
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Bugfix Workflow
@@ -338,9 +347,11 @@ The bugfix skill runs a defect from report to closed. With `--fix` it will not l
 └─────────────────────────────────────────────────────────────────────────────┘
                                        ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  4. VERIFY — the Seven Gates   (COMMITS FORBIDDEN until all seven hold)     │
+│  4. VERIFY — the Eight Gates   (COMMITS FORBIDDEN until all eight hold)     │
 │     reproduction · root cause · red->green · unit+E2E · blast radius ·      │
-│     confirmed-in-app · scope discipline                                     │
+│     code review · confirmed-in-app · scope discipline                       │
+│     • Once green, /code-review the final diff; fix, file, or dismiss        │
+│       every finding (out-of-scope ones go to /bugfix or /task)              │
 │     • Confirm the ORIGINAL issue is gone in the running app                 │
 │       (drive a browser for UI bugs, e.g. claude-in-chrome)                  │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -355,7 +366,7 @@ The bugfix skill runs a defect from report to closed. With `--fix` it will not l
 
 ### Updating status and moving a bug to `fixed/`
 
-A bug doc starts at `specs/bugs/{nnn}-{slug}.md` with `Status: open`. It moves to `specs/bugs/fixed/` **only once the fix is confirmed** — all seven gates hold (including a real-app confirmation, not just green tests). Two ways to make that transition:
+A bug doc starts at `specs/bugs/{nnn}-{slug}.md` with `Status: open`. It moves to `specs/bugs/fixed/` **only once the fix is confirmed** — all eight gates hold (including a code review of the diff and a real-app confirmation, not just green tests). Two ways to make that transition:
 
 **Automatic** — a `--fix` run does it for you in the final step: after the gates pass it sets the `Status` line to `fixed` and `git mv`s the doc into `specs/bugs/fixed/`, then leaves it **staged alongside the fix** — the skill does not commit; you review the diff and commit them together (the move rides in that fix commit).
 
@@ -380,7 +391,7 @@ specs/bugs/003-...-count.md   ->  specs/bugs/fixed/003-...-count.md   (git mv, N
 git mv specs/bugs/003-online-product-count.md specs/bugs/fixed/003-online-product-count.md
 ```
 
-> Never move a doc to `fixed/` until the seven gates hold — a passing test alone is not proof the bug is fixed.
+> Never move a doc to `fixed/` until the eight gates hold — a passing test alone is not proof the bug is fixed.
 
 ## Task Workflow
 
@@ -402,13 +413,16 @@ The task skill keeps a backlog of Small and Medium work on a one-screen board. T
 │     • Auto-branch task/<NNN>-<slug> if on a protected branch                │
 │     • status: doing; row moves to Doing                                     │
 │     • Implement the Scope and nothing else; tests at the right levels       │
+│     • Once green, /code-review the final diff; fix, file, or dismiss        │
+│       every finding                                                         │
 │     • Bugs found on the way are filed with /bugfix, not fixed here          │
 └─────────────────────────────────────────────────────────────────────────────┘
                                        ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  3. VERIFY — the Five Ship Gates   (COMMITS FORBIDDEN until all five hold)  │
+│  3. VERIFY — the Six Ship Gates   (COMMITS FORBIDDEN until all six hold)    │
 │     evidence-backed Why · bounded scope · done criteria met ·               │
-│     verified in the running system · settled and handed off                 │
+│     code reviewed · verified in the running system ·                        │
+│     settled and handed off                                                  │
 └─────────────────────────────────────────────────────────────────────────────┘
                                        ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -451,7 +465,7 @@ TDDs specify **what needs to be built** in technical terms. They focus on:
 - Interface contracts (signatures only)
 - Authorization matrices
 - Behavior specifications (Given/When/Then)
-- Acceptance criteria (testable checkboxes)
+- Acceptance criteria (testable checkboxes), including a code review of the implementation diff before commit
 
 **TDDs never include**: full implementation code, function bodies, algorithm details, test implementations.
 
@@ -463,9 +477,10 @@ Bugfix specs close the gap between observed and expected behavior with the small
 - Root cause at `file:line` (never the symptom)
 - A scoped fix with explicit Do-NOT-change / Out-of-scope
 - A red->green regression test plus unit and E2E coverage
+- A code review of the final diff, every finding fixed, filed, or dismissed
 - Confirmation the issue is gone in the running app
 
-**Bugfix specs never ship an unproven fix**: commits are forbidden until the seven gates pass — including a real-app confirmation, not just green tests.
+**Bugfix specs never ship an unproven fix**: commits are forbidden until the eight gates pass — including a code review and a real-app confirmation, not just green tests.
 
 ### Task: Evidence, Bounded Scope, Done Criteria
 
@@ -477,7 +492,7 @@ A task is a unit of work with a known next step. Task files exist so the next se
 - Decisions recorded inline as they are made; only genuine forks left open
 - A shipping record that says what the task settled, and follow-ups filed as new tasks
 
-**Tasks never absorb bugs or features**: a defect goes to `/bugfix`, a PRD-sized item becomes a stub. And a task is not shipped on green tests alone — the outcome is confirmed in the running system first.
+**Tasks never absorb bugs or features**: a defect goes to `/bugfix`, a PRD-sized item becomes a stub. And a task is not shipped on green tests alone — the diff is code-reviewed and the outcome is confirmed in the running system first.
 
 ## Document Structure
 

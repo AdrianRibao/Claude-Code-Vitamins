@@ -155,11 +155,12 @@ Every criterion is observable — a rendered value, a log line, a row, a command
 
 ## Verification
 
-Three parts, each present when applicable:
+Four parts, each present when applicable:
 
 1. **Tests to add or run** — unit for changed logic, E2E for a user-facing flow, one unchanged-behavior test per `Do NOT change` item. Name the files or corpora.
-2. **Confirm in the running system** — the command, URL, dashboard panel, or host check that proves the outcome live. For operational tasks this is the whole verification: `bin/celp whatsapp` returning the verified number, a deploy marker in the logs, a DNS answer.
-3. **Evidence on ship** — dated output pasted or referenced.
+2. **Code review** — the `code-review` skill run on the final diff after the tests are green and before the live check. On ship, record the date and level and one line per finding: fixed, filed (`/bugfix` or a new task, linked), or dismissed with the reason. Operational work with no code change says `n/a — no code changed`.
+3. **Confirm in the running system** — the command, URL, dashboard panel, or host check that proves the outcome live. For operational tasks this is the whole verification: `bin/celp whatsapp` returning the verified number, a deploy marker in the logs, a DNS answer.
+4. **Evidence on ship** — dated output pasted or referenced.
 
 ## Decisions (decided vs open)
 
@@ -260,7 +261,7 @@ For `--do` runs, work lands on `task/<NNN>-<slug>` so a task never commits strai
 
 **The skill never commits.** On ship it stages the code, the tests, the `git mv` into `archived/`, the board edit, the index row, and any follow-up task files — together — and hands off. The user reviews the staged diff and commits; the move rides in that commit.
 
-**Pre-ship gate**: nothing is archived or advised for commit until the five ship gates hold — evidence-backed Why, bounded scope, done criteria met, verified in the running system, settled and handed off.
+**Pre-ship gate**: nothing is archived or advised for commit until the six ship gates hold — evidence-backed Why, bounded scope, done criteria met, code reviewed, verified in the running system, settled and handed off.
 
 ## Anti-Patterns
 
@@ -271,6 +272,7 @@ For `--do` runs, work lands on `task/<NNN>-<slug>` so a task never commits strai
 | Scope without `Do NOT change`         | Invites "while I'm here" changes that widen the blast radius                       |
 | "Works correctly" as a done criterion | Cannot be checked, so the task is never really done                                |
 | Shipped on green tests alone          | A deploy can succeed on a stale commit; only the running system proves the outcome |
+| Reviewed after the commit             | Findings land as fix-up commits, or not at all; review before staging              |
 | Leftovers labelled follow-ups         | Hides unfinished work behind a tidy heading                                        |
 | Archive row says what it did          | The commit log has that; the reader needs which questions are closed               |
 | Renumbering or reusing ids            | Breaks every citation in commits, STATUS files, and runbooks                       |

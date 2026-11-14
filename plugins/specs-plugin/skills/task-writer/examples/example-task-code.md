@@ -78,6 +78,7 @@ So a closing turn is neither a task nor a pivot, and falls through to "answer it
 ## Verification
 
 - **Tests**: corpus rows in `ExtractInInfo.yaml`, `ExtractInGreeting.yaml`, `ExtractInBooking.yaml` (AC-1..3); the full info corpus as the unchanged-behavior test for AC-4; a unit test on the `intent_switch_to: closing` -> `EndSession` mapping.
+- **Code review**: `/code-review` on the final diff once the corpora and the unit test are green; each finding recorded here as fixed, filed, or dismissed before staging.
 - **Confirm live**: after deploy, send "gracias" from a pilot phone on an INFO session and check the terminations panel and the `session_terminated` log line (AC-5).
 
 ## Decisions

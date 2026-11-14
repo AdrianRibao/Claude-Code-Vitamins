@@ -290,6 +290,8 @@ ______________________________________________________________________
 - [ ] Code formatted per project standards
 - [ ] **Every third-party library/SDK/API/CLI/service referenced (backend or UI) appears in `External Dependencies` with version, doc URL, fetch date, and section consulted**
 - [ ] **Docs for every third-party surface were fetched fresh via context7 (preferred) or WebFetch — not recalled from memory, even for well-known vendors**
+- [ ] **The `code-review` skill ran on the final implementation diff after the suite went green and before commit**
+- [ ] **Every code-review finding is fixed (tests re-run), filed as a bug or task, or dismissed with a one-line reason**
 
 ______________________________________________________________________
 

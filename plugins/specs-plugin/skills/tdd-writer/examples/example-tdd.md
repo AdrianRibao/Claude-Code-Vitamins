@@ -373,6 +373,14 @@ ______________________________________________________________________
 - [ ] Performance tests validate page load < 3s, interaction < 100ms
 - [ ] Load tests verify system handles 100 concurrent invoice creations
 
+### Code Quality
+
+- [ ] All new modules have type annotations and documentation
+- [ ] No compiler/linter warnings
+- [ ] Code formatted per project standards
+- [ ] **The `code-review` skill ran on the final implementation diff after the suite went green and before commit**
+- [ ] **Every code-review finding is fixed (tests re-run), filed as a bug or task, or dismissed with a one-line reason**
+
 ______________________________________________________________________
 
 ## Open Questions
