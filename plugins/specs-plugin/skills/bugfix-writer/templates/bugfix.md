@@ -82,7 +82,43 @@ Expected: [one line].
 ### How to demo
 
 1. [reproduce]
-2. [confirm the fix in the running app — browser for UI bugs] — ✅ [expected] / ❌ [failure signal]
+2. [confirm the fix in the running app — automated by the QA plan for UI bugs] — ✅ [expected] / ❌ [failure signal]
+
+\[API or backend-only bug: write `QA: n/a — no UI change` here and delete the QA plan section below.\]
+
+## QA plan
+
+\[UI bugs only. Conventions: the `qa-runner` style guide. Say WHAT to check, never an agent-browser command. Run with `/qa @<this doc>` after the code review; staging with `--env staging` after deploy.\]
+
+### Environments
+
+| Env     | Base URL                  | Start / deploy            | Seed data         |
+| ------- | ------------------------- | ------------------------- | ----------------- |
+| local   | `http://localhost:[port]` | [command that starts it]  | [repro seed]      |
+| staging | `[url]`                   | [how a change gets there] | [accounts / data] |
+
+\[Omit the staging row when the project has no staging.\]
+
+### Logins
+
+| Role   | local             | staging             |
+| ------ | ----------------- | ------------------- |
+| [role] | `[profile]-local` | `[profile]-staging` |
+
+\[One agent-browser vault profile per role and environment — a profile stores a single login URL. The user saves profiles in the vault in their own terminal; never a credential or a command here. `anonymous` when no login is needed. Drop the staging column when the project has no staging.\]
+
+### Checks
+
+| #    | Covers | Check                                 | Capability | Passes when                         | Evidence   |
+| ---- | ------ | ------------------------------------- | ---------- | ----------------------------------- | ---------- |
+| QA-1 | AC-1   | [role] replays the reproduction steps | `ui-flow`  | [the symptom is gone: what is seen] | screenshot |
+| QA-2 | AC-N   | [blast-radius item visible in the UI] | `ui-flow`  | [unchanged behavior, observable]    | screenshot |
+
+### Exploratory charter
+
+[Changed screens, their neighbours, the risks to probe.]
+
+\[`/qa` writes the `### QA record` here after each run.\]
 
 ## Acceptance criteria
 
@@ -120,4 +156,4 @@ Expected: [one line].
 
 ## When fixed
 
-Once tests are green, the diff is code-reviewed, and the issue is confirmed gone in the running app: set **Status** to `fixed — PR #NNN, commit <hash> (one-line)` and move this file to `specs/bugs/fixed/`.
+Once tests are green, the diff is code-reviewed, and the issue is confirmed gone in the running app (a passing local QA record for UI bugs): set **Status** to `fixed — PR #NNN, commit <hash> (one-line)` and move this file to `specs/bugs/fixed/`.

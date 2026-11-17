@@ -73,6 +73,7 @@ Ask user to confirm or override path during Phase 0 questions.
 ## Resources
 
 - [style-guide.md](style-guide.md) - TDD writing conventions and rules
+- [../qa-runner/style-guide.md](../qa-runner/style-guide.md) - QA Plan conventions for TDDs with UI: environments, vault logins, the closed capability list, pass conditions
 - [templates/combined-tdd.md](templates/combined-tdd.md) - Default combined template (backend + UI)
 - [templates/](templates/) - Type-specific templates (backend, ui, api, integration) for split TDDs
 - [examples/](examples/) - Reference TDD examples
@@ -107,8 +108,13 @@ Requirements-first approach: every section answers "what" not "how". Use tables 
 4. **Identify Third-Party Surfaces**: Enumerate every external library, framework, SDK, API, CLI, or cloud service the feature touches. Fetch current docs (context7 → WebFetch → WebSearch as a locator) **before** writing any section that depends on them. See [Third-Party Integration Docs](#third-party-integration-docs-non-negotiable). Never write a third-party surface from memory.
 5. **Structure**: Organize into logical sections following lean TDD template
 6. **Specify**: Write requirements, data models, contracts, acceptance criteria in tables — cite fetched docs for every third-party value (method names, endpoints, payload fields, headers, scopes, error codes, quotas)
-7. **Link Documents**: Add "Related Documents" section with all relevant PRDs and TDDs
-8. **Write TDD**: Save to file with placeholder `✅ Decisions (Resolved)` and Open Questions sections and a populated `External Dependencies` table
+7. **Write the QA Plan** (TDDs with UI only — any type, including the default combined) from the template's `## QA Plan`, following the [QA style guide](../qa-runner/style-guide.md):
+    - Derive the checks from the PRD's user workflows and the UI acceptance criteria; each gets a capability and an observable `Passes when` — never an agent-browser command.
+    - Environments: local always, staging only when the project has one. Logins name agent-browser vault profiles, never credentials.
+    - A TDD without UI — backend, API, integration, or a combined TDD with no UI sections — gets no QA Plan and drops the two QA criteria from Testing; unit tests cover it.
+    - No staging row -> drop the staging criterion from Testing.
+8. **Link Documents**: Add "Related Documents" section with all relevant PRDs and TDDs
+9. **Write TDD**: Save to file with placeholder `✅ Decisions (Resolved)` and Open Questions sections and a populated `External Dependencies` table
 
 ### Phase 2: Decision Triage (decide by default)
 
@@ -126,21 +132,22 @@ Requirements-first approach: every section answers "what" not "how". Use tables 
 
 ## Include in TDDs
 
-| Element                     | Purpose                                                                                                                                          | Example                                                      |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------ |
-| Requirements                | WHAT needs to be built                                                                                                                           | "Users can create incidents"                                 |
-| Data Models                 | Attributes, types, constraints (tables)                                                                                                          | `hours_adjustment: decimal, required`                        |
-| Interface Contracts         | Function signatures, action names                                                                                                                | `create_incident(params, actor:)`                            |
-| Behavior Specs              | Input → Output expectations                                                                                                                      | "Creating incident sends notification"                       |
-| Acceptance Criteria         | How to verify completion                                                                                                                         | "[ ] Employee can create incident"                           |
-| Testing Requirements        | Test types, coverage targets                                                                                                                     | "[ ] Policy tests verify all auth rules"                     |
-| Constraints & Rules         | Business logic boundaries                                                                                                                        | "DL-01: Hours adjustment model"                              |
-| Authorization               | Three-layer permission model (tables)                                                                                                            | Action, Data, and Condition permissions                      |
-| Permission Matrix Test Plan | Enumerated PT-xx rows: every cell, every Hidden/R field-role pair, every PC-xx (met + unmet), cross-scope denies, referent denies, auth boundary | "PT-07: Layer 1, Owner × approve, Deny, expects 403"         |
-| Related Documents           | Links to PRDs, master TDDs, siblings                                                                                                             | "Parent PRD: [link], Backend: [link]"                        |
-| External Dependencies       | Every third-party library/SDK/API/CLI used, with version, doc URL, fetch date, section consulted                                                 | "stripe-node v17.4.0, /payment-intents, 2026-05-26"          |
-| Decisions                   | Judgment calls you made, with rationale                                                                                                          | "D-01: Soft-delete via `deleted_at`, 30-day purge"           |
-| Open Questions              | Only what a human must decide (often empty)                                                                                                      | "OQ-01: Is 1-year audit retention a compliance requirement?" |
+| Element                     | Purpose                                                                                                                                          | Example                                                          |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
+| Requirements                | WHAT needs to be built                                                                                                                           | "Users can create incidents"                                     |
+| Data Models                 | Attributes, types, constraints (tables)                                                                                                          | `hours_adjustment: decimal, required`                            |
+| Interface Contracts         | Function signatures, action names                                                                                                                | `create_incident(params, actor:)`                                |
+| Behavior Specs              | Input → Output expectations                                                                                                                      | "Creating incident sends notification"                           |
+| Acceptance Criteria         | How to verify completion                                                                                                                         | "[ ] Employee can create incident"                               |
+| Testing Requirements        | Test types, coverage targets                                                                                                                     | "[ ] Policy tests verify all auth rules"                         |
+| Constraints & Rules         | Business logic boundaries                                                                                                                        | "DL-01: Hours adjustment model"                                  |
+| Authorization               | Three-layer permission model (tables)                                                                                                            | Action, Data, and Condition permissions                          |
+| Permission Matrix Test Plan | Enumerated PT-xx rows: every cell, every Hidden/R field-role pair, every PC-xx (met + unmet), cross-scope denies, referent denies, auth boundary | "PT-07: Layer 1, Owner × approve, Deny, expects 403"             |
+| QA Plan (UI TDDs)           | Environments, vault logins, QA-N checks with a capability and an observable pass condition, exploratory charter                                  | "QA-2: Owner sends the draft and confirms — `dialog`, `ui-flow`" |
+| Related Documents           | Links to PRDs, master TDDs, siblings                                                                                                             | "Parent PRD: [link], Backend: [link]"                            |
+| External Dependencies       | Every third-party library/SDK/API/CLI used, with version, doc URL, fetch date, section consulted                                                 | "stripe-node v17.4.0, /payment-intents, 2026-05-26"              |
+| Decisions                   | Judgment calls you made, with rationale                                                                                                          | "D-01: Soft-delete via `deleted_at`, 30-day purge"               |
+| Open Questions              | Only what a human must decide (often empty)                                                                                                      | "OQ-01: Is 1-year audit retention a compliance requirement?"     |
 
 ### Authorization Model (Three Layers)
 
@@ -294,7 +301,8 @@ Generate all TDD sections EXCEPT Decisions and Open Questions. For combined TDDs
 6. UI: Routes, Screens, Components (if feature has UI)
 7. Behavior Specifications (Given/When/Then)
 8. Acceptance Criteria (checkboxes with authorization testing — including the measurable test-count assertion referencing the Permission Matrix Test Plan)
-9. Related Documents
+9. QA Plan (only if the feature has UI)
+10. Related Documents
 
 Write the TDD to file with placeholder sections:
 
@@ -513,7 +521,7 @@ After creating a TDD:
 
 **CRITICAL**: Creating a TDD is a specification phase, NOT an implementation trigger. Always read and present the TDD for review before any implementation work begins.
 
-**Implementing an approved TDD** (whoever does it, in a later session): tests green -> `ac-checker` -> the `code-review` skill on the final diff -> every finding fixed, filed as a bug or task, or dismissed with a reason -> commit. Every TDD carries this as the last two criteria of `Acceptance Criteria > Code Quality`, so the implementer meets it in the document, not just here. Never commit a TDD's implementation before that review.
+**Implementing an approved TDD** (whoever does it, in a later session): tests green -> `ac-checker` -> the `code-review` skill on the final diff -> every finding fixed, filed as a bug or task, or dismissed with a reason -> for TDDs with UI, `/qa` runs the QA Plan with agent-browser on local and the defects it finds are fixed -> commit. Every TDD carries the review as the last two criteria of `Acceptance Criteria > Code Quality`, and every UI TDD carries the QA run in `Acceptance Criteria > Testing`, so the implementer meets both in the document, not just here. Never commit a TDD's implementation before them. Projects with staging run `/qa --env staging` after deploy, before promotion.
 
 ## Consolidation Workflow
 
@@ -673,6 +681,7 @@ Before finalizing a TDD, verify:
 - [ ] Open Questions is either genuine questions or exactly the no-open-questions line — never padded
 - [ ] **Each Decision and OQ is self-contained: acronyms spelled out, every rule/PRD/attribute reference carries a 1-line inline context, trade-offs are concrete (cost/latency/UX/compliance, not labels like "standard practice"), and the current implicit default is stated — reviewer can answer without re-reading the TDD**
 - [ ] **Acceptance Criteria > Code Quality ends with the two code-review criteria (the `code-review` skill on the final implementation diff before commit; every finding fixed, filed, or dismissed)**
+- [ ] **TDDs with UI sections (any type, including combined) have a `## QA Plan` (environments, per-environment vault logins, checks with a capability and an observable `Passes when`, exploratory charter) and the QA criteria in `Acceptance Criteria > Testing` — the staging criterion only when the plan has a staging row; TDDs without UI have neither**
 - [ ] TDD presented for user review before implementation
 - [ ] Large TDDs split with master document pattern
 
@@ -685,6 +694,7 @@ Before finalizing a TDD, verify:
 - Use tables and structured formats over prose
 - Create testable acceptance criteria
 - Make a code review of the implementation diff, before commit, an acceptance criterion of every TDD
+- Write a QA Plan into UI TDDs, derived from the PRD's user workflows, for the `qa-runner` skill to run with agent-browser
 - Reference existing patterns in the codebase
 - Identify and suggest removal of code bloat in reviews
 - Consolidate TDDs by applying OQ answers and tightening documents

@@ -368,9 +368,10 @@ Document edge cases with the same structure:
 4. Authorization (Action Permissions, Data Permissions, Permission Conditions, Policy Rules)
 5. Behavior Specifications
 6. Acceptance Criteria
-7. ✅ Decisions (Resolved) — judgment calls made during generation, one `### D-NN — title` heading each with `**Choice.**` and `**Why.**` lines (not a table: it stops being readable once rationales carry real trade-offs)
-8. Open Questions — only what a human must decide; a single "no open questions" line when empty
-9. Related Documents
+7. QA Plan — TDDs with UI only; see [QA Plan](#qa-plan)
+8. ✅ Decisions (Resolved) — judgment calls made during generation, one `### D-NN — title` heading each with `**Choice.**` and `**Why.**` lines (not a table: it stops being readable once rationales carry real trade-offs)
+9. Open Questions — only what a human must decide; a single "no open questions" line when empty
+10. Related Documents
 
 ## Testing Requirements Format
 
@@ -495,7 +496,20 @@ Every TDD's **Code Quality** subsection ends with the two code-review criteria. 
 - [ ] **Every code-review finding is fixed (tests re-run), filed as a bug or task, or dismissed with a one-line reason**
 ```
 
-The order is fixed: tests green -> `ac-checker` -> `code-review` on the final diff -> resolve every finding -> commit. A review after the commit turns its findings into fix-up commits, or into nothing.
+The order is fixed: tests green -> `ac-checker` -> `code-review` on the final diff -> resolve every finding -> `/qa` for TDDs with UI -> commit. A review after the commit turns its findings into fix-up commits, or into nothing.
+
+### QA Plan
+
+A TDD with UI sections — of any type, including the default combined — ends its acceptance criteria with a `## QA Plan`, written to the [qa-runner style guide](../qa-runner/style-guide.md): environments (local always, staging only when the project has one), roles mapped to one agent-browser vault profile per environment, `QA-N` checks and an exploratory charter. Derive the checks from the PRD's user workflows and the UI acceptance criteria. A check states WHAT to verify — a capability from the closed list and an observable `Passes when` — never an agent-browser command, which belongs to the runner.
+
+`Acceptance Criteria > Testing` carries the two QA criteria, so the implementer runs `/qa` after the code review and before commit:
+
+```markdown
+- [ ] **QA Plan run with `/qa` (agent-browser) on local after the code review and before commit: every `QA-N` passes, every exploratory finding is fixed, filed, or dismissed, and the QA record is written**
+- [ ] **Projects with staging: `/qa --env staging` passes after deploy, before promotion to production**
+```
+
+Drop the staging criterion when the plan has no staging row. A TDD without UI — backend, API, integration, or a combined TDD with no UI sections — has no QA Plan and no QA criteria: its behavior is proven by unit and integration tests.
 
 ## Anti-Patterns to Avoid
 

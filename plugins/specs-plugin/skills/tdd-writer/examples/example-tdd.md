@@ -372,6 +372,7 @@ ______________________________________________________________________
 - [ ] Performance tests validate PDF generation < 3 seconds
 - [ ] Performance tests validate page load < 3s, interaction < 100ms
 - [ ] Load tests verify system handles 100 concurrent invoice creations
+- [ ] **QA Plan run with `/qa` (agent-browser) on local after the code review and before commit: every `QA-N` passes, every exploratory finding is fixed, filed, or dismissed, and the QA record is written**
 
 ### Code Quality
 
@@ -380,6 +381,41 @@ ______________________________________________________________________
 - [ ] Code formatted per project standards
 - [ ] **The `code-review` skill ran on the final implementation diff after the suite went green and before commit**
 - [ ] **Every code-review finding is fixed (tests re-run), filed as a bug or task, or dismissed with a one-line reason**
+
+______________________________________________________________________
+
+## QA Plan
+
+### Environments
+
+| Env   | Base URL                | Start / deploy   | Seed data                                                                 |
+| ----- | ----------------------- | ---------------- | ------------------------------------------------------------------------- |
+| local | `http://localhost:4000` | `mix phx.server` | `mix run priv/repo/seeds_qa.exs` — 1 owner, 1 admin, 1 client, 3 invoices |
+
+No staging row: this project has no staging environment.
+
+### Logins
+
+| Role   | local             |
+| ------ | ----------------- |
+| owner  | `qa-owner-local`  |
+| admin  | `qa-admin-local`  |
+| client | `qa-client-local` |
+
+### Checks
+
+| #    | Covers             | Check                                             | Capability                 | Passes when                                                                                         | Evidence                |
+| ---- | ------------------ | ------------------------------------------------- | -------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------- |
+| QA-1 | Core Functionality | Owner creates a draft invoice with two line items | `ui-flow`, `console-clean` | Detail page shows status "Draft" and the subtotal, VAT and total of the two lines; zero page errors | screenshot, console log |
+| QA-2 | Status Management  | Owner sends the draft and confirms the dialog     | `dialog`, `ui-flow`        | Status "Sent"; no "Edit" action offered                                                             | screenshot              |
+| QA-3 | Status Management  | Owner starts sending and cancels the dialog       | `dialog`, `ui-flow`        | Status still "Draft"                                                                                | screenshot              |
+| QA-4 | Authorization      | Client opens an invoice sent to them              | `ui-flow`                  | No `internal_notes` or `paid_at` anywhere in the page, not just hidden                              | page snapshot           |
+| QA-5 | —                  | Invoice list accessibility                        | `a11y`                     | No serious or critical violations at WCAG 2.1 AA                                                    | audit report            |
+| QA-6 | UI                 | Invoice list on a phone                           | `responsive`               | Rows render as cards at 375×812, no horizontal scroll                                               | screenshot              |
+
+### Exploratory Charter
+
+Invoice list, form and detail as owner and client. Probe: no invoices and 50+ invoices, opening a sent invoice's edit URL directly, double-clicking "Send", long client names.
 
 ______________________________________________________________________
 

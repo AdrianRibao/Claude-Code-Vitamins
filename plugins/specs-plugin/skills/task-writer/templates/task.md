@@ -53,7 +53,41 @@ updated: [YYYY-MM-DD]
 
 - **Tests**: [unit for changed logic; E2E for a user-facing flow; one unchanged-behavior test per Do-NOT-change item — name files/corpora]
 - **Code review**: \[run the `code-review` skill on the final diff once tests are green, before the live check and before commit; on ship, the date, level, and each finding as fixed / filed / dismissed with a reason. `n/a — no code changed` for purely operational work\]
+- **QA**: \[UI changes: `/qa` runs the QA plan below on local after the code review (staging after deploy, when the project has one). Otherwise `n/a — no UI change` — and delete the QA plan section\]
 - **Confirm live**: [the command / URL / dashboard / host check that proves the outcome in the running system]
+
+## QA plan
+
+\[UI changes only. Conventions: the `qa-runner` style guide. Say WHAT to check, never an agent-browser command.\]
+
+### Environments
+
+| Env     | Base URL                  | Start / deploy            | Seed data          |
+| ------- | ------------------------- | ------------------------- | ------------------ |
+| local   | `http://localhost:[port]` | [command that starts it]  | [script / fixture] |
+| staging | `[url]`                   | [how a change gets there] | [accounts / data]  |
+
+\[Omit the staging row when the project has no staging.\]
+
+### Logins
+
+| Role   | local             | staging             |
+| ------ | ----------------- | ------------------- |
+| [role] | `[profile]-local` | `[profile]-staging` |
+
+\[One agent-browser vault profile per role and environment — a profile stores a single login URL. The user saves profiles in the vault in their own terminal; never a credential or a command here. `anonymous` when no login is needed. Drop the staging column when the project has no staging.\]
+
+### Checks
+
+| #    | Covers | Check                   | Capability | Passes when            | Evidence   |
+| ---- | ------ | ----------------------- | ---------- | ---------------------- | ---------- |
+| QA-1 | AC-1   | [role] [does the thing] | `ui-flow`  | [observable, specific] | screenshot |
+
+### Exploratory charter
+
+[Changed screens, their neighbours, the risks to probe.]
+
+\[`/qa` writes the `### QA record` here after each run.\]
 
 ## Decisions
 

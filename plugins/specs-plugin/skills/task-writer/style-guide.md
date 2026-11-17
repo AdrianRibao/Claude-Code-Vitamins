@@ -34,10 +34,11 @@ Conventions for task files, the board, and the archive index produced by the `ta
 8. `## Sequencing` (only when dependencies exist)
 9. `## Done when`
 10. `## Verification`
-11. `## Decisions` (omit when there is nothing decided and nothing open)
-12. `## Related` (only when there are links worth following)
-13. `## Next step`
-14. `## Notes` (reformat only: content that fit no section)
+11. `## QA plan` (UI changes only; `/qa` appends the `### QA record`)
+12. `## Decisions` (omit when there is nothing decided and nothing open)
+13. `## Related` (only when there are links worth following)
+14. `## Next step`
+15. `## Notes` (reformat only: content that fit no section)
 
 Task files do **not** use horizontal rules between sections; they are shorter than bug docs and the headings carry the structure.
 
@@ -155,12 +156,13 @@ Every criterion is observable — a rendered value, a log line, a row, a command
 
 ## Verification
 
-Four parts, each present when applicable:
+Five parts, each present when applicable:
 
 1. **Tests to add or run** — unit for changed logic, E2E for a user-facing flow, one unchanged-behavior test per `Do NOT change` item. Name the files or corpora.
 2. **Code review** — the `code-review` skill run on the final diff after the tests are green and before the live check. On ship, record the date and level and one line per finding: fixed, filed (`/bugfix` or a new task, linked), or dismissed with the reason. Operational work with no code change says `n/a — no code changed`.
-3. **Confirm in the running system** — the command, URL, dashboard panel, or host check that proves the outcome live. For operational tasks this is the whole verification: `bin/celp whatsapp` returning the verified number, a deploy marker in the logs, a DNS answer.
-4. **Evidence on ship** — dated output pasted or referenced.
+3. **QA** — UI changes: the `## QA plan` section (written to the [qa-runner style guide](../qa-runner/style-guide.md)) run by `/qa` with agent-browser on local, and on staging after deploy when the project has one. Other tasks say `QA: n/a — no UI change`.
+4. **Confirm in the running system** — the command, URL, dashboard panel, or host check that proves the outcome live. For operational tasks this is the whole verification: `bin/celp whatsapp` returning the verified number, a deploy marker in the logs, a DNS answer.
+5. **Evidence on ship** — dated output pasted or referenced.
 
 ## Decisions (decided vs open)
 

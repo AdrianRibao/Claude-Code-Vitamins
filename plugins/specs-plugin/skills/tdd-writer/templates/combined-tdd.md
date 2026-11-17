@@ -282,6 +282,8 @@ ______________________________________________________________________
 - [ ] Performance tests validate query response times < 100ms
 - [ ] Performance tests validate page load < 3s, interaction < 100ms
 - [ ] UI tests cover user-facing changes
+- [ ] **QA Plan run with `/qa` (agent-browser) on local after the code review and before commit: every `QA-N` passes, every exploratory finding is fixed, filed, or dismissed, and the QA record is written**
+- [ ] **Projects with staging: `/qa --env staging` passes after deploy, before promotion to production**
 
 ### Code Quality
 
@@ -292,6 +294,43 @@ ______________________________________________________________________
 - [ ] **Docs for every third-party surface were fetched fresh via context7 (preferred) or WebFetch — not recalled from memory, even for well-known vendors**
 - [ ] **The `code-review` skill ran on the final implementation diff after the suite went green and before commit**
 - [ ] **Every code-review finding is fixed (tests re-run), filed as a bug or task, or dismissed with a one-line reason**
+
+______________________________________________________________________
+
+## QA Plan
+
+\[UI changes only. Conventions: the `qa-runner` style guide. Derive the checks from the PRD's user workflows and the UI acceptance criteria above. Say WHAT to check, never an agent-browser command. The implementer runs it with `/qa @<this TDD>` after the code review and before commit. No UI in this feature: delete this section and the two QA criteria in Testing. No staging: drop the staging row, the staging column in Logins, and the staging criterion.\]
+
+### Environments
+
+| Env     | Base URL                  | Start / deploy            | Seed data          |
+| ------- | ------------------------- | ------------------------- | ------------------ |
+| local   | `http://localhost:[port]` | [command that starts it]  | [script / fixture] |
+| staging | `[url]`                   | [how a change gets there] | [accounts / data]  |
+
+\[Omit the staging row when the project has no staging. Never production.\]
+
+### Logins
+
+| Role   | local             | staging             |
+| ------ | ----------------- | ------------------- |
+| [role] | `[profile]-local` | `[profile]-staging` |
+
+\[One agent-browser vault profile per role and environment — a profile stores a single login URL. The user saves profiles in the vault in their own terminal; never a credential or a command here. `anonymous` when no login is needed. Drop the staging column when the project has no staging.\]
+
+### Checks
+
+| #    | Covers         | Check                                | Capability          | Passes when                                      | Evidence     |
+| ---- | -------------- | ------------------------------------ | ------------------- | ------------------------------------------------ | ------------ |
+| QA-1 | [UI criterion] | [role] [completes a user workflow]   | `ui-flow`           | [observable, specific]                           | screenshot   |
+| QA-2 | [UI criterion] | [role] [confirms / cancels a dialog] | `dialog`, `network` | [request sent or not, status]                    | request log  |
+| QA-3 | —              | [screen] accessibility               | `a11y`              | No serious or critical violations at WCAG 2.1 AA | audit report |
+
+\[Capabilities: `ui-flow`, `dialog`, `network`, `console-clean`, `a11y`, `responsive`, `visual`, `vitals`.\]
+
+### Exploratory Charter
+
+[Changed screens, their neighbours, the risks to probe — scopes the exploratory pass on local.]
 
 ______________________________________________________________________
 

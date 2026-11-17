@@ -16,6 +16,7 @@ Conventions for bug docs produced by the `bugfix-writer` skill. The skill's SKIL
 - The fix (Do NOT change, Out of scope)
 - Blast radius
 - Verification and the red->green regression test
+- QA plan (UI bugs)
 - Acceptance criteria (hybrid format)
 - Assumptions vs Open decisions
 - Branch and commit
@@ -33,10 +34,11 @@ Conventions for bug docs produced by the `bugfix-writer` skill. The skill's SKIL
 8. `## The fix` (with `### Do NOT change` and `### Out of scope`)
 9. `## Blast radius`
 10. `## Verification`
-11. `## Acceptance criteria`
-12. `## Open decisions` (only if a genuine blocker exists)
-13. `## Deploy & rollback` (only when deploy is non-trivial)
-14. `## When fixed` (process footer)
+11. `## QA plan` (UI bugs only; `/qa` appends the `### QA record`)
+12. `## Acceptance criteria`
+13. `## Open decisions` (only if a genuine blocker exists)
+14. `## Deploy & rollback` (only when deploy is non-trivial)
+15. `## When fixed` (process footer)
 
 Separate major blocks with a horizontal rule (`______…`) to match the existing corpus.
 
@@ -163,6 +165,16 @@ Four parts, always:
 
 > A green regression test that was never shown to fail on the buggy code proves nothing. Demonstrating RED first is the load-bearing step.
 
+## QA Plan (UI bugs)
+
+A UI bug carries a `## QA plan` after Verification, written to the [qa-runner style guide](../qa-runner/style-guide.md) and run by `/qa` with agent-browser:
+
+- **QA-1 replays the original reproduction steps** and states what is seen once the symptom is gone. Further checks cover each blast-radius item visible in the UI.
+- Environments: local always; staging only when the project has one. Logins name agent-browser vault profiles, never credentials.
+- Checks say WHAT to verify with a capability from the closed list and an observable `Passes when` — never an agent-browser command.
+- An API or backend-only bug has no QA plan: Verification says `QA: n/a — no UI change`. There is no browser QA, but the fix is still confirmed at the live endpoint.
+- Defects QA finds on what the fix touches, including pre-existing ones, are fixed in the change and named in the QA record; pre-existing defects elsewhere are filed with `/bugfix`, improvements with `/task`.
+
 ## Acceptance Criteria (hybrid format)
 
 Under one `## Acceptance criteria` heading, provide **both**:
@@ -204,7 +216,7 @@ For `--fix` runs, work lands on a dedicated branch so a fix never commits straig
 - **Record** the branch in the metadata `Related` line and in `Deploy & rollback`, so the doc, the branch, and the eventual PR all cross-reference.
 - **Spec-only** runs do not create a branch — they only propose the name; there is no code to isolate.
 
-**Pre-commit gate**: a `--fix` change is not committable until unit tests cover the changed logic and E2E tests cover the user-facing flow (created where the fix warrants them) and pass, the regression test is green and the suite passes, the `code-review` skill has run on the final diff with every finding fixed, filed, or dismissed, AND the original issue has been reproduced and confirmed gone in the running app (drive a browser for UI bugs). Passing tests alone are not enough — confirm the real symptom is gone before any commit.
+**Pre-commit gate**: a `--fix` change is not committable until unit tests cover the changed logic and E2E tests cover the user-facing flow (created where the fix warrants them) and pass, the regression test is green and the suite passes, the `code-review` skill has run on the final diff with every finding fixed, filed, or dismissed, AND the original issue has been confirmed gone in the running app (UI bugs: `/qa` passed the QA plan on local with agent-browser; APIs: the live endpoint). Passing tests alone are not enough — confirm the real symptom is gone before any commit.
 
 ## Anti-Patterns
 

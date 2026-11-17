@@ -68,6 +68,7 @@ Step 1 before step 2: with two apps subscribed the logs are ambiguous, and the v
 
 - **Tests**: none to add — no code changes. The existing `inbound_test.exs` unmatched-id case covers the guard we rely on.
 - **Code review**: n/a — no code changed.
+- **QA**: n/a — no UI change.
 - **Confirm live**: AC-1 via Loki (`event_kind="whatsapp_inbound_rejected"` over 24h); AC-2 via the Graph API call; AC-3 via `bin/celp whatsapp`; AC-4 by messaging the line from a phone that was never on the sandbox list.
 
 ## Decisions

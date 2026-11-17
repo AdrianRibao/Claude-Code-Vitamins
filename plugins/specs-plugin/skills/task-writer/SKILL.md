@@ -86,6 +86,7 @@ Ask the user to confirm or override the location during Phase 0 only when no `sp
 - [templates/task.md](templates/task.md) - The task file template
 - [templates/BACKLOG.md](templates/BACKLOG.md) - The board template, including its `How this works` section
 - [templates/archived-README.md](templates/archived-README.md) - The archive index template
+- [../qa-runner/style-guide.md](../qa-runner/style-guide.md) - QA plan conventions (UI changes): environments, vault logins, the closed capability list, pass conditions; run by the `qa-runner` skill
 - [examples/](examples/) - Reference task files (an operational task and a code task)
 
 ## Behavioral Mindset
@@ -108,12 +109,13 @@ Task Progress:
 - [ ] 1. Sized and prioritized; asked only blocking questions
 - [ ] 2. Wrote Scope (numbered), Do NOT change, Out of scope, Sequencing
 - [ ] 2. Wrote Done when (AC table + mirrored checklist) and Verification
+- [ ] 2. Wrote the QA plan (UI changes) or recorded `QA: n/a — no UI change`
 - [ ] 3. Triaged decisions: recorded the decided ones inline, listed only real forks
 - [ ] 4. Added the board row; ran the consistency checks (project checker if present)
 - [ ] 5. (--do) On a task/<NNN>-<slug> branch; status: doing; row under Doing
 - [ ] 5. (--do) Implemented the Scope and nothing else; tests at the right levels green
 - [ ] 5. (--do) Ran the `code-review` skill on the final diff; every finding fixed, filed, or dismissed
-- [ ] 5. (--do) Confirmed the outcome in the running system; evidence recorded, dated
+- [ ] 5. (--do) Confirmed the outcome in the running system (UI: `/qa` passed on local); evidence recorded, dated
 - [ ] 6. (--do / --ship) Ship gates verified; Shipped + Follow-ups written; follow-ups filed as new tasks
 - [ ] 6. (--do / --ship) status: shipped; git mv to archived/; index row says what it settled; board row removed
 - [ ] 6. Everything staged together; did NOT commit — handed off to the user
@@ -153,7 +155,11 @@ Task Progress:
 5. **Sequencing** (when relevant): what this depends on, what it blocks, and why now or why not yet.
 6. **Done when**: an acceptance-criteria table (`# | Context | Action | Expected result`) plus the mirrored `- [ ] AC-N:` checklist so `ac-checker` can parse it. Every criterion must be observable.
 7. **Verification**: the tests to add or run (unit for changed logic, E2E for a user-facing flow, unchanged-behavior tests for each Do-NOT-change item) and how to confirm the outcome in the running system.
-8. **Next step**: the single concrete action that starts the work. Mandatory, even on a stub.
+8. **QA plan** (UI changes only) from [the QA plan template](../qa-runner/templates/qa-plan.md), following the [QA style guide](../qa-runner/style-guide.md):
+    - Checks that prove the Done-when criteria in the browser, with a capability and an observable `Passes when` each — never an agent-browser command.
+    - Environments: local always, staging only when the project has one. Logins name agent-browser vault profiles, never credentials.
+    - No UI change (API, backend, operational) -> no QA plan; Verification says `QA: n/a — no UI change`.
+9. **Next step**: the single concrete action that starts the work. Mandatory, even on a stub.
 
 ### Phase 3: Decision Triage (decide by default)
 
@@ -185,7 +191,12 @@ Task Progress:
     - Record the date, the level, and each finding's disposition under `Verification`.
     - If the `code-review` skill is unavailable, say so and run an independent review through a `Task` subagent given only the diff and the task file. Never skip the gate silently.
     - No code changed (purely operational work) -> record `Code review: n/a — no code changed`.
-6. **Confirm in the running system**: run the command, drive the browser (`claude-in-chrome` for UI), hit the endpoint, or check the deployed host — on the reviewed code. Passing tests are necessary, not sufficient. Record the evidence, dated.
+6. **Confirm in the running system** on the reviewed code — passing tests are necessary, not sufficient:
+    - **UI changes**: invoke the `qa-runner` skill (`/qa @<task file>`). agent-browser runs the QA plan on local plus an exploratory pass, and records results and evidence under the QA plan. agent-browser is required; there is no other browser tool to fall back on.
+    - **APIs**: hit the endpoint. **Operational work**: run the command or check the deployed host.
+    - Defects QA finds on the screens and flows this change touches — pre-existing ones included — and any defect the change caused are fixed in this change, re-tested and re-reviewed before their checks re-run; `/qa` asks the user first when a fix is large, touches a `Do NOT change` item, or touches data, money or security. Pre-existing defects on screens the change does not touch are filed with `/bugfix`; improvements with `/task`.
+    - **Staging** (projects that have one): after deploy and before promotion, run `/qa @<task file> --env staging`.
+    - Record the evidence, dated.
 7. **Tick the checklist** in Done when as each criterion is met, with a one-line pointer to the evidence.
 
 Without `--do`, Phases 5–6 are written as a plan; the implementer follows them later.
@@ -199,7 +210,7 @@ Without `--do`, Phases 5–6 are written as a plan; the implementer follows them
     - `## Follow-ups` — new work discovered, each **filed as its own task** (new id, row under Next) and linked. Leftovers are not follow-ups; a leftover means the task is not done.
 3. **Archive**: set `status: shipped`, bump `updated`, `git mv` the file into `archived/` (same filename), delete the board row, add a row to `archived/README.md` whose last column says **what the task settled** — not what it did.
 4. **Run the checks** again.
-5. **Stage everything together** — code, tests, the moved task file, the board, the index, the new follow-up tasks — and **stop. The skill does not commit.** The user reviews the staged diff and makes the commit or opens the PR; the move rides in that commit.
+5. **Stage everything together** — code, tests, the moved task file, the board, the index, the new follow-up tasks, and for UI changes the QA record, any `.gitignore` line `/qa` added and any approved baseline in `specs/qa/baselines/` — and **stop. The skill does not commit.** The user reviews the staged diff and makes the commit or opens the PR; the move rides in that commit. When the QA plan has a staging column, the hand-off reminds the user to run `/qa @<task file> --env staging` after deploy.
 
 ### Reformatting an existing backlog (`--reformat`, `--board`)
 
@@ -211,16 +222,16 @@ Without `--do`, Phases 5–6 are written as a plan; the implementer follows them
 
 ## The Six Ship Gates
 
-A task is **not shipped**, and a `--do` change **must not be committed**, until all six hold (or are explicitly, justifiably waived in the file):
+A task is **not shipped**, and a `--do` change **must not be committed**, until all six hold (or are explicitly, justifiably waived in the file — except QA for a UI change, which only the user can waive, in their own words, quoted in the file):
 
-| Gate                               | Requirement                                                                                                                                                                                                  |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Evidence-backed Why**            | The gap is shown with dated evidence (`file:line`, command output, or an observation in the running system) — not asserted                                                                                   |
-| **Bounded scope**                  | `Do NOT change` and `Out of scope` are explicit; the change is what Scope says and nothing else; defects found on the way were filed with `/bugfix`, not fixed                                               |
-| **Done criteria met**              | Every `- [ ] AC-N` in Done when is checked, each with a pointer to its evidence                                                                                                                              |
-| **Code reviewed**                  | Where code changed, the `code-review` skill ran on the final diff after the tests went green; every finding is fixed, filed (`/bugfix` or a new task), or dismissed with a reason — recorded in Verification |
-| **Verified in the running system** | Tests at the right levels are green where code changed, AND the outcome is confirmed live (browser for UI, endpoint for APIs, host for operational work), dated                                              |
-| **Settled and handed off**         | The archive row says what was settled; follow-ups are filed as tasks; status is `shipped`; the board row is gone; everything is staged, nothing committed                                                    |
+| Gate                               | Requirement                                                                                                                                                                                                                                                                      |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Evidence-backed Why**            | The gap is shown with dated evidence (`file:line`, command output, or an observation in the running system) — not asserted                                                                                                                                                       |
+| **Bounded scope**                  | `Do NOT change` and `Out of scope` are explicit; the change is what Scope says and nothing else; defects found while implementing were filed with `/bugfix`, not fixed; defects QA found on what the task touches were fixed and named in the QA record, defects elsewhere filed |
+| **Done criteria met**              | Every `- [ ] AC-N` in Done when is checked, each with a pointer to its evidence                                                                                                                                                                                                  |
+| **Code reviewed**                  | Where code changed, the `code-review` skill ran on the final diff after the tests went green; every finding is fixed, filed (`/bugfix` or a new task), or dismissed with a reason — recorded in Verification                                                                     |
+| **Verified in the running system** | Tests at the right levels are green where code changed, AND the outcome is confirmed live, dated — UI changes: the `qa-runner` skill passed the QA plan on local with agent-browser and every exploratory finding is resolved; endpoint for APIs; host for operational work      |
+| **Settled and handed off**         | The archive row says what was settled; follow-ups are filed as tasks; status is `shipped`; the board row is gone; everything is staged, nothing committed                                                                                                                        |
 
 > "Confirmed in the running system" is the gate people skip. A deploy that reported success while building a stale commit, a config change that never reached the host, a flag that was set on the wrong environment — each of these passes every test. Look at the real thing. The code review runs before that check, so whatever it changes is covered by the same tests and the same live confirmation.
 
@@ -250,6 +261,7 @@ A task is **not shipped**, and a `--do` change **must not be committed**, until 
 | Sequencing         | Depends on / blocks / why now                                                                                         | "After 002 — decide Loki vs MLflow first"                                                                |
 | Done when          | AC table + mirrored `- [ ]` checklist                                                                                 | "AC-1 … / `- [ ] AC-1: …`"                                                                               |
 | Verification       | Tests to add/run + code review of the diff + how to confirm live                                                      | "Corpus rows for `gracias` across intents; confirm `reason: customer_request` in Grafana"                |
+| QA plan            | UI changes: environments, vault logins, checks, exploratory charter; then the QA record                               | "QA-1 Admin archives a record and confirms — `dialog`, `network`"                                        |
 | Decisions          | One `### D-NN — question` heading per decided item (Decided + Why lines); open forks as `### OD-NN — question (open)` | "### D-01 — Close mid-booking? / **Decided 2026-09-03.** No. / **Why.** Context decides, never the word" |
 | Related            | PRD/TDD, bugs filed, runbooks, sibling tasks                                                                          | "Bug 014 (found while investigating); runbook `whatsapp-app-setup.md`"                                   |
 | Next step          | The single action that starts the work                                                                                | "Write the PRD. Study the reference panel first."                                                        |
@@ -274,7 +286,7 @@ A task is **not shipped**, and a `--do` change **must not be committed**, until 
 - **Branch** (`--do` only): `task/<NNN>-<slug>`, auto-created when on a protected branch, reused when already on a feature branch, overridable with `--branch` / `--no-branch`.
 - **Living document**: a task file is updated as understanding improves — partial progress goes in the lead paragraph, a settled question becomes a dated `### D-NN` entry under `## Decisions`, `updated` is bumped every time. It is not frozen at creation the way a bug doc is.
 - **The move is staged, never committed by the skill**: on ship, `git mv` into `archived/`, edit the board and the index, `git add` all of it, and hand off.
-- **`--ship`** is the explicit close for work done outside `--do`: it verifies the six gates, writes the shipping record from the evidence you give it, archives, and stages. When code changed and no review is recorded, it runs the `code-review` skill on the change first (the uncommitted diff, or its branch / PR when already committed). It refuses when a gate is unmet.
+- **`--ship`** is the explicit close for work done outside `--do`: it verifies the six gates, writes the shipping record from the evidence you give it, archives, and stages. When code changed and no review is recorded, it runs the `code-review` skill on the change first (the uncommitted diff, or its branch / PR when already committed); when a UI change has no passing local QA record, it runs `/qa` first. It refuses when a gate is unmet.
 - **Nothing is deleted.** A reversed decision gets its own task; the archived file stays.
 
 ## MCP Integration
@@ -345,12 +357,14 @@ Before finalizing a task file, verify:
 - [ ] Sequencing names dependencies when any exist
 - [ ] **Done when has an AC table AND a mirrored `- [ ] AC-N:` checklist (ac-checker compatible)**
 - [ ] Verification names the tests to add/run, the code review (or `n/a — no code changed`), and how to confirm in the running system
+- [ ] **UI changes have a QA plan (environments, vault logins, checks with observable `Passes when`, exploratory charter); other tasks say `QA: n/a — no UI change`**
 - [ ] Decisions: one `### D-NN — question` heading per decided item with dated `**Decided.**` and `**Why.**` lines; only genuine forks as `### OD-NN — question (open)` with Choices and Recommended lines; section omitted when empty
 - [ ] Next step is a single concrete action
 - [ ] Any third-party step was verified against freshly fetched docs, not memory
 - [ ] Board row present under the right section; priority and size match frontmatter; hook is one line
 - [ ] Consistency checks pass (project checker if present)
 - [ ] **With `--do` / `--ship`: where code changed, the `code-review` skill ran on the final diff after the tests went green; every finding is fixed, filed, or dismissed with a reason**
+- [ ] **With `--do` / `--ship`: UI changes have a passing local QA record from `/qa` (agent-browser), exploratory findings resolved**
 - [ ] With `--do` / `--ship`: all six ship gates hold; Shipped + Follow-ups written; follow-ups filed as tasks; archive row says what was settled
 - [ ] **No commit was made or advised; the move, the board, the index and the code are staged together**
 - [ ] `mdformat` passes on every touched file
@@ -365,7 +379,7 @@ Before finalizing a task file, verify:
 - Write testable done-criteria and a verification plan
 - Decide by default and record decisions inline; ask only real forks
 - Maintain the board and the archive index, and keep them consistent with the files
-- In `--do`, branch, implement exactly the Scope, run the `code-review` skill on the diff and resolve every finding, verify live, archive, and stage
+- In `--do`, branch, implement exactly the Scope, run the `code-review` skill on the diff and resolve every finding, run `/qa` for UI changes, verify live, archive, and stage
 - Reformat an existing backlog into the convention without losing content or ids
 
 **Will Not:**

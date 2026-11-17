@@ -10,6 +10,7 @@ claude-code-vitamins is a Claude Code plugin marketplace containing reusable ski
 - `/tdd` - Generate Technical Design Documents
 - `/bugfix` - Generate bugfix specifications (symptom, root cause, red->green regression test) and optionally drive the fix
 - `/task` - Capture backlog tasks (Small/Medium work that is neither a bug nor a PRD-sized feature) on a one-screen board and optionally drive them to shipped
+- `/qa` - Run a spec's QA plan (UI changes) in a real browser with agent-browser and record evidence; called by the bugfix, task and TDD flows before commit
 - `ac-checker` skill - Verify acceptance criteria are implemented in code (automatically invoked)
 
 ## Repository Structure
@@ -27,6 +28,7 @@ plugins/
       tdd.md                # /tdd command wrapper
       bugfix.md             # /bugfix command wrapper
       task.md               # /task command wrapper
+      qa.md                 # /qa command wrapper
     skills/
       prd-writer/
         SKILL.md            # PRD skill definition
@@ -50,6 +52,11 @@ plugins/
         style-guide.md      # Task writing conventions, board and archive-index rules
         templates/          # Task file, BACKLOG.md board, archived/README.md index
         examples/           # Reference task files (operational, code)
+      qa-runner/
+        SKILL.md            # QA runner skill (agent-browser only)
+        style-guide.md      # QA plan conventions shared by bugfix/task/TDD writers
+        templates/          # QA plan section, QA record
+        examples/           # Reference QA plan with local + staging runs
       ac-checker/
         SKILL.md            # Acceptance criteria checker skill
         README.md           # AC checker documentation
@@ -167,7 +174,7 @@ Both skills use a two-phase approach:
 
 ### Output Conventions
 
-PRDs: `specs/prds/{product}/{nn}-{product}-{type}.md` TDDs: `specs/tdds/{feature}/{nn}-{feature}-{type}.md` Bug docs: `specs/bugs/{nnn}-{slug}.md` (moved to `specs/bugs/fixed/` once resolved) Tasks: `specs/backlog/tasks/{nnn}-{slug}.md` indexed in `specs/backlog/BACKLOG.md` (moved to `specs/backlog/archived/` once shipped)
+PRDs: `specs/prds/{product}/{nn}-{product}-{type}.md` TDDs: `specs/tdds/{feature}/{nn}-{feature}-{type}.md` Bug docs: `specs/bugs/{nnn}-{slug}.md` (moved to `specs/bugs/fixed/` once resolved) Tasks: `specs/backlog/tasks/{nnn}-{slug}.md` indexed in `specs/backlog/BACKLOG.md` (moved to `specs/backlog/archived/` once shipped) QA evidence: `specs/qa/runs/{spec}/{date}-{env}/` (git-ignored); visual baselines: `specs/qa/baselines/`
 
 Numbering:
 
@@ -241,3 +248,13 @@ PRDs split when: >8 workflows, >30 requirements, >4 personas, >1000 lines TDDs s
 - Decide by default: settled questions are struck through with a date; only genuine forks become open decisions
 - Where code changed, run the `code-review` skill on the final diff after green and before staging
 - Shipped means archived with a "what it settled" row, never deleted; the skill stages and never commits
+
+### QA Style
+
+- UI changes only (TDDs judged by content, not template type); API and backend behavior is proven by unit tests (`QA: n/a — no UI change`); PRDs never carry a QA plan
+- agent-browser is the only engine — no fallback; missing or failing `doctor` means QA has not run
+- Specs say WHAT: closed capability list + observable `Passes when`; never an agent-browser command
+- Logins are agent-browser vault profiles, one per role and environment; credentials never appear in a spec or the conversation
+- Local before commit (after the code review); staging after deploy, only for projects that have it
+- Where a defect is decides, not its age: defects QA finds on screens the change touches are fixed in the change, even pre-existing ones (ask first when large, risky, or touching a Do NOT change item); defects elsewhere are filed with `/bugfix`; improvements become tasks
+- QA cannot be waived by a skill — only by the user

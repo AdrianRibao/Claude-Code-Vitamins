@@ -112,6 +112,8 @@ Planned: run `/code-review` on the final diff once the suite is green — defaul
 1. Hit `GET /api/categories/?school=1` on the fixed build.
 2. ✅ `online_product_count` = 7 for category "Vela". ❌ Still 9.
 
+QA: n/a — no UI change. No browser QA for an API count; the fix is confirmed at the live endpoint (How to demo).
+
 ## Acceptance criteria
 
 | #    | Context                                      | Action                  | Expected result                      |

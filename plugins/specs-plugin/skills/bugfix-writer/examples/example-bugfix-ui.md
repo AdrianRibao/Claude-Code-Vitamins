@@ -114,6 +114,64 @@ GREEN: 8 passing (eCommerce + POS label cases)
 2. ✅ Each entry shows `(HH:mm)`; parallel variants show `Option A/B/C` in creation order.
 3. ❌ Any `(1)/(2)/(3)`, any missing hour, or any Option label on a standalone variant.
 
+## QA plan
+
+### Environments
+
+| Env     | Base URL                                  | Start / deploy                          | Seed data                                             |
+| ------- | ----------------------------------------- | --------------------------------------- | ----------------------------------------------------- |
+| local   | `http://localhost:4200/widget/4821`       | `npm run dev` (widget) + API on `:8000` | `make_variants(product_id=4821, …)` from Reproduction |
+| staging | `https://staging.example.com/widget/4821` | PR -> CircleCI -> `staging_deploy_hold` | Same seed on product `4821`                           |
+
+### Logins
+
+| Role     | local                | staging                |
+| -------- | -------------------- | ---------------------- |
+| customer | `anonymous`          | `anonymous`            |
+| staff    | `qa-pos-staff-local` | `qa-pos-staff-staging` |
+
+### Checks
+
+| #    | Covers | Check                                                       | Capability                 | Passes when                                                              | Evidence                |
+| ---- | ------ | ----------------------------------------------------------- | -------------------------- | ------------------------------------------------------------------------ | ----------------------- |
+| QA-1 | AC-1   | Customer replays the reproduction: open the dropdown        | `ui-flow`                  | The three parallel entries read `(11:30 Option A/B/C)` in creation order | screenshot              |
+| QA-2 | AC-2   | Customer opens a same-range, different-time product         | `ui-flow`                  | `(09:00)`, `(11:30)`, `(14:00)`; no Option label                         | screenshot              |
+| QA-3 | AC-5   | Staff opens the same product in POS                         | `ui-flow`                  | Labels identical to QA-1                                                 | screenshot              |
+| QA-4 | AC-6   | Customer opens a product with a `start_time = null` variant | `ui-flow`, `console-clean` | Date range only, no parentheses; zero page errors                        | screenshot, console log |
+| QA-5 | —      | Stock and "places left" still follow each label             | `ui-flow`                  | Same strings as the pre-fix snapshot                                     | screenshot              |
+
+### Exploratory charter
+
+Variant dropdown in the eCommerce widget and POS. Probe: 1, 2 and 4+ parallel variants, sold-out variants, long product names, mobile width.
+
+### QA record
+
+**local · 2026-06-24 · `http://localhost:4200/widget/4821` · working tree on `fix/OP-6979-variant-dropdown-labels` · agent-browser 0.43.0**
+
+| #    | Result | Observed                                                    | Evidence                       |
+| ---- | ------ | ----------------------------------------------------------- | ------------------------------ |
+| QA-1 | pass   | `01-06-2026 → 05-06-2026 (11:30 Option A)`, `B`, `C`        | `qa-1.png`                     |
+| QA-2 | pass   | `(09:00)`, `(11:30)`, `(14:00)`, no Option labels           | `qa-2.png`                     |
+| QA-3 | pass   | POS labels match QA-1 exactly                               | `qa-3.png`                     |
+| QA-4 | pass   | `25-05-2026 → 29-05-2026`; 0 page errors; variant id logged | `qa-4.png`, `qa-4-console.txt` |
+| QA-5 | pass   | "3 places left" / "Sold out" unchanged after each label     | `qa-5.png`                     |
+
+**Exploratory**: 1 finding — fixed: the dropdown lost keyboard focus after choosing a variant (pre-existing; `variant-select.js:57`, tests + review re-run, re-run clean).
+
+**Evidence**: `specs/qa/runs/001-variant-dropdown-labels/2026-06-24-local/` (git-ignored)
+
+**staging · 2026-06-25 · `https://staging.example.com/widget/4821` · build `9c1a4f0` (confirmed in the widget footer) · agent-browser 0.43.0**
+
+| #    | Result | Observed                                          | Evidence   |
+| ---- | ------ | ------------------------------------------------- | ---------- |
+| QA-1 | pass   | `(11:30 Option A/B/C)` in creation order          | `qa-1.png` |
+| QA-2 | pass   | `(09:00)`, `(11:30)`, `(14:00)`, no Option labels | `qa-2.png` |
+| QA-3 | pass   | POS labels match QA-1                             | `qa-3.png` |
+| QA-4 | pass   | Date range only; 0 page errors                    | `qa-4.png` |
+| QA-5 | pass   | Stock strings unchanged                           | `qa-5.png` |
+
+**Evidence**: `specs/qa/runs/001-variant-dropdown-labels/2026-06-25-staging/` (git-ignored)
+
 ## Acceptance criteria
 
 | #    | Context                                            | Action                  | Expected result                                      |

@@ -6,7 +6,7 @@ A plugin marketplace for [Claude Code](https://claude.ai/code) containing reusab
 
 ### specs-plugin
 
-Generate excellent Product Requirements Documents (PRDs), Technical Design Documents (TDDs), bugfix specifications, and backlog tasks with structured workflows and deep analysis. Verify implementation completeness against TDD acceptance criteria.
+Generate excellent Product Requirements Documents (PRDs), Technical Design Documents (TDDs), bugfix specifications, and backlog tasks with structured workflows and deep analysis. Verify implementation completeness against TDD acceptance criteria, and QA UI changes in a real browser with agent-browser.
 
 | Command                    | Skill         | Purpose                                                                                              |
 | -------------------------- | ------------- | ---------------------------------------------------------------------------------------------------- |
@@ -14,6 +14,7 @@ Generate excellent Product Requirements Documents (PRDs), Technical Design Docum
 | `/specs-plugin:tdd`        | tdd-writer    | Generate TDDs focused on requirements, contracts, and acceptance criteria                            |
 | `/specs-plugin:bugfix`     | bugfix-writer | Diagnose and optionally fix bugs — symptom, root cause, red->green regression test, verify in app    |
 | `/specs-plugin:task`       | task-writer   | Capture backlog tasks on a one-screen board — evidence, bounded scope, done-criteria — and ship them |
+| `/specs-plugin:qa`         | qa-runner     | Run a spec's QA plan in a real browser with agent-browser and record evidence (UI changes)           |
 | `/specs-plugin:ac-checker` | ac-checker    | Verify acceptance criteria are implemented with tests and code                                       |
 
 ### marketing-board
@@ -49,6 +50,7 @@ Eight-seat marketing deliberation board for SaaS launches. Convenes 8 specialist
 ## Requirements
 
 - Claude Code 2.1.0 or later
+- **[agent-browser](https://agent-browser.dev)** — required to QA UI changes with `/specs-plugin:qa` (no fallback). Install: `npm i -g agent-browser && agent-browser install` (Linux: `agent-browser install --with-deps`)
 - **Optional MCP servers** (for enhanced functionality):
     - [Context7](https://github.com/upstash/context7-mcp) - Library documentation lookups
     - Sequential Thinking - Deep analysis for decision triage (record decisions, surface only real Open Questions)
@@ -235,6 +237,41 @@ Capture a backlog task — Small or Medium work that is neither a bug nor a PRD-
 
 A defect is never a task: the skill routes it to `/bugfix`. A Large item becomes a stub whose only next step is the PRD.
 
+### QA Runner
+
+Run the `QA plan` of a bug doc, task file, or UI TDD in a real browser with [agent-browser](https://agent-browser.dev): scripted checks mapped to acceptance criteria, then an exploratory pass on the changed screens. Results and evidence are recorded under the plan. The bugfix and task skills call it after the code review, before the change is staged for commit; a UI TDD's acceptance criteria require it before commit. Defects it finds on the screens the change touches are fixed in the change, even ones that predate it; defects elsewhere are filed with `/bugfix`, improvements as tasks.
+
+```bash
+# Pre-commit run on the local dev server (scripted checks + exploratory pass)
+/specs-plugin:qa @specs/bugs/007-checkout-coupon-reset.md
+
+# Re-run one check after fixing it
+/specs-plugin:qa @specs/backlog/tasks/012-archive-records.md --only QA-2 --no-exploratory
+
+# After the change is deployed to staging (projects that have one), before promotion
+/specs-plugin:qa @specs/bugs/007-checkout-coupon-reset.md --env staging
+```
+
+**Flags:**
+
+| Flag               | Purpose                                                                 |
+| ------------------ | ----------------------------------------------------------------------- |
+| `--env local`      | Default. Run against the local dev server (part of the pre-commit gate) |
+| `--env staging`    | Run on staging after deploy; only for plans that declare staging        |
+| `--only QA-N,...`  | Re-run selected checks                                                  |
+| `--no-exploratory` | Skip the exploratory pass on a re-run                                   |
+| `--review`         | Check a QA plan against the conventions without running it              |
+
+**UI changes only.** API and backend-only work has no QA plan — unit tests cover it (API bug fixes are still confirmed at the live endpoint), and the spec says `QA: n/a — no UI change`. PRDs never carry one; the TDD derives its checks from the PRD's user workflows.
+
+**Logins** go through agent-browser's encrypted auth vault. The spec names one profile per role and environment (`admin -> qa-admin-local`, `qa-admin-staging`), never a credential — a profile stores a single login URL. Create each profile once, **in your own terminal**, so the password never enters the conversation:
+
+```bash
+agent-browser auth save qa-admin-local --url http://localhost:4000/login --username admin@example.test --password-stdin
+```
+
+**Evidence** goes to `specs/qa/runs/{spec}/{date}-{env}/` (git-ignored); approved visual baselines live in `specs/qa/baselines/` and are committed.
+
 ### Acceptance Criteria Checker
 
 Verify that acceptance criteria from TDDs are actually implemented in code with tests and proper coverage.
@@ -310,12 +347,13 @@ Verify that acceptance criteria from TDDs are actually implemented in code with 
 └──────────────────────────────────────────────────────────────────────────────┘
                                       ↓
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│  5. REVIEW, THEN COMMIT                                                      │
-│     /code-review                                                             │
+│  5. REVIEW, QA, THEN COMMIT                                                  │
+│     /code-review  ->  /specs-plugin:qa @specs/tdds/feature.md   (UI TDDs)    │
 │                                                                              │
 │     • Review the final diff once tests and ac-checker are green              │
 │     • Fix, file (bug / task), or dismiss every finding with a reason         │
-│     • Commit only then — the TDD's Code Quality criteria require it          │
+│     • UI TDDs: run the QA Plan with agent-browser on local                   │
+│     • Commit only then — the TDD's acceptance criteria require both          │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -352,8 +390,10 @@ The bugfix skill runs a defect from report to closed. With `--fix` it will not l
 │     code review · confirmed-in-app · scope discipline                       │
 │     • Once green, /code-review the final diff; fix, file, or dismiss        │
 │       every finding (out-of-scope ones go to /bugfix or /task)              │
-│     • Confirm the ORIGINAL issue is gone in the running app                 │
-│       (drive a browser for UI bugs, e.g. claude-in-chrome)                  │
+│     • Confirm the ORIGINAL issue is gone in the running app:                │
+│       UI bugs -> /qa runs the QA plan with agent-browser (local);           │
+│       API bugs -> the live endpoint                                         │
+│     • Staging (if the project has one): /qa --env staging after deploy      │
 └─────────────────────────────────────────────────────────────────────────────┘
                                        ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -415,6 +455,7 @@ The task skill keeps a backlog of Small and Medium work on a one-screen board. T
 │     • Implement the Scope and nothing else; tests at the right levels       │
 │     • Once green, /code-review the final diff; fix, file, or dismiss        │
 │       every finding                                                         │
+│     • UI changes: /qa runs the QA plan with agent-browser (local)           │
 │     • Bugs found on the way are filed with /bugfix, not fixed here          │
 └─────────────────────────────────────────────────────────────────────────────┘
                                        ↓
@@ -478,7 +519,7 @@ Bugfix specs close the gap between observed and expected behavior with the small
 - A scoped fix with explicit Do-NOT-change / Out-of-scope
 - A red->green regression test plus unit and E2E coverage
 - A code review of the final diff, every finding fixed, filed, or dismissed
-- Confirmation the issue is gone in the running app
+- Confirmation the issue is gone in the running app (a QA plan run with agent-browser for UI bugs)
 
 **Bugfix specs never ship an unproven fix**: commits are forbidden until the eight gates pass — including a code review and a real-app confirmation, not just green tests.
 
@@ -493,6 +534,16 @@ A task is a unit of work with a known next step. Task files exist so the next se
 - A shipping record that says what the task settled, and follow-ups filed as new tasks
 
 **Tasks never absorb bugs or features**: a defect goes to `/bugfix`, a PRD-sized item becomes a stub. And a task is not shipped on green tests alone — the diff is code-reviewed and the outcome is confirmed in the running system first.
+
+### QA: Observe It in the Browser
+
+Tests prove the code does what the tests say; QA proves the user-facing change works in the running app. It applies to UI changes only:
+
+- The spec says WHAT to check — a capability from a closed list and an observable pass condition — never a browser command
+- agent-browser runs it; there is no fallback tool
+- Logins come from the agent-browser vault; credentials never appear in a spec or the conversation
+- Local before commit; staging after deploy, for projects that have it
+- Defects on the screens the change touches are fixed in the change, even ones that predate it; defects elsewhere are filed with `/bugfix`; improvements become tasks; false alarms are dismissed with a reason
 
 ## Document Structure
 
@@ -520,6 +571,7 @@ A task is a unit of work with a known next step. Task files exist so the next se
 | Authorization Matrix | Who can do what (tables)                    |
 | Behavior Specs       | Given/When/Then scenarios                   |
 | Acceptance Criteria  | Testable checkboxes                         |
+| QA Plan              | UI TDDs: browser checks run by `/qa`        |
 | Decisions            | Judgment calls made, with rationale         |
 | Open Questions       | Only what a human must decide (often empty) |
 
@@ -536,6 +588,7 @@ A task is a unit of work with a known next step. Task files exist so the next se
 | The fix             | WHAT changes + Do-NOT-change + Out of scope     |
 | Blast radius        | Adjacent behavior at risk                       |
 | Verification        | Regression + unit/E2E + manual/app demo         |
+| QA plan             | UI bugs: browser checks + QA record (`/qa`)     |
 | Acceptance criteria | Table + mirrored checkbox list                  |
 
 ### Task Structure
@@ -549,6 +602,7 @@ A task is a unit of work with a known next step. Task files exist so the next se
 | Sequencing   | Depends on / blocks / why now                                   |
 | Done when    | AC table + mirrored checkbox list                               |
 | Verification | Tests to add/run + how to confirm in the running system         |
+| QA plan      | UI changes: browser checks + QA record (`/qa`)                  |
 | Decisions    | Decided items struck through and dated; open forks as OD-NN     |
 | Next step    | The single action that starts the work                          |
 | Shipped      | (archived only) what landed, evidence, follow-ups filed         |
