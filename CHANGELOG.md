@@ -52,6 +52,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Improved project workflow to include implementation verification phase
 
+### Fixed
+
+- **qa-runner, bugfix-writer, task-writer, tdd-writer** (1.14.1, from a second review of 1.14.0):
+    - The fix-or-file rule is now stated in full everywhere, including defects the change caused on any screen. task-writer's implement step and Boundaries no longer forbid the fixes `/qa` requires.
+    - Fixes made during QA need a test that fails without them, where testable, and re-run every check on the screens they touched.
+    - A fix the user declines is recorded as `deferred by user — bug NNN` with their quoted words; a `Passes when` may never be relaxed to pass a failing app.
+    - Visual baseline candidates stay in the evidence directory until approved.
+    - Logins: a profile's saved URL is checked against the environment before any login, the login must actually succeed (off the login page, optional `Logged in when` signal), and an environment may list several origins.
+    - UI bug reproduction follows the qa-runner safety rules (engine check, vault logins, never production, git-ignored evidence) and captures blast-radius items before the fix.
+    - `--only` implies `--no-exploratory` and needs an existing record; the build line records `HEAD` plus a code fingerprint that `--resolve` and `--ship` verify.
+    - Smaller fixes: the QA record template's filing slots, slugified session names, ffmpeg handled as optional, staging reminders with post-move paths, TDD and ac-checker criteria wording, a QA check for every UI blast-radius item in the bug example.
+
 ## [1.0.0] - 2026-01-10
 
 ### Added

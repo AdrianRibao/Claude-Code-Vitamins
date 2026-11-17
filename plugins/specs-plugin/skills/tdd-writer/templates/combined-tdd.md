@@ -282,7 +282,7 @@ ______________________________________________________________________
 - [ ] Performance tests validate query response times < 100ms
 - [ ] Performance tests validate page load < 3s, interaction < 100ms
 - [ ] UI tests cover user-facing changes
-- [ ] **QA Plan run with `/qa` (agent-browser) on local after the code review and before commit: every `QA-N` passes, every exploratory finding is fixed, filed, or dismissed, and the QA record is written**
+- [ ] **QA Plan run with `/qa` (agent-browser) on local after the code review and before commit: every `QA-N` passes or is deferred by the user in their own words, every defect on touched screens or caused by the change is fixed, pre-existing defects elsewhere and improvements are filed, and the QA record is written**
 - [ ] **Projects with staging: `/qa --env staging` passes after deploy, before promotion to production**
 
 ### Code Quality

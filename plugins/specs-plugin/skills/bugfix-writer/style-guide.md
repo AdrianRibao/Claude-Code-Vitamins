@@ -173,7 +173,7 @@ A UI bug carries a `## QA plan` after Verification, written to the [qa-runner st
 - Environments: local always; staging only when the project has one. Logins name agent-browser vault profiles, never credentials.
 - Checks say WHAT to verify with a capability from the closed list and an observable `Passes when` — never an agent-browser command.
 - An API or backend-only bug has no QA plan: Verification says `QA: n/a — no UI change`. There is no browser QA, but the fix is still confirmed at the live endpoint.
-- Defects QA finds on what the fix touches, including pre-existing ones, are fixed in the change and named in the QA record; pre-existing defects elsewhere are filed with `/bugfix`, improvements with `/task`.
+- Defects QA finds on what the fix touches, including pre-existing ones, and any defect the fix caused are fixed in the change, with a test where testable, and named in the QA record; pre-existing defects elsewhere are filed with `/bugfix`, improvements with `/task`.
 
 ## Acceptance Criteria (hybrid format)
 

@@ -521,7 +521,7 @@ After creating a TDD:
 
 **CRITICAL**: Creating a TDD is a specification phase, NOT an implementation trigger. Always read and present the TDD for review before any implementation work begins.
 
-**Implementing an approved TDD** (whoever does it, in a later session): tests green -> `ac-checker` -> the `code-review` skill on the final diff -> every finding fixed, filed as a bug or task, or dismissed with a reason -> for TDDs with UI, `/qa` runs the QA Plan with agent-browser on local and the defects it finds are fixed -> commit. Every TDD carries the review as the last two criteria of `Acceptance Criteria > Code Quality`, and every UI TDD carries the QA run in `Acceptance Criteria > Testing`, so the implementer meets both in the document, not just here. Never commit a TDD's implementation before them. Projects with staging run `/qa --env staging` after deploy, before promotion.
+**Implementing an approved TDD** (whoever does it, in a later session): tests green -> `ac-checker` -> the `code-review` skill on the final diff -> every finding fixed, filed as a bug or task, or dismissed with a reason -> for TDDs with UI, `/qa` runs the QA Plan with agent-browser on local, and the defects it finds on touched screens or caused by the change are fixed (pre-existing ones elsewhere are filed) -> commit. Every TDD carries the review as the last two criteria of `Acceptance Criteria > Code Quality`, and every UI TDD carries the QA run in `Acceptance Criteria > Testing`, so the implementer meets both in the document, not just here. Never commit a TDD's implementation before them. Projects with staging run `/qa --env staging` after deploy, before promotion.
 
 ## Consolidation Workflow
 

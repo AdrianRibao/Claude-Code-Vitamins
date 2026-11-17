@@ -239,7 +239,7 @@ A defect is never a task: the skill routes it to `/bugfix`. A Large item becomes
 
 ### QA Runner
 
-Run the `QA plan` of a bug doc, task file, or UI TDD in a real browser with [agent-browser](https://agent-browser.dev): scripted checks mapped to acceptance criteria, then an exploratory pass on the changed screens. Results and evidence are recorded under the plan. The bugfix and task skills call it after the code review, before the change is staged for commit; a UI TDD's acceptance criteria require it before commit. Defects it finds on the screens the change touches are fixed in the change, even ones that predate it; defects elsewhere are filed with `/bugfix`, improvements as tasks.
+Run the `QA plan` of a bug doc, task file, or UI TDD in a real browser with [agent-browser](https://agent-browser.dev): scripted checks mapped to acceptance criteria, then an exploratory pass on the changed screens. Results and evidence are recorded under the plan. The bugfix and task skills call it after the code review, before the change is staged for commit; a UI TDD's acceptance criteria require it before commit. Defects it finds on the screens the change touches, or that the change caused, are fixed in the change, even ones that predate it; pre-existing defects elsewhere are filed with `/bugfix`, improvements as tasks.
 
 ```bash
 # Pre-commit run on the local dev server (scripted checks + exploratory pass)
@@ -456,7 +456,8 @@ The task skill keeps a backlog of Small and Medium work on a one-screen board. T
 │     • Once green, /code-review the final diff; fix, file, or dismiss        │
 │       every finding                                                         │
 │     • UI changes: /qa runs the QA plan with agent-browser (local)           │
-│     • Bugs found on the way are filed with /bugfix, not fixed here          │
+│     • Bugs found while implementing go to /bugfix; defects /qa finds on     │
+│       touched screens are fixed here                                        │
 └─────────────────────────────────────────────────────────────────────────────┘
                                        ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -533,7 +534,7 @@ A task is a unit of work with a known next step. Task files exist so the next se
 - Decisions recorded inline as they are made; only genuine forks left open
 - A shipping record that says what the task settled, and follow-ups filed as new tasks
 
-**Tasks never absorb bugs or features**: a defect goes to `/bugfix`, a PRD-sized item becomes a stub. And a task is not shipped on green tests alone — the diff is code-reviewed and the outcome is confirmed in the running system first.
+**Tasks never absorb bugs or features**: a defect goes to `/bugfix` (except one `/qa` finds on a screen the task touches, which is fixed in the task), a PRD-sized item becomes a stub. And a task is not shipped on green tests alone — the diff is code-reviewed and the outcome is confirmed in the running system first.
 
 ### QA: Observe It in the Browser
 
@@ -543,7 +544,7 @@ Tests prove the code does what the tests say; QA proves the user-facing change w
 - agent-browser runs it; there is no fallback tool
 - Logins come from the agent-browser vault; credentials never appear in a spec or the conversation
 - Local before commit; staging after deploy, for projects that have it
-- Defects on the screens the change touches are fixed in the change, even ones that predate it; defects elsewhere are filed with `/bugfix`; improvements become tasks; false alarms are dismissed with a reason
+- Defects on the screens the change touches, or caused by it, are fixed in the change, even ones that predate it; pre-existing defects elsewhere are filed with `/bugfix`; improvements become tasks; false alarms are dismissed with a reason
 
 ## Document Structure
 

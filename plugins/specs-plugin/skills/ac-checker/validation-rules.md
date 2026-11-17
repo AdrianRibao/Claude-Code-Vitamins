@@ -105,7 +105,7 @@ Code standards, documentation, and maintainability requirements.
 - [ ] **Every code-review finding is fixed (tests re-run), filed as a bug or task, or dismissed with a one-line reason**
 ```
 
-The two code-review criteria — and, in UI TDDs, the two QA criteria in Testing (`QA Plan run with /qa …`, `… /qa --env staging …`) — are **process criteria**: no test or source file can prove them. Report them as `Manual` (never as missing implementation), preserve their marks, and leave them unticked on `--update`. A TDD whose Code Quality subsection lacks the code-review criteria, or a TDD with UI sections (any type, including combined) without a `## QA Plan` and the QA criteria, gets a Medium finding. A TDD without UI needs neither.
+The two code-review criteria — and, in UI TDDs, the two QA criteria in Testing (`QA Plan run with /qa …`, `… /qa --env staging …`) — are **process criteria**: no test or source file can prove them. Report them as `Manual` (never as missing implementation), preserve their marks, and leave them unticked on `--update`. A TDD whose Code Quality subsection lacks the code-review criteria, or a TDD with UI sections (any type, including combined) without a `## QA Plan` and the local QA criterion (plus the staging criterion when the plan has a staging row), gets a Medium finding. A TDD without UI needs neither.
 
 ## Format Requirements
 

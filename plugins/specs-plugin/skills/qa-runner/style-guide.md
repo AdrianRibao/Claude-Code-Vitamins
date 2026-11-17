@@ -43,6 +43,7 @@ The plan says WHAT to check and what passing looks like — never an agent-brows
 - **local** is always present; it is the pre-commit run.
 - **staging** only for projects that have one — omit the row otherwise. It runs after deploy, before promotion to production.
 - Never production.
+- A Base URL cell may list several origins, comma-separated, when the change spans apps (a widget and a POS); every login must land on one of them.
 
 ## Logins
 
@@ -54,6 +55,7 @@ The plan says WHAT to check and what passing looks like — never an agent-brows
 
 - **One profile per role and environment.** An agent-browser vault profile stores a single login URL, so a profile saved for local cannot log in to staging. Drop the staging column when the project has no staging.
 - `anonymous` means no login.
+- Optional: a `Logged in when` line under the table names, per role, a text or element visible only after login. Without it, leaving the login URL is the signal.
 - **Never a credential in the spec** — no passwords, tokens or cookies, and no commands. The user saves each profile once in the agent-browser vault, in their own terminal; the spec only names it.
 - Test accounts only. A profile that points at a real person's account is a defect in the plan.
 
@@ -94,7 +96,7 @@ The runner takes the syntax from `agent-browser skills get core`, `skills get co
 - **`dialog`**: one row per branch — a confirm has an accept row and a dismiss row.
 - **`network`** observes. Mocking or blocking requests is allowed only on local, and only when the row says so; on staging that row is `skipped — mocks requests`.
 - **`visual`**: the budget in `Passes when` is a share of differing pixels. agent-browser's `--threshold` is a per-pixel colour tolerance, not that budget. Baselines live in `specs/qa/baselines/`, are committed, and are approved by the user the first time the runner creates them.
-- **`vitals`** gates only on staging. On local the result is `informational`; in a project without staging, the row says so in `Passes when`.
+- **`vitals`** gates only on staging. On local the result is `informational`; in a project without staging, write `informational — no staging` as the row's `Passes when`, since it can never gate.
 - A new capability is a change to this list (and to `qa-runner`), not something a spec invents.
 
 ## Exploratory Charter
@@ -115,46 +117,48 @@ Written by the runner under the plan — `### QA record` in bug docs and task fi
 ```markdown
 ### QA record
 
-**local · 2026-11-17 · `http://localhost:4000` · working tree on `task/012-archive-records` · agent-browser 0.43.0**
+**local · 2026-11-17 · `http://localhost:4000` · `task/012-archive-records` at `HEAD 3f2a9c1`, code `9b1e04d2` · agent-browser 0.43.0**
 
 | #    | Result | Observed                                              | Evidence              |
 | ---- | ------ | ----------------------------------------------------- | --------------------- |
 | QA-1 | pass   | "Archived" shown; one `PATCH /records/42` -> 200      | `qa-1.png`, `qa-1-requests.json` |
-| QA-2 | pass (after fix) | First run sent the `PATCH` on cancel; fixed in `archive_button.ex:31`, re-run clean | `qa-2-requests.json` |
+| QA-2 | pass (after fix) | First run sent the `PATCH` on cancel; fixed in `archive_button.ex:31` with a regression test, re-run clean | `qa-2-requests.json` |
 
-**Exploratory**: 3 findings — fixed: pagination reset to page 1 after archiving the last row of page 2 (pre-existing, on the records list this task changes; `records_live.ex:88`, re-run clean); filed: bug 019 (record detail's "Back" link drops the list's sort order — pre-existing, on a screen this task does not touch); filed: task 013 (undo after archive — an improvement, not a defect).
+**Exploratory**: 3 findings — fixed: pagination reset to page 1 after archiving the last row of page 2 (pre-existing, on the records list this task changes; `records_live.ex:88`, regression test added, re-run clean); filed: bug 019 (record detail's "Back" link drops the list's sort order — pre-existing, on a screen this task does not touch); filed: task 013 (undo after archive — an improvement, not a defect).
 
 **Evidence**: `specs/qa/runs/012-archive-records/2026-11-17-local/` (git-ignored)
 ```
 
 - **Observed** says what was seen, not "as expected". A fixed row names the fix (`file:line`) and says when the defect predates the change. A filed finding says why it is outside the change: the screen it is on.
-- The build line names what was tested: a commit, a branch's working tree, or the deployed version on staging.
+- The build line names what was tested: on local, the branch, `HEAD` and the code fingerprint the runner computes, so `--resolve` and `--ship` can tell whether code changed since; on staging, the deployed version.
 - A waiver appears only when the user stated one, quoted with its date.
 
 ## Results
 
-| Result                                | Meaning                                                                                     | Gate accepts                                                           |
-| ------------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `pass`                                | Observed what `Passes when` says                                                            | Yes                                                                    |
-| `pass (after fix)`                    | Failed, the defect was fixed in this change (even a pre-existing one), re-run clean         | Yes                                                                    |
-| `pass (baseline approved YYYY-MM-DD)` | First `visual` run; the user approved the new baseline                                      | Yes                                                                    |
-| `informational`                       | `vitals` on local; the numbers are recorded, not judged                                     | Yes, for `vitals` on local only                                        |
-| `skipped — <reason>`                  | The rules forbid the capability in this environment (a row that mocks requests, on staging) | Yes, for that reason only — never because agent-browser is unavailable |
-| `baseline created — needs approval`   | Waiting for the user to approve a new baseline                                              | No                                                                     |
-| `fail`                                | Not observed                                                                                | No                                                                     |
+| Result                                | Meaning                                                                                              | Gate accepts                                                           |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `pass`                                | Observed what `Passes when` says                                                                     | Yes                                                                    |
+| `pass (after fix)`                    | Failed, the defect was fixed in this change (even a pre-existing one), re-run clean                  | Yes                                                                    |
+| `pass (baseline approved YYYY-MM-DD)` | First `visual` run; the user approved the new baseline                                               | Yes                                                                    |
+| `informational`                       | `vitals` on local; the numbers are recorded, not judged                                              | Yes, for `vitals` on local only                                        |
+| `deferred by user — bug NNN`          | The user declined a fix QA asked about; the defect is filed and their words are quoted with the date | Yes, only with the user's quoted words                                 |
+| `skipped — <reason>`                  | The rules forbid the capability in this environment (a row that mocks requests, on staging)          | Yes, for that reason only — never because agent-browser is unavailable |
+| `baseline created — needs approval`   | Waiting for the user to approve a new baseline                                                       | No                                                                     |
+| `fail`                                | Not observed                                                                                         | No                                                                     |
 
 ## Anti-Patterns
 
-| Anti-pattern                                   | Why it fails                                                                    |
-| ---------------------------------------------- | ------------------------------------------------------------------------------- |
-| agent-browser commands in the spec             | Break on the next release; the spec is WHAT, the runner is HOW                  |
-| "Works" or "looks right" as a pass condition   | Cannot fail, so it proves nothing                                               |
-| A screenshot as the only proof                 | Shows a moment, not that the request was sent or the error absent               |
-| Credentials, tokens or cookies in the spec     | Leak through git and transcripts; name a vault profile instead                  |
-| One login profile for local and staging        | The profile's saved URL logs in to one environment only                         |
-| An app-wide cross-cutting check                | Every old violation fails it and must be fixed; scope it to the changed screens |
-| Filing a defect on a screen the change touches | The changed screen ships with a known defect; fix it in the change              |
-| Fixing an untouched screen inside the change   | Mixes unrelated changes into one commit; file it with `/bugfix`                 |
-| QA as a real user, or on production            | Real data, real side effects; test accounts on local and staging only           |
-| Staging run without checking the build         | A stale deploy passes every check                                               |
-| A QA plan for an API-only change               | Duplicates unit tests with a slower, flakier harness                            |
+| Anti-pattern                                                          | Why it fails                                                                    |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| agent-browser commands in the spec                                    | Break on the next release; the spec is WHAT, the runner is HOW                  |
+| "Works" or "looks right" as a pass condition                          | Cannot fail, so it proves nothing                                               |
+| A screenshot as the only proof                                        | Shows a moment, not that the request was sent or the error absent               |
+| Credentials, tokens or cookies in the spec                            | Leak through git and transcripts; name a vault profile instead                  |
+| One login profile for local and staging                               | The profile's saved URL logs in to one environment only                         |
+| An app-wide cross-cutting check                                       | Every old violation fails it and must be fixed; scope it to the changed screens |
+| Filing a defect on a screen the change touches                        | The changed screen ships with a known defect; fix it in the change              |
+| Fixing a pre-existing defect on an untouched screen inside the change | Mixes unrelated changes into one commit; file it with `/bugfix`                 |
+| Loosening a `Passes when` the app fails                               | Turns a failing check into a pass without fixing anything                       |
+| QA as a real user, or on production                                   | Real data, real side effects; test accounts on local and staging only           |
+| Staging run without checking the build                                | A stale deploy passes every check                                               |
+| A QA plan for an API-only change                                      | Duplicates unit tests with a slower, flakier harness                            |

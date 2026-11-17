@@ -35,18 +35,18 @@ Records list and record detail, as admin and staff. Probe: empty list, archiving
 
 ### QA record
 
-**local · 2026-11-17 · `http://localhost:4000` · working tree on `task/012-archive-records` · agent-browser 0.43.0**
+**local · 2026-11-17 · `http://localhost:4000` · `task/012-archive-records` at `HEAD 3f2a9c1`, code `9b1e04d2` · agent-browser 0.43.0**
 
-| #    | Result           | Observed                                                                                                                                             | Evidence                         |
-| ---- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
-| QA-1 | pass             | "Archived" shown; one `PATCH /records/42` -> 200                                                                                                     | `qa-1.png`, `qa-1-requests.json` |
-| QA-2 | pass (after fix) | First run sent the `PATCH` on cancel (handler ignored the dialog result); fixed in `archive_button.ex:31`, tests + review re-run, check re-run clean | `qa-2-requests.json`             |
-| QA-3 | pass             | 3 rows, no "Archive" button; snapshot shows no hidden button either                                                                                  | `qa-3.png`                       |
-| QA-4 | pass             | 0 page errors, 0 console errors                                                                                                                      | `qa-4-console.txt`               |
-| QA-5 | pass             | 0 serious, 0 critical; 2 moderate (contrast on the pager) noted                                                                                      | `qa-5-a11y.json`                 |
-| QA-6 | pass             | Card layout, no horizontal scroll                                                                                                                    | `qa-6.png`                       |
+| #    | Result           | Observed                                                                                                                                                                                                      | Evidence                         |
+| ---- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| QA-1 | pass             | "Archived" shown; one `PATCH /records/42` -> 200                                                                                                                                                              | `qa-1.png`, `qa-1-requests.json` |
+| QA-2 | pass (after fix) | First run sent the `PATCH` on cancel (handler ignored the dialog result); fixed in `archive_button.ex:31` with a regression test in `archive_button_test.exs`; tests + review re-run, QA-1..QA-4 re-run clean | `qa-2-requests.json`             |
+| QA-3 | pass             | 3 rows, no "Archive" button; snapshot shows no hidden button either                                                                                                                                           | `qa-3.png`                       |
+| QA-4 | pass             | 0 page errors, 0 console errors                                                                                                                                                                               | `qa-4-console.txt`               |
+| QA-5 | pass             | 0 serious, 0 critical                                                                                                                                                                                         | `qa-5-a11y.json`                 |
+| QA-6 | pass             | Card layout, no horizontal scroll                                                                                                                                                                             | `qa-6.png`                       |
 
-**Exploratory**: 3 findings — fixed: pagination reset to page 1 after archiving the last row of page 2 (pre-existing, on the records list this task changes; `records_live.ex:88`, tests + review re-run, re-run clean); filed: bug 019 (record detail's "Back" link drops the list's sort order — pre-existing, on a screen this task does not touch); filed: task 013 (undo after archive — an improvement, not a defect).
+**Exploratory**: 3 findings — fixed: pagination reset to page 1 after archiving the last row of page 2 (pre-existing, on the records list this task changes; `records_live.ex:88`, regression test added, tests + review re-run, list checks re-run clean); filed: bug 019 (record detail's "Back" link drops the list's sort order — pre-existing, on a screen this task does not touch); filed: task 013 (undo after archive — an improvement, not a defect).
 
 **Evidence**: `specs/qa/runs/012-archive-records/2026-11-17-local/` (git-ignored)
 

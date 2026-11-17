@@ -251,10 +251,10 @@ PRDs split when: >8 workflows, >30 requirements, >4 personas, >1000 lines TDDs s
 
 ### QA Style
 
-- UI changes only (TDDs judged by content, not template type); API and backend behavior is proven by unit tests (`QA: n/a — no UI change`); PRDs never carry a QA plan
+- UI changes only (TDDs judged by content, not template type); API and backend behavior is proven by unit tests (`QA: n/a — no UI change`; API bug fixes are still confirmed at the live endpoint); PRDs never carry a QA plan
 - agent-browser is the only engine — no fallback; missing or failing `doctor` means QA has not run
 - Specs say WHAT: closed capability list + observable `Passes when`; never an agent-browser command
 - Logins are agent-browser vault profiles, one per role and environment; credentials never appear in a spec or the conversation
 - Local before commit (after the code review); staging after deploy, only for projects that have it
-- Where a defect is decides, not its age: defects QA finds on screens the change touches are fixed in the change, even pre-existing ones (ask first when large, risky, or touching a Do NOT change item); defects elsewhere are filed with `/bugfix`; improvements become tasks
+- Where a defect is decides, not its age: defects QA finds on screens the change touches, or caused by it, are fixed in the change with a test where testable, even pre-existing ones (ask first when large, risky, or touching a Do NOT change item; a declined fix is recorded as deferred with the user's words); pre-existing defects elsewhere are filed with `/bugfix`; improvements become tasks
 - QA cannot be waived by a skill — only by the user

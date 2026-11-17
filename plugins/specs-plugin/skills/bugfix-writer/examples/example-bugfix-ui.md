@@ -118,10 +118,10 @@ GREEN: 8 passing (eCommerce + POS label cases)
 
 ### Environments
 
-| Env     | Base URL                                  | Start / deploy                          | Seed data                                             |
-| ------- | ----------------------------------------- | --------------------------------------- | ----------------------------------------------------- |
-| local   | `http://localhost:4200/widget/4821`       | `npm run dev` (widget) + API on `:8000` | `make_variants(product_id=4821, …)` from Reproduction |
-| staging | `https://staging.example.com/widget/4821` | PR -> CircleCI -> `staging_deploy_hold` | Same seed on product `4821`                           |
+| Env     | Base URL                                                                                                                  | Start / deploy                                         | Seed data                                             |
+| ------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------- |
+| local   | `http://localhost:4200/widget/4821`, `http://localhost:4300/pos`, `http://localhost:4400/minisite/4821`                   | `npm run dev` (widget, POS, minisite) + API on `:8000` | `make_variants(product_id=4821, …)` from Reproduction |
+| staging | `https://staging.example.com/widget/4821`, `https://pos.staging.example.com`, `https://minisite.staging.example.com/4821` | PR -> CircleCI -> `staging_deploy_hold`                | Same seed on product `4821`                           |
 
 ### Logins
 
@@ -138,7 +138,8 @@ GREEN: 8 passing (eCommerce + POS label cases)
 | QA-2 | AC-2   | Customer opens a same-range, different-time product         | `ui-flow`                  | `(09:00)`, `(11:30)`, `(14:00)`; no Option label                         | screenshot              |
 | QA-3 | AC-5   | Staff opens the same product in POS                         | `ui-flow`                  | Labels identical to QA-1                                                 | screenshot              |
 | QA-4 | AC-6   | Customer opens a product with a `start_time = null` variant | `ui-flow`, `console-clean` | Date range only, no parentheses; zero page errors                        | screenshot, console log |
-| QA-5 | —      | Stock and "places left" still follow each label             | `ui-flow`                  | Same strings as the pre-fix snapshot                                     | screenshot              |
+| QA-5 | —      | Stock and "places left" still follow each label             | `ui-flow`                  | Same strings as the pre-fix capture in the repro evidence                | screenshot              |
+| QA-6 | AC-1   | Customer opens the product on the legacy Ember minisite     | `ui-flow`                  | Same labels as QA-1                                                      | screenshot              |
 
 ### Exploratory charter
 
@@ -146,7 +147,7 @@ Variant dropdown in the eCommerce widget and POS. Probe: 1, 2 and 4+ parallel va
 
 ### QA record
 
-**local · 2026-06-24 · `http://localhost:4200/widget/4821` · working tree on `fix/OP-6979-variant-dropdown-labels` · agent-browser 0.43.0**
+**local · 2026-06-24 · `http://localhost:4200/widget/4821` · `fix/OP-6979-variant-dropdown-labels` at `HEAD 41d07be`, code `c3a9e1f0` · agent-browser 0.43.0**
 
 | #    | Result | Observed                                                    | Evidence                       |
 | ---- | ------ | ----------------------------------------------------------- | ------------------------------ |
@@ -155,8 +156,9 @@ Variant dropdown in the eCommerce widget and POS. Probe: 1, 2 and 4+ parallel va
 | QA-3 | pass   | POS labels match QA-1 exactly                               | `qa-3.png`                     |
 | QA-4 | pass   | `25-05-2026 → 29-05-2026`; 0 page errors; variant id logged | `qa-4.png`, `qa-4-console.txt` |
 | QA-5 | pass   | "3 places left" / "Sold out" unchanged after each label     | `qa-5.png`                     |
+| QA-6 | pass   | Minisite labels match QA-1                                  | `qa-6.png`                     |
 
-**Exploratory**: 1 finding — fixed: the dropdown lost keyboard focus after choosing a variant (pre-existing; `variant-select.js:57`, tests + review re-run, re-run clean).
+**Exploratory**: 1 finding — fixed: the dropdown lost keyboard focus after choosing a variant (pre-existing; `variant-select.js:57`, regression test `variant-select.test.js` added, tests + review re-run, re-run clean).
 
 **Evidence**: `specs/qa/runs/001-variant-dropdown-labels/2026-06-24-local/` (git-ignored)
 
@@ -169,6 +171,7 @@ Variant dropdown in the eCommerce widget and POS. Probe: 1, 2 and 4+ parallel va
 | QA-3 | pass   | POS labels match QA-1                             | `qa-3.png` |
 | QA-4 | pass   | Date range only; 0 page errors                    | `qa-4.png` |
 | QA-5 | pass   | Stock strings unchanged                           | `qa-5.png` |
+| QA-6 | pass   | Minisite labels match QA-1                        | `qa-6.png` |
 
 **Evidence**: `specs/qa/runs/001-variant-dropdown-labels/2026-06-25-staging/` (git-ignored)
 
