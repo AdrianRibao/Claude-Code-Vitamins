@@ -73,6 +73,7 @@ QA Progress:
 - [ ] 1. One session per role, logged in through the vault, each on the environment's origin
 - [ ] 1. (staging) Deployed build confirmed to contain the change
 - [ ] 2. Every QA-N run to the end — failures recorded, not stopped on
+- [ ] 2. Every screenshot captured this run opened and read; every altered screen has a `look` row that ran
 - [ ] 3. (local) Exploratory pass run with dogfood under the qa-runner overrides
 - [ ] 4. Every failure and finding triaged; defects fixed, re-tested, re-reviewed, re-run
 - [ ] 5. QA record written in the spec; sessions closed; hand-back report
@@ -110,10 +111,12 @@ QA Progress:
     - A missing element or a timed-out wait exits non-zero — that is a failure, not a reason to retry until it passes.
     - A read value (a count, an audit's violation counts, a share of differing pixels, a vitals number on staging) is compared to the condition explicitly; its exit code says nothing about the condition. On local, `vitals` numbers are recorded as `informational`, not judged.
 4. **Capture the evidence** the row names into the evidence directory.
-5. **`visual`**: `diff screenshot --threshold` is a per-pixel colour-distance tolerance (default 0.1), not the row's pixel budget. Keep the default unless the row says otherwise, and compare the share of differing pixels the diff reports with the row's budget.
+5. **Open every screenshot this run captures, and read it** — not only the `look` rows'. A screenshot filed unread is not evidence, it is an artifact: the run that proves a value is correct sees nothing of the screen it came from. Reading one costs a single Read call and is the only step in this phase that can find a defect no row thought to ask about. Anything it shows that the rows do not cover goes to Phase 4 like any other finding.
+6. **`look`**: judge against what a person would notice — controls of one value aligned, nothing overlapping, crowded or clipped, each state the change introduces readable. Say in the record what was seen, not that an image exists. A screen the change created or materially altered with no `look` row means the plan is incomplete: add the row, run it, and note the correction in the record.
+7. **`visual`**: `diff screenshot --threshold` is a per-pixel colour-distance tolerance (default 0.1), not the row's pixel budget. Keep the default unless the row says otherwise, and compare the share of differing pixels the diff reports with the row's budget.
     - No baseline yet: save the screenshot as a candidate, `<evidence directory>/baseline-candidates/<name>.png`, and ask the user with `AskUserQuestion` to approve it, giving the image path.
     - Approved -> copy it to `specs/qa/baselines/<name>.png` and record `pass (baseline approved YYYY-MM-DD)`. Rejected -> nothing enters `specs/qa/baselines/`; the layout is a defect, so triage it, and the re-run after the fix makes a new candidate and asks again.
-6. **No mocking outside local**: `network route` (blocking or faking requests) only on local, and only when the row says so. On staging such a row is `skipped — mocks requests`.
+8. **No mocking outside local**: `network route` (blocking or faking requests) only on local, and only when the row says so. On staging such a row is `skipped — mocks requests`.
 
 ### Phase 3: Exploratory Pass (local)
 
@@ -165,6 +168,7 @@ For a UI change, the local run is part of the calling workflow's pre-commit gate
 | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Engine**      | agent-browser passed `doctor --offline`; no other tool stood in for it                                                                                                                                                     |
 | **Checks**      | Every `QA-N` has a result the gate accepts (see [Results](style-guide.md#results)) — none is `fail` or awaiting approval                                                                                                   |
+| **Looked at**   | Every screen the change created or materially altered has a `look` row that ran, and every screenshot the run captured was opened and read — a plan with no `look` row did not pass, it was never judged                   |
 | **Exploratory** | The dogfood pass ran; every defect on touched screens or caused by the change is fixed, every pre-existing defect elsewhere filed with `/bugfix`, every improvement filed, every dismissal reasoned, every deferral quoted |
 | **Recorded**    | The QA record is in the spec, dated, naming the build and the evidence directory                                                                                                                                           |
 

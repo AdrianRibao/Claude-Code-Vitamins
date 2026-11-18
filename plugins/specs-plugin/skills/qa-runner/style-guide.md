@@ -80,22 +80,27 @@ The plan says WHAT to check and what passing looks like — never an agent-brows
 
 ## Capabilities (Closed List)
 
-| Capability      | Checks that…                               | agent-browser feature                                     | `Passes when` example                                                 |
-| --------------- | ------------------------------------------ | --------------------------------------------------------- | --------------------------------------------------------------------- |
-| `ui-flow`       | A journey renders and responds             | snapshot + click/fill, wait for text or URL, `is` / `get` | Toast "Saved" visible; URL is `/records/:id`                          |
-| `dialog`        | Each branch of a confirm or prompt         | `dialog` status / accept / dismiss                        | Cancel leaves the row unchanged                                       |
-| `network`       | The UI sends or receives the right request | `network requests` filtered by URL, method, status        | `PATCH /records/:id` -> 200, exactly once                             |
-| `console-clean` | No uncaught errors during the flow         | `errors`, `console`                                       | Zero page errors and zero console errors during QA-1                  |
-| `a11y`          | Automated accessibility audit              | `a11y` (axe-core) with WCAG tags, scoped to a selector    | No serious or critical violations at WCAG 2.1 AA on `/checkout`       |
-| `responsive`    | Layout at a viewport or device             | `set viewport` / `set device`                             | Records render as cards at 375×812, no horizontal scroll              |
-| `visual`        | Layout matches the approved baseline       | `diff screenshot --baseline`                              | Under 1 % of pixels differ from `specs/qa/baselines/records-list.png` |
-| `vitals`        | Performance budget                         | `vitals`                                                  | LCP < 2.5 s and CLS < 0.1 on staging                                  |
+| Capability      | Checks that…                               | agent-browser feature                                     | `Passes when` example                                                        |
+| --------------- | ------------------------------------------ | --------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `ui-flow`       | A journey renders and responds             | snapshot + click/fill, wait for text or URL, `is` / `get` | Toast "Saved" visible; URL is `/records/:id`                                 |
+| `dialog`        | Each branch of a confirm or prompt         | `dialog` status / accept / dismiss                        | Cancel leaves the row unchanged                                              |
+| `network`       | The UI sends or receives the right request | `network requests` filtered by URL, method, status        | `PATCH /records/:id` -> 200, exactly once                                    |
+| `console-clean` | No uncaught errors during the flow         | `errors`, `console`                                       | Zero page errors and zero console errors during QA-1                         |
+| `a11y`          | Automated accessibility audit              | `a11y` (axe-core) with WCAG tags, scoped to a selector    | No serious or critical violations at WCAG 2.1 AA on `/checkout`              |
+| `responsive`    | Layout at a viewport or device             | `set viewport` / `set device`                             | Records render as cards at 375×812, no horizontal scroll                     |
+| `visual`        | Layout matches the approved baseline       | `diff screenshot --baseline`                              | Under 1 % of pixels differ from `specs/qa/baselines/records-list.png`        |
+| `look`          | The screen, **read** by the runner         | `screenshot`, then open the image and read it             | Inputs of one value share a top edge; nothing overlaps, crowds or is clipped |
+| `vitals`        | Performance budget                         | `vitals`                                                  | LCP < 2.5 s and CLS < 0.1 on staging                                         |
 
 The runner takes the syntax from `agent-browser skills get core`, `skills get core --ref commands` and `<command> --help` — this table names features, not commands. Rules:
 
 - **`dialog`**: one row per branch — a confirm has an accept row and a dismiss row.
 - **`network`** observes. Mocking or blocking requests is allowed only on local, and only when the row says so; on staging that row is `skipped — mocks requests`.
-- **`visual`**: the budget in `Passes when` is a share of differing pixels. agent-browser's `--threshold` is a per-pixel colour tolerance, not that budget. Baselines live in `specs/qa/baselines/`, are committed, and are approved by the user the first time the runner creates them.
+- **`look`** is the only capability that makes the runner **open the image and read it**. Every other row is blind to what it would see: `a11y` has no opinion on alignment or crowding, `responsive` sees only overflow (24 px of misalignment inside the page causes none), and `ui-flow` asserts the value a control holds, never where it sits. A screen can therefore be wrong in every visual way and pass a full plan.
+    - **Every plan whose change creates or materially alters a screen carries one `look` row per such screen.** No other capability satisfies it.
+    - Write its `Passes when` as what a person would notice: controls belonging to one value line up, no label or hint crowds a control, nothing is clipped or overlapping, and the states the change introduces (empty, filled, error) each read correctly.
+    - This exists because of a real run. A correction form shipped with the two inputs of one duration 24 px out of line; eighteen rows passed, including the axe audit and the 375 px measurement. The defect was in every screenshot that run filed as evidence, and nobody opened one until the spec's owner did.
+- **`visual`** needs an approved baseline, so on a screen's **first** run there is nothing to diff against — exactly when `look` is the only check there is. `visual` guards a screen against later drift; `look` judges it the first time. The budget in `Passes when` is a share of differing pixels. agent-browser's `--threshold` is a per-pixel colour tolerance, not that budget. Baselines live in `specs/qa/baselines/`, are committed, and are approved by the user the first time the runner creates them.
 - **`vitals`** gates only on staging. On local the result is `informational`; in a project without staging, write `informational — no staging` as the row's `Passes when`, since it can never gate.
 - A new capability is a change to this list (and to `qa-runner`), not something a spec invents.
 

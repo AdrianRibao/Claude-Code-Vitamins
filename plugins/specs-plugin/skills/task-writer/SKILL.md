@@ -157,6 +157,7 @@ Task Progress:
 7. **Verification**: the tests to add or run (unit for changed logic, E2E for a user-facing flow, unchanged-behavior tests for each Do-NOT-change item) and how to confirm the outcome in the running system.
 8. **QA plan** (UI changes only) from [the QA plan template](../qa-runner/templates/qa-plan.md), following the [QA style guide](../qa-runner/style-guide.md):
     - Checks that prove the Done-when criteria in the browser, with a capability and an observable `Passes when` each — never an agent-browser command.
+    - **One `look` row per screen the change creates or materially alters** — the row that makes the runner open the screenshot and read it. Value checks and the two audits see nothing of the screen: a form can have every value right and still ship with its controls out of line. No other capability substitutes.
     - Environments: local always, staging only when the project has one. Logins name agent-browser vault profiles, never credentials.
     - No UI change (API, backend, operational) -> no QA plan; Verification says `QA: n/a — no UI change`.
 9. **Next step**: the single concrete action that starts the work. Mandatory, even on a stub.

@@ -144,6 +144,7 @@ Bugfix Progress:
 5. **Design unchanged-behavior tests**: assertions that the "Do NOT change" items still hold after the fix.
 6. **Write the QA plan** (UI bugs only) from [the QA plan template](../qa-runner/templates/qa-plan.md), following the [QA style guide](../qa-runner/style-guide.md):
     - One check replays the ORIGINAL reproduction steps and confirms the symptom is gone; one check per blast-radius item visible in the UI.
+    - **One `look` row per screen the change creates or materially alters** — the row that makes the runner open the screenshot and read it. Value checks and the two audits see nothing of the screen: a form can have every value right and still ship with its controls out of line. No other capability substitutes.
     - Environments: local always, staging only when the project has one. Logins name agent-browser vault profiles, never credentials.
     - API or backend-only bugs get no QA plan — write `QA: n/a — no UI change` under Verification. There is no browser QA, but the fix is still confirmed at the live endpoint in Phase 4.
 

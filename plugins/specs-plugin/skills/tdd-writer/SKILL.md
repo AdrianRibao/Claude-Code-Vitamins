@@ -110,6 +110,7 @@ Requirements-first approach: every section answers "what" not "how". Use tables 
 6. **Specify**: Write requirements, data models, contracts, acceptance criteria in tables — cite fetched docs for every third-party value (method names, endpoints, payload fields, headers, scopes, error codes, quotas)
 7. **Write the QA Plan** (TDDs with UI only — any type, including the default combined) from the template's `## QA Plan`, following the [QA style guide](../qa-runner/style-guide.md):
     - Derive the checks from the PRD's user workflows and the UI acceptance criteria; each gets a capability and an observable `Passes when` — never an agent-browser command.
+    - **One `look` row per screen the change creates or materially alters** — the row that makes the runner open the screenshot and read it. Value checks and the two audits see nothing of the screen: a form can have every value right and still ship with its controls out of line. No other capability substitutes.
     - Environments: local always, staging only when the project has one. Logins name agent-browser vault profiles, never credentials.
     - A TDD without UI — backend, API, integration, or a combined TDD with no UI sections — gets no QA Plan and drops the two QA criteria from Testing; unit tests cover it.
     - No staging row -> drop the staging criterion from Testing.

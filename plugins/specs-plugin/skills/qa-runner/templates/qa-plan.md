@@ -21,10 +21,11 @@
 
 ### Checks
 
-| #    | Covers | Check                   | Capability | Passes when                                      | Evidence     |
-| ---- | ------ | ----------------------- | ---------- | ------------------------------------------------ | ------------ |
-| QA-1 | AC-1   | [role] [does the thing] | `ui-flow`  | [observable, specific]                           | screenshot   |
-| QA-2 | —      | [screen] accessibility  | `a11y`     | No serious or critical violations at WCAG 2.1 AA | audit report |
+| #    | Covers | Check                   | Capability | Passes when                                                                                                             | Evidence         |
+| ---- | ------ | ----------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| QA-1 | AC-1   | [role] [does the thing] | `ui-flow`  | [observable, specific]                                                                                                  | screenshot       |
+| QA-2 | —      | [screen] accessibility  | `a11y`     | No serious or critical violations at WCAG 2.1 AA                                                                        | audit report     |
+| QA-3 | —      | [screen], **looked at** | `look`     | Controls of one value line up; nothing overlaps, crowds or is clipped; each state the change introduces reads correctly | screenshot, read |
 
 \[Capabilities: `ui-flow`, `dialog`, `network`, `console-clean`, `a11y`, `responsive`, `visual`, `vitals`.\]
 
