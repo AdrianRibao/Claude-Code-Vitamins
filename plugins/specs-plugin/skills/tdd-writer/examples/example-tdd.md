@@ -404,14 +404,17 @@ No staging row: this project has no staging environment.
 
 ### Checks
 
-| #    | Covers             | Check                                             | Capability                 | Passes when                                                                                         | Evidence                |
-| ---- | ------------------ | ------------------------------------------------- | -------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------- |
-| QA-1 | Core Functionality | Owner creates a draft invoice with two line items | `ui-flow`, `console-clean` | Detail page shows status "Draft" and the subtotal, VAT and total of the two lines; zero page errors | screenshot, console log |
-| QA-2 | Status Management  | Owner sends the draft and confirms the dialog     | `dialog`, `ui-flow`        | Status "Sent"; no "Edit" action offered                                                             | screenshot              |
-| QA-3 | Status Management  | Owner starts sending and cancels the dialog       | `dialog`, `ui-flow`        | Status still "Draft"                                                                                | screenshot              |
-| QA-4 | Authorization      | Client opens an invoice sent to them              | `ui-flow`                  | No `internal_notes` or `paid_at` anywhere in the page, not just hidden                              | page snapshot           |
-| QA-5 | —                  | Invoice list accessibility                        | `a11y`                     | No serious or critical violations at WCAG 2.1 AA                                                    | audit report            |
-| QA-6 | UI                 | Invoice list on a phone                           | `responsive`               | Rows render as cards at 375×812, no horizontal scroll                                               | screenshot              |
+| #    | Covers             | Check                                                    | Capability                 | Passes when                                                                                         | Evidence                |
+| ---- | ------------------ | -------------------------------------------------------- | -------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------- |
+| QA-1 | Core Functionality | Owner creates a draft invoice with two line items        | `ui-flow`, `console-clean` | Detail page shows status "Draft" and the subtotal, VAT and total of the two lines; zero page errors | screenshot, console log |
+| QA-2 | Status Management  | Owner sends the draft and confirms the dialog            | `dialog`, `ui-flow`        | Status "Sent"; no "Edit" action offered                                                             | screenshot              |
+| QA-3 | Status Management  | Owner starts sending and cancels the dialog              | `dialog`, `ui-flow`        | Status still "Draft"                                                                                | screenshot              |
+| QA-4 | Authorization      | Client opens an invoice sent to them                     | `ui-flow`                  | No `internal_notes` or `paid_at` anywhere in the page, not just hidden                              | page snapshot           |
+| QA-5 | —                  | Invoice list accessibility                               | `a11y`                     | No serious or critical violations at WCAG 2.1 AA                                                    | audit report            |
+| QA-6 | UI                 | Invoice list on a phone                                  | `responsive`               | Rows render as cards at 375×812, no horizontal scroll                                               | screenshot              |
+| QA-7 | UI                 | Invoice list, **looked at**                              | `look`                     | Columns line up; status badges and totals align; the empty state reads correctly                    | screenshot, read        |
+| QA-8 | Validation         | Invoice form, **looked at** (empty, filled, with errors) | `look`                     | Line-item rows align; each error sits under its field without crowding it; nothing is clipped       | screenshot, read        |
+| QA-9 | UI                 | Invoice detail, **looked at**                            | `look`                     | Totals block aligns with line items; actions do not overlap the header                              | screenshot, read        |
 
 ### Exploratory Charter
 

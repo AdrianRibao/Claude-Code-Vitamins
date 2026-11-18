@@ -27,7 +27,7 @@
 | QA-2 | —      | [screen] accessibility  | `a11y`     | No serious or critical violations at WCAG 2.1 AA                                                                        | audit report     |
 | QA-3 | —      | [screen], **looked at** | `look`     | Controls of one value line up; nothing overlaps, crowds or is clipped; each state the change introduces reads correctly | screenshot, read |
 
-\[Capabilities: `ui-flow`, `dialog`, `network`, `console-clean`, `a11y`, `responsive`, `visual`, `vitals`.\]
+\[Capabilities: `ui-flow`, `dialog`, `network`, `console-clean`, `a11y`, `responsive`, `visual`, `look`, `vitals`.\]
 
 ### Exploratory charter
 

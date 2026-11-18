@@ -67,6 +67,7 @@ The plan says WHAT to check and what passing looks like — never an agent-brows
 | QA-1 | AC-1   | Admin archives a record and confirms         | `dialog`, `network` | Row shows "Archived"; `PATCH /records/:id` -> 200 once | screenshot, request log |
 | QA-2 | AC-1   | Admin archives a record and cancels          | `dialog`, `network` | Row unchanged; no `PATCH` sent                       | request log         |
 | QA-3 | —      | Records list accessibility                   | `a11y`              | No serious or critical violations at WCAG 2.1 AA     | audit report        |
+| QA-4 | AC-1 | Records list, **looked at** | `look` | Archive buttons and status badges line up on every row; the confirm dialog is centred and unclipped | screenshot, read |
 ```
 
 - **`#`**: `QA-1`, `QA-2`, … permanent within the spec.

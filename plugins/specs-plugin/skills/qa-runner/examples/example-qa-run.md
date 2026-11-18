@@ -20,14 +20,15 @@ The QA sections of task `012 — Archive records from the list` (a Small UI task
 
 ### Checks
 
-| #    | Covers | Check                                | Capability          | Passes when                                                   | Evidence                |
-| ---- | ------ | ------------------------------------ | ------------------- | ------------------------------------------------------------- | ----------------------- |
-| QA-1 | AC-1   | Admin archives a record and confirms | `dialog`, `network` | Row shows "Archived"; exactly one `PATCH /records/:id` -> 200 | screenshot, request log |
-| QA-2 | AC-1   | Admin archives a record and cancels  | `dialog`, `network` | Row unchanged; no `PATCH` sent                                | request log             |
-| QA-3 | AC-2   | Staff opens the records list         | `ui-flow`           | No "Archive" button on any row                                | screenshot              |
-| QA-4 | AC-1   | The QA-1 flow raises no errors       | `console-clean`     | Zero page errors and zero console errors                      | console log             |
-| QA-5 | —      | Records list accessibility           | `a11y`              | No serious or critical violations at WCAG 2.1 AA              | audit report            |
-| QA-6 | —      | Records list on a phone              | `responsive`        | Rows render as cards at 375×812, no horizontal scroll         | screenshot              |
+| #    | Covers | Check                                          | Capability          | Passes when                                                                                                                     | Evidence                |
+| ---- | ------ | ---------------------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| QA-1 | AC-1   | Admin archives a record and confirms           | `dialog`, `network` | Row shows "Archived"; exactly one `PATCH /records/:id` -> 200                                                                   | screenshot, request log |
+| QA-2 | AC-1   | Admin archives a record and cancels            | `dialog`, `network` | Row unchanged; no `PATCH` sent                                                                                                  | request log             |
+| QA-3 | AC-2   | Staff opens the records list                   | `ui-flow`           | No "Archive" button on any row                                                                                                  | screenshot              |
+| QA-4 | AC-1   | The QA-1 flow raises no errors                 | `console-clean`     | Zero page errors and zero console errors                                                                                        | console log             |
+| QA-5 | —      | Records list accessibility                     | `a11y`              | No serious or critical violations at WCAG 2.1 AA                                                                                | audit report            |
+| QA-6 | —      | Records list on a phone                        | `responsive`        | Rows render as cards at 375×812, no horizontal scroll                                                                           | screenshot              |
+| QA-7 | AC-1   | Records list and confirm dialog, **looked at** | `look`              | Archive buttons and status badges line up on every row; the dialog is centred and unclipped; the "Archived" badge reads clearly | screenshot, read        |
 
 ### Exploratory charter
 
@@ -45,6 +46,7 @@ Records list and record detail, as admin and staff. Probe: empty list, archiving
 | QA-4 | pass             | 0 page errors, 0 console errors                                                                                                                                                                               | `qa-4-console.txt`               |
 | QA-5 | pass             | 0 serious, 0 critical                                                                                                                                                                                         | `qa-5-a11y.json`                 |
 | QA-6 | pass             | Card layout, no horizontal scroll                                                                                                                                                                             | `qa-6.png`                       |
+| QA-7 | pass             | Buttons and badges aligned on every row; dialog centred, nothing clipped; "Archived" badge legible                                                                                                            | `qa-7.png`                       |
 
 **Exploratory**: 3 findings — fixed: pagination reset to page 1 after archiving the last row of page 2 (pre-existing, on the records list this task changes; `records_live.ex:88`, regression test added, tests + review re-run, list checks re-run clean); filed: bug 019 (record detail's "Back" link drops the list's sort order — pre-existing, on a screen this task does not touch); filed: task 013 (undo after archive — an improvement, not a defect).
 
@@ -52,13 +54,14 @@ Records list and record detail, as admin and staff. Probe: empty list, archiving
 
 **staging · 2026-11-18 · `https://staging.example.com` · build `a41c9e2` (confirmed in `/version`) · agent-browser 0.43.0**
 
-| #    | Result | Observed                                        | Evidence                         |
-| ---- | ------ | ----------------------------------------------- | -------------------------------- |
-| QA-1 | pass   | "Archived" shown; one `PATCH /records/7` -> 200 | `qa-1.png`, `qa-1-requests.json` |
-| QA-2 | pass   | Row unchanged; no `PATCH`                       | `qa-2-requests.json`             |
-| QA-3 | pass   | No "Archive" button as staff                    | `qa-3.png`                       |
-| QA-4 | pass   | 0 page errors, 0 console errors                 | `qa-4-console.txt`               |
-| QA-5 | pass   | 0 serious, 0 critical                           | `qa-5-a11y.json`                 |
-| QA-6 | pass   | Card layout at 375×812                          | `qa-6.png`                       |
+| #    | Result | Observed                                                                                           | Evidence                         |
+| ---- | ------ | -------------------------------------------------------------------------------------------------- | -------------------------------- |
+| QA-1 | pass   | "Archived" shown; one `PATCH /records/7` -> 200                                                    | `qa-1.png`, `qa-1-requests.json` |
+| QA-2 | pass   | Row unchanged; no `PATCH`                                                                          | `qa-2-requests.json`             |
+| QA-3 | pass   | No "Archive" button as staff                                                                       | `qa-3.png`                       |
+| QA-4 | pass   | 0 page errors, 0 console errors                                                                    | `qa-4-console.txt`               |
+| QA-5 | pass   | 0 serious, 0 critical                                                                              | `qa-5-a11y.json`                 |
+| QA-6 | pass   | Card layout at 375×812                                                                             | `qa-6.png`                       |
+| QA-7 | pass   | Buttons and badges aligned on every row; dialog centred, nothing clipped; "Archived" badge legible | `qa-7.png`                       |
 
 **Evidence**: `specs/qa/runs/012-archive-records/2026-11-18-staging/` (git-ignored)

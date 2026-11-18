@@ -109,10 +109,11 @@ Expected: [one line].
 
 ### Checks
 
-| #    | Covers | Check                                 | Capability | Passes when                         | Evidence   |
-| ---- | ------ | ------------------------------------- | ---------- | ----------------------------------- | ---------- |
-| QA-1 | AC-1   | [role] replays the reproduction steps | `ui-flow`  | [the symptom is gone: what is seen] | screenshot |
-| QA-2 | AC-N   | [blast-radius item visible in the UI] | `ui-flow`  | [unchanged behavior, observable]    | screenshot |
+| #    | Covers | Check                                  | Capability | Passes when                                                                                                             | Evidence         |
+| ---- | ------ | -------------------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| QA-1 | AC-1   | [role] replays the reproduction steps  | `ui-flow`  | [the symptom is gone: what is seen]                                                                                     | screenshot       |
+| QA-2 | AC-N   | [blast-radius item visible in the UI]  | `ui-flow`  | [unchanged behavior, observable]                                                                                        | screenshot       |
+| QA-3 | —      | [screen the fix alters], **looked at** | `look`     | Controls of one value line up; nothing overlaps, crowds or is clipped; each state the change introduces reads correctly | screenshot, read |
 
 ### Exploratory charter
 
